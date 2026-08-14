@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inventra ERP — Guia do Ciclo Completo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f14;
+    --bg2: #13161e;
+    --bg3: #1a1e29;
+    --border: rgba(255,255,255,0.07);
+    --border-hi: rgba(255,255,255,0.15);
+    --text: #e8e6df;
+    --text2: #8a8a8a;
+    --text3: #555;
+    --accent: #5b8aff;
+    --accent2: #a78bfa;
+    --green: #34d399;
+    --amber: #fbbf24;
+    --coral: #fb7185;
+    --teal: #22d3ee;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+  }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(91,138,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(91,138,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow orb */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 800px; height: 600px;
+    background: radial-gradient(ellipse, rgba(91,138,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    position: relative; z-index: 10;
+    padding: 3rem 2rem 2rem;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(91,138,255,0.04) 0%, transparent 100%);
+  }
+
+  .logo-chip {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(91,138,255,0.1);
+    border: 1px solid rgba(91,138,255,0.25);
+    border-radius: 20px;
+    padding: 5px 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.05em;
+  }
+  .logo-chip span { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+
+  h1 {
+    font-family: var(--font-head);
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin-bottom: 0.75rem;
+  }
+
+  h1 em {
+    font-style: normal;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .subtitle {
+    font-size: 15px;
+    color: var(--text2);
+    max-width: 480px;
+    margin: 0 auto 2rem;
+    line-height: 1.6;
+    font-weight: 300;
+  }
+
+  /* ─── PHASE TABS ─── */
+  .phase-nav {
+    display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;
+    padding: 1.25rem 2rem;
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(13,15,20,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .phase-btn {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 5px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border-hi);
+    background: transparent;
+    color: var(--text2);
+    cursor: pointer;
+    transition: all .2s;
+    letter-spacing: 0.04em;
+  }
+  .phase-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.3); }
+  .phase-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .phase-btn[data-phase="setup"].active { background: var(--accent2); border-color: var(--accent2); }
+  .phase-btn[data-phase="cadastro"].active { background: var(--teal); border-color: var(--teal); color: #0d0f14; }
+  .phase-btn[data-phase="operacao"].active { background: var(--amber); border-color: var(--amber); color: #0d0f14; }
+  .phase-btn[data-phase="dashboard"].active { background: var(--green); border-color: var(--green); color: #0d0f14; }
+
+  /* ─── LAYOUT ─── */
+  .container {
+    position: relative; z-index: 5;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    gap: 1.5rem;
+    align-items: start;
+  }
+
+  /* ─── STEP LIST ─── */
+  .step-list {
+    display: flex; flex-direction: column; gap: 4px;
+    position: sticky; top: 60px;
+  }
+
+  .step-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all .15s;
+    background: transparent;
+  }
+  .step-item:hover { background: var(--bg3); border-color: var(--border); }
+  .step-item.active {
+    background: var(--bg3);
+    border-color: var(--border-hi);
+  }
+
+  .step-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text3);
+    min-width: 20px;
+  }
+
+  .step-badge {
+    font-size: 9px;
+    font-family: var(--font-mono);
+    padding: 2px 7px;
+    border-radius: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .b-setup { background: rgba(167,139,250,0.15); color: var(--accent2); }
+  .b-cadastro { background: rgba(34,211,238,0.12); color: var(--teal); }
+  .b-operacao { background: rgba(251,191,36,0.12); color: var(--amber); }
+  .b-dashboard { background: rgba(52,211,153,0.12); color: var(--green); }
+
+  .step-title {
+    font-size: 12px;
+    color: var(--text2);
+    font-weight: 400;
+    transition: color .15s;
+    line-height: 1.3;
+  }
+  .step-item.active .step-title,
+  .step-item:hover .step-title { color: var(--text); }
+
+  .step-arrow {
+    text-align: center;
+    color: var(--text3);
+    font-size: 10px;
+    padding: 1px 0;
+  }
+
+  /* ─── DETAIL PANEL ─── */
+  .detail-panel {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 2rem;
+    min-height: 480px;
+    transition: all .2s;
+  }
+
+  .panel-header {
+    display: flex; align-items: flex-start; gap: 12px;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .panel-step-num {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text3);
+    padding-top: 4px;
+    min-width: 24px;
+  }
+
+  .panel-title {
+    font-family: var(--font-head);
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  .panel-desc {
+    font-size: 14px;
+    color: var(--text2);
+    line-height: 1.7;
+    margin-bottom: 1.5rem;
+    font-weight: 300;
+  }
+
+  /* Tables */
+  .tables-section { margin-bottom: 1.5rem; }
+
+  .tables-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  .table-block {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+
+  .table-header {
+    padding: 8px 14px;
+    background: rgba(255,255,255,0.03);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .table-name {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--accent);
+    font-weight: 500;
+  }
+
+  .field-row {
+    display: grid;
+    grid-template-columns: 180px 140px 1fr;
+    gap: 8px;
+    padding: 5px 14px;
+    font-size: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.03);
+    align-items: center;
+  }
+  .field-row:last-child { border-bottom: none; }
+
+  .field-name { font-family: var(--font-mono); color: var(--text); font-size: 11px; }
+  .field-type { font-family: var(--font-mono); font-size: 10px; color: var(--teal); }
+  .field-note { font-size: 11px; color: var(--text3); }
+
+  /* Queries section */
+  .queries-section { margin-bottom: 1.5rem; }
+  .query-item {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text2);
+    padding: 6px 14px;
+    background: var(--bg3);
+    border-radius: 6px;
+    margin-bottom: 6px;
+    border-left: 2px solid var(--green);
+  }
+
+  /* Tip */
+  .tip-box {
+    background: rgba(91,138,255,0.06);
+    border: 1px solid rgba(91,138,255,0.2);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--text2);
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Navigation buttons */
+  .nav-buttons {
+    display: flex; gap: 8px; margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+
+  .nav-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border-hi);
+    background: transparent;
+    color: var(--text2);
+    font-family: var(--font-body);
+    font-size: 13px;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .nav-btn:hover:not(:disabled) { background: var(--bg3); color: var(--text); border-color: var(--border-hi); }
+  .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .nav-btn.next { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+  .nav-btn.next:hover { opacity: 0.85; }
+
+  /* ─── PROGRESS BAR ─── */
+  .progress-bar-wrap {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 50;
+    height: 3px;
+    background: rgba(255,255,255,0.05);
+  }
+  .progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width .3s ease;
+  }
+
+  /* ─── PHASE SECTION HEADER ─── */
+  .phase-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 0 4px;
+    margin-top: 4px;
+  }
+  .phase-header-line { flex: 1; height: 1px; background: var(--border); }
+  .phase-header-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text3);
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 700px) {
+    .container { grid-template-columns: 1fr; }
+    .step-list { position: static; display: none; }
+    .step-list.mobile-open { display: flex; }
+  }
+
+  /* ─── FADE IN ─── */
+  .detail-panel { animation: fadeIn .2s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* Empty state */
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 300px; color: var(--text3);
+    font-size: 14px; gap: 8px;
+  }
+  .empty-state span { font-size: 32px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo-chip"><span></span> inventra · erp</div>
+  <h1>Ciclo completo do<br><em>sistema de estoque</em></h1>
+  <p class="subtitle">Do cadastro de usuários até os dashboards — todas as 15 etapas do fluxo, tabelas e campos do modelo lógico.</p>
+</header>
+
+<nav class="phase-nav">
+  <button class="phase-btn active" data-phase="all" onclick="filterPhase('all')">Todos</button>
+  <button class="phase-btn" data-phase="setup" onclick="filterPhase('setup')">Configuração</button>
+  <button class="phase-btn" data-phase="cadastro" onclick="filterPhase('cadastro')">Cadastros</button>
+  <button class="phase-btn" data-phase="operacao" onclick="filterPhase('operacao')">Operação</button>
+  <button class="phase-btn" data-phase="dashboard" onclick="filterPhase('dashboard')">Dashboard</button>
+</nav>
+
+<main class="container">
+  <aside id="step-list" class="step-list"></aside>
+  <section id="detail-panel" class="detail-panel">
+    <div class="empty-state"><span>→</span><p>Selecione uma etapa ao lado</p></div>
+  </section>
+</main>
+
+<div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+
+<script>
+const PHASES = {
+  setup: { label: 'Config', color: 'b-setup' },
+  cadastro: { label: 'Cadastro', color: 'b-cadastro' },
+  operacao: { label: 'Operação', color: 'b-operacao' },
+  dashboard: { label: 'Dashboard', color: 'b-dashboard' },
+};
+
+const steps = [
+  {
+    id:1, phase:'setup', title:'Criar perfil de acesso',
+    desc:'Antes de criar qualquer usuário, defina os perfis de acesso. Cada perfil determina o que o usuário pode ver e fazer no sistema. Modelo RBAC básico — a lógica de permissões fica na aplicação.',
+    tables:{
+      tb_perfil:[
+        {name:'id_perfil',type:'INTEGER PK',note:'auto-incremento'},
+        {name:'tipo_ace...',type:'VARCHAR(50)',note:'ex: admin, gestor, operador'},
+        {name:'descri...',type:'VARCHAR(255)',note:'descrição das permissões'},
+      ]
+    },
+    tip:'💡 Crie ao menos: Administrador, Gestor de Cozinha, Operador e Auditor antes de criar usuários.'
+  },
+  {
+    id:2, phase:'setup', title:'Cadastrar cozinha',
+    desc:'O sistema é multi-cozinha. Cada unidade operacional é uma "cozinha". Quase tudo no sistema é vinculado a uma cozinha — usuários, produtos, estoques, inventários e requisições.',
+    tables:{
+      tb_cozinha:[
+        {name:'id_cozinha',type:'INTEGER PK',note:'auto-incremento'},
+        {name:'nome',type:'VARCHAR(120)',note:'nome da unidade'},
+        {name:'codigo',type:'VARCHAR(20)',note:'código interno'},
+        {name:'ender...',type:'VARCHAR(255)',note:'endereço físico'},
+        {name:'ativo',type:'BOOLEAN',note:'ativa ou desativada'},
+        {name:'criado_em',type:'TIMESTAMP',note:'preenchido automaticamente'},
+      ]
+    },
+    tip:'💡 Um usuário pode ser vinculado a uma cozinha específica (id_cozinha em tb_usuario).'
+  },
+  {
+    id:3, phase:'setup', title:'Criar usuário',
+    desc:'Crie o usuário, vincule ao perfil e à cozinha. O id_usuario é UUID — garante unicidade global mesmo em ambientes distribuídos. Nunca armazene senha em texto puro — use hash (bcrypt, argon2).',
+    tables:{
+      tb_usuario:[
+        {name:'id_usuario',type:'UUID PK',note:'gerado automaticamente (uuid_generate_v4)'},
+        {name:'nome',type:'VARCHAR(120)',note:''},
+        {name:'email',type:'VARCHAR(150)',note:'login do usuário, único'},
+        {name:'senha_hash',type:'VARCHAR(255)',note:'hash bcrypt, nunca plain text'},
+        {name:'cargo',type:'VARCHAR(80)',note:'cargo livre, ex: chef de cozinha'},
+        {name:'id_cozinha',type:'INTEGER FK',note:'cozinha principal do usuário'},
+        {name:'id_perfil',type:'INTEGER FK',note:'perfil de acesso'},
+        {name:'ativo',type:'BOOLEAN',note:'suspender sem deletar'},
+        {name:'ultimo_login',type:'TIMESTAMP',note:'rastreia último acesso'},
+        {name:'criado_em',type:'TIMESTAMP',note:''},
+      ]
+    },
+    tip:'💡 O campo ativo permite suspender acesso sem perder histórico de ações do usuário.'
+  },
+  {
+    id:4, phase:'cadastro', title:'Cadastrar fornecedor',
+    desc:'Fornecedores são vinculados a produtos via tb_produto_fornecedor. Um produto pode ter múltiplos fornecedores com preços e lead times diferentes. O campo nota_avalia permite ranquear fornecedores.',
+    tables:{
+      tb_fornecedor:[
+        {name:'id_fornece...',type:'INTEGER PK',note:''},
+        {name:'nome_j...',type:'VARCHAR(150)',note:'razão social'},
+        {name:'cnpj',type:'VARCHAR(18)',note:'ex: 00.000.000/0001-00'},
+        {name:'email',type:'VARCHAR(150)',note:''},
+        {name:'whatsa...',type:'VARCHAR(20)',note:'contato rápido por WhatsApp'},
+        {name:'nota_avali...',type:'INTEGER',note:'0-10, avaliação do fornecedor'},
+        {name:'ativo',type:'BOOLEAN',note:''},
+        {name:'criado_em',type:'TIMESTAMP',note:''},
+      ]
+    },
+    tip:'💡 nota_avalia permite ranquear e comparar fornecedores nos dashboards de compras.'
+  },
+  {
+    id:5, phase:'cadastro', title:'Cadastrar unidade de medida',
+    desc:'Defina as unidades de medida antes de criar produtos. Produtos são vinculados a uma unidade padrão, que determina como os saldos são exibidos e somados.',
+    tables:{
+      tb_unidade_medida:[
+        {name:'id_unidade',type:'INTEGER PK',note:''},
+        {name:'sigla',type:'VARCHAR(10)',note:'ex: kg, L, cx, un, pct'},
+        {name:'descricao',type:'VARCHAR(60)',note:'ex: Quilograma, Litro, Caixa'},
+      ]
+    },
+    tip:'💡 Crie todas as unidades antes de cadastrar produtos. Inclua versões para peso, volume e contagem.'
+  },
+  {
+    id:6, phase:'cadastro', title:'Cadastrar categoria',
+    desc:'Categorias organizam os produtos para filtros em relatórios e dashboards. Estrutura simples: nome e descrição.',
+    tables:{
+      tb_categoria:[
+        {name:'id_categ...',type:'INTEGER PK',note:''},
+        {name:'nome',type:'VARCHAR(80)',note:'ex: Proteínas, Hortifrutis, Laticínios'},
+        {name:'descricao',type:'TEXT',note:'descrição opcional da categoria'},
+      ]
+    },
+    tip:'💡 Boas categorias: Carnes, Hortifrutis, Laticínios, Secos/Grãos, Bebidas, Descartáveis.'
+  },
+  {
+    id:7, phase:'cadastro', title:'Cadastrar produto',
+    desc:'O produto é o coração do sistema. Vincula categoria e unidade. Depois, configure os parâmetros por cozinha (mínimo, máximo, consumo médio) e vincule os fornecedores com seus preços e lead times.',
+    tables:{
+      tb_produto:[
+        {name:'id_produto',type:'INTEGER PK',note:''},
+        {name:'nome',type:'VARCHAR',note:'nome do produto'},
+        {name:'marca',type:'VARCHAR(80)',note:'opcional'},
+        {name:'id_categoria',type:'INTEGER FK',note:'categoria do produto'},
+        {name:'id_unidade',type:'INTEGER FK',note:'unidade de medida padrão'},
+        {name:'codigo...',type:'VARCHAR(50)',note:'código interno ou EAN'},
+        {name:'foto_url',type:'VARCHAR(255)',note:'URL da imagem'},
+        {name:'ativo',type:'BOOLEAN',note:''},
+        {name:'criado_em',type:'TIMESTAMP',note:''},
+      ],
+      tb_produto_parametro_cozinha:[
+        {name:'id_produto',type:'FK',note:'chave composta com id_cozinha'},
+        {name:'id_cozinha',type:'FK',note:'parâmetros diferentes por cozinha!'},
+        {name:'estoq...min',type:'DECIMAL(12,3)',note:'nível mínimo → dispara alerta'},
+        {name:'esto...max',type:'DECIMAL(12,3)',note:'nível máximo de armazenamento'},
+        {name:'cons...med',type:'DECIMAL(12,3)',note:'consumo médio por período'},
+      ],
+      tb_produto_fornecedor:[
+        {name:'id_produto',type:'FK',note:''},
+        {name:'id_fornece...',type:'FK',note:'vários fornecedores por produto'},
+        {name:'codigo...',type:'VARCHAR(50)',note:'código do produto no fornecedor'},
+        {name:'prec...',type:'DECIMAL(12,2)',note:'preço de custo unitário'},
+        {name:'lead_time_d...',type:'INTEGER',note:'dias para entrega'},
+      ]
+    },
+    tip:'💡 tb_produto_parametro_cozinha define os limites POR UNIDADE — a mesma farinha pode ter estoques mínimos diferentes em cada cozinha.'
+  },
+  {
+    id:8, phase:'operacao', title:'Criar inventário',
+    desc:'Um inventário é uma sessão de contagem de estoque associada a uma cozinha. O responsável é rastreado pelo UUID. Enquanto "aberto", as contagens podem ser ajustadas. Ao fechar, as divergências ficam registradas.',
+    tables:{
+      tb_inventario:[
+        {name:'id_invent...',type:'INTEGER PK',note:''},
+        {name:'id_cozinha',type:'FK',note:'qual cozinha está sendo inventariada'},
+        {name:'id_usuario_respo...',type:'UUID FK',note:'usuário responsável'},
+        {name:'data_inicio',type:'TIMESTAMP',note:'abertura do inventário'},
+        {name:'data_fech...',type:'TIMESTAMP',note:'fechamento — NULL se aberto'},
+        {name:'status',type:'VARCHAR(20)',note:'aberto → fechado'},
+        {name:'obser...',type:'VARCHAR(255)',note:'observações gerais'},
+      ]
+    },
+    tip:'💡 Boas práticas: faça inventários periódicos (semanal, quinzenal) por categoria, não tudo de uma vez.'
+  },
+  {
+    id:9, phase:'operacao', title:'Registrar entrada (lote)',
+    desc:'Cada entrada de mercadoria cria um lote em tb_estoque_lote. O lote rastreia nota fiscal, número do lote do fornecedor, validade e custo unitário. O saldo atual (qtd_at) diminui conforme o produto é consumido.',
+    tables:{
+      tb_estoque_lote:[
+        {name:'id_lote',type:'INTEGER PK',note:''},
+        {name:'id_produto',type:'FK',note:''},
+        {name:'id_cozinha',type:'FK',note:''},
+        {name:'id_fornecedor',type:'FK',note:'de qual fornecedor veio'},
+        {name:'numero_j...',type:'VARCHAR(50)',note:'número da nota fiscal'},
+        {name:'numero_...',type:'VARCHAR(50)',note:'nº lote do fornecedor'},
+        {name:'qtd_ini...',type:'DECIMAL(12,3)',note:'quantidade que entrou'},
+        {name:'qtd_at...',type:'DECIMAL(12,3)',note:'saldo atual do lote'},
+        {name:'data_entrada',type:'DATE',note:''},
+        {name:'data_validade',type:'DATE',note:'controle de vencimento'},
+        {name:'prec...',type:'DECIMAL(12,2)',note:'custo unitário na entrada'},
+        {name:'status',type:'VARCHAR(20)',note:'ativo → consumido / vencido'},
+      ]
+    },
+    tip:'💡 Saldo real do produto = SUM(qtd_at) WHERE status = "ativo" AND id_produto = X AND id_cozinha = Y.'
+  },
+  {
+    id:10, phase:'operacao', title:'Contagem de inventário',
+    desc:'Dentro de um inventário aberto, o operador registra a contagem física por lote. O sistema calcula automaticamente a divergência (real - sistema). Positivo = sobra, negativo = falta.',
+    tables:{
+      tb_inventario_contagem_:[
+        {name:'id_conta...',type:'INTEGER PK',note:''},
+        {name:'id_inventario',type:'FK',note:'a qual sessão pertence'},
+        {name:'id_lote',type:'FK',note:'qual lote foi contado'},
+        {name:'qtd_re...',type:'DECIMAL(12,3)',note:'quantidade real contada'},
+        {name:'qtd_fis...',type:'DECIMAL(12,3)',note:'quantidade esperada (sistema)'},
+        {name:'diver...',type:'DECIMAL(12,2)',note:'diferença = real - sistema'},
+        {name:'obser...',type:'VARCHAR(255)',note:'motivo da divergência'},
+      ]
+    },
+    tip:'💡 Após fechar o inventário, atualize qtd_at dos lotes com as divergências para sincronizar o saldo.'
+  },
+  {
+    id:11, phase:'operacao', title:'Criar requisição',
+    desc:'Uma requisição é um pedido interno de saída de produto. Criada por um operador, passa por aprovação de um gestor antes de movimentar o estoque. Rastreia quem pediu, quem aprovou e quando.',
+    tables:{
+      tb_requisicao:[
+        {name:'id_requis...',type:'INTEGER PK',note:''},
+        {name:'tipo_req...',type:'VARCHAR(20)',note:'consumo, transferência, compra'},
+        {name:'origem',type:'VARCHAR(20)',note:'origem do pedido'},
+        {name:'status',type:'VARCHAR(20)',note:'pendente→aprovada→concluída'},
+        {name:'motivo',type:'VARCHAR(255)',note:'justificativa do pedido'},
+        {name:'id_cozinha',type:'FK',note:'cozinha solicitante'},
+        {name:'id_usuario_requis...',type:'UUID FK',note:'quem criou o pedido'},
+        {name:'id_usuario_apro...',type:'UUID FK',note:'quem aprovou (NULL até aprovação)'},
+        {name:'data_hora',type:'TIMESTAMP',note:'criação da requisição'},
+        {name:'data_apr...',type:'TIMESTAMP',note:'data da aprovação'},
+      ],
+      tb_requisicao_item:[
+        {name:'id_requis...',type:'FK',note:'a qual requisição pertence'},
+        {name:'id_produto',type:'FK',note:'produto solicitado'},
+        {name:'id_fornece...',type:'FK',note:'fornecedor sugerido (opcional)'},
+        {name:'quanti...',type:'DECIMAL(12,3)',note:'quantidade solicitada'},
+        {name:'prec...',type:'DECIMAL(12,2)',note:'preço de referência na data'},
+        {name:'obser...',type:'VARCHAR(255)',note:'observação do item'},
+      ]
+    },
+    tip:'💡 Fluxo de status: pendente → aprovada → em_separacao → concluída / cancelada.'
+  },
+  {
+    id:12, phase:'operacao', title:'Alertas automáticos',
+    desc:'O sistema gera alertas baseados em regras: estoque abaixo do mínimo, lote próximo do vencimento, divergências de inventário. O campo "lido" rastreia se o usuário reconheceu o alerta.',
+    tables:{
+      tb_alerta:[
+        {name:'id_alerta',type:'INTEGER PK',note:''},
+        {name:'tipo',type:'VARCHAR(38)',note:'estoque_minimo, vencimento, divergencia'},
+        {name:'severida...',type:'VARCHAR(10)',note:'alta, media, baixa'},
+        {name:'id_lote',type:'FK',note:'lote que disparou o alerta'},
+        {name:'id_produto',type:'FK',note:''},
+        {name:'id_cozinha',type:'FK',note:''},
+        {name:'mensag...',type:'VARCHAR(255)',note:'texto descritivo do alerta'},
+        {name:'lido',type:'BOOLEAN',note:'usuário reconheceu?'},
+        {name:'criado_em',type:'TIMESTAMP',note:''},
+      ]
+    },
+    tip:'💡 Lógica: compare qtd_at (lote) com estoq_min (tb_produto_parametro_cozinha). Se qtd_at < estoq_min → crie alerta.'
+  },
+  {
+    id:13, phase:'dashboard', title:'Dashboard de estoque',
+    desc:'Visão consolidada da posição de estoque por cozinha: saldo atual vs. mínimo/máximo, alertas ativos, produtos próximos do vencimento e comparação entre cozinhas.',
+    tables:{},
+    queries:[
+      'Saldo atual: SELECT id_produto, SUM(qtd_at) FROM tb_estoque_lote WHERE status=\'ativo\' GROUP BY id_produto',
+      'Abaixo do mínimo: JOIN tb_produto_parametro_cozinha WHERE qtd_at < estoq_min',
+      'Validades próximas: WHERE data_validade BETWEEN NOW() AND NOW() + INTERVAL \'30 days\'',
+      'Alertas não lidos: WHERE lido = false ORDER BY criado_em DESC',
+    ],
+    tip:'💡 Use views materializadas para essas queries em produção — são pesadas com alto volume de lotes.'
+  },
+  {
+    id:14, phase:'dashboard', title:'Dashboard de requisições',
+    desc:'Acompanhe volume por status, custo total solicitado, produtos mais requisitados, tempo médio de aprovação e histórico por cozinha.',
+    tables:{},
+    queries:[
+      'Por status: SELECT status, COUNT(*) FROM tb_requisicao GROUP BY status',
+      'Custo total: SELECT id_requisicao, SUM(quanti * prec) AS total FROM tb_requisicao_item GROUP BY 1',
+      'Top produtos: SELECT id_produto, SUM(quanti) FROM tb_requisicao_item GROUP BY 1 ORDER BY 2 DESC',
+      'Tempo aprovação: AVG(EXTRACT(EPOCH FROM (data_apr - data_hora))/3600) AS horas_médias',
+    ],
+    tip:'💡 Sempre filtre por id_cozinha para dashboards por unidade — nunca misture dados de cozinhas diferentes.'
+  },
+  {
+    id:15, phase:'dashboard', title:'Dashboard de inventários',
+    desc:'Analise divergências de inventário: valor financeiro das perdas, produtos com mais ocorrências, acurácia por cozinha e evolução histórica de inventários.',
+    tables:{},
+    queries:[
+      'Divergências: SELECT id_produto, SUM(diver) FROM tb_inventario_contagem GROUP BY id_produto',
+      'Valor das perdas: JOIN tb_estoque_lote para cruzar diver × prec (custo unitário)',
+      'Acurácia: % de itens onde ABS(diver) < 0.01 por inventário',
+      'Histórico: inventários fechados agrupados por mês e cozinha',
+    ],
+    tip:'💡 Cruzar diver com prec do lote transforma a divergência física em valor financeiro — essencial para gestão.'
+  },
+];
+
+let currentPhase = 'all';
+let currentStepId = 1;
+
+function getFiltered() {
+  return currentPhase === 'all' ? steps : steps.filter(s => s.phase === currentPhase);
+}
+
+function filterPhase(phase) {
+  currentPhase = phase;
+  document.querySelectorAll('.phase-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.phase === phase);
+  });
+  const filtered = getFiltered();
+  if (!filtered.find(s => s.id === currentStepId)) {
+    currentStepId = filtered[0]?.id;
+  }
+  renderAll();
+}
+
+function selectStep(id) {
+  currentStepId = id;
+  renderAll();
+  document.getElementById('detail-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function renderAll() {
+  renderList();
+  renderDetail();
+  renderProgress();
+}
+
+function renderList() {
+  const list = document.getElementById('step-list');
+  const filtered = getFiltered();
+
+  let html = '';
+  let lastPhase = null;
+
+  filtered.forEach((s, i) => {
+    if (s.phase !== lastPhase) {
+      if (lastPhase !== null) html += `<div class="step-arrow">·</div>`;
+      html += `<div class="phase-header"><div class="phase-header-line"></div><span class="phase-header-label">${PHASES[s.phase].label}</span><div class="phase-header-line"></div></div>`;
+      lastPhase = s.phase;
+    }
+    html += `
+      <div class="step-item ${s.id === currentStepId ? 'active' : ''}" onclick="selectStep(${s.id})">
+        <span class="step-num">${String(s.id).padStart(2,'0')}</span>
+        <span class="step-badge ${PHASES[s.phase].color}">${PHASES[s.phase].label}</span>
+        <span class="step-title">${s.title}</span>
+      </div>
+    `;
+    if (i < filtered.length - 1 && filtered[i+1].phase === s.phase) {
+      html += `<div class="step-arrow">↓</div>`;
+    }
+  });
+
+  list.innerHTML = html;
+}
+
+function renderDetail() {
+  const s = steps.find(x => x.id === currentStepId);
+  const panel = document.getElementById('detail-panel');
+  if (!s) { panel.innerHTML = '<div class="empty-state"><span>→</span><p>Selecione uma etapa</p></div>'; return; }
+
+  const tableHtml = Object.entries(s.tables || {}).map(([tname, fields]) => `
+    <div class="table-block">
+      <div class="table-header">
+        <span class="table-name">${tname}</span>
+      </div>
+      ${fields.map(f => `
+        <div class="field-row">
+          <span class="field-name">${f.name}</span>
+          <span class="field-type">${f.type}</span>
+          <span class="field-note">${f.note}</span>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+
+  const queriesHtml = s.queries ? `
+    <div class="queries-section">
+      <div class="tables-label">Queries / Métricas</div>
+      ${s.queries.map(q => `<div class="query-item">${q}</div>`).join('')}
+    </div>
+  ` : '';
+
+  const filtered = getFiltered();
+  const idx = filtered.findIndex(x => x.id === s.id);
+  const prev = filtered[idx - 1];
+  const next = filtered[idx + 1];
+
+  panel.innerHTML = `
+    <div class="panel-header">
+      <span class="panel-step-num">${String(s.id).padStart(2,'0')}</span>
+      <div>
+        <span class="step-badge ${PHASES[s.phase].color}" style="margin-bottom:6px;display:inline-block;">${PHASES[s.phase].label}</span>
+        <div class="panel-title">${s.title}</div>
+      </div>
+    </div>
+    <p class="panel-desc">${s.desc}</p>
+    ${Object.keys(s.tables||{}).length ? `<div class="tables-section"><div class="tables-label">Tabelas envolvidas</div>${tableHtml}</div>` : ''}
+    ${queriesHtml}
+    ${s.tip ? `<div class="tip-box">${s.tip}</div>` : ''}
+    <div class="nav-buttons">
+      <button class="nav-btn" onclick="selectStep(${prev?.id})" ${!prev ? 'disabled' : ''}>← ${prev ? prev.title : ''}</button>
+      <button class="nav-btn next" onclick="selectStep(${next?.id})" ${!next ? 'disabled' : ''}>${next ? next.title : 'Fim'} →</button>
+    </div>
+  `;
+}
+
+function renderProgress() {
+  const filtered = getFiltered();
+  const idx = filtered.findIndex(x => x.id === currentStepId);
+  const pct = filtered.length > 1 ? ((idx + 1) / filtered.length) * 100 : 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+}
+
+// Init
+renderAll();
+</script>
+</body>
+</html>
