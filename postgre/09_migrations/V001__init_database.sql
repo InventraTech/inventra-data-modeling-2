@@ -299,3 +299,21 @@ ADD CONSTRAINT ck_fornecedor_nota
 CHECK (nota_avaliacao BETWEEN 1 AND 5);
 
 ALTER TABLE tb_estoque_lote
+ADD CONSTRAINT ck_lote_status 
+CHECK (status IN ('ATIVO', 'BAIXA', 'VENCIDO', 'CANCELADO'));
+
+ALTER TABLE tb_requisicao
+ADD CONSTRAINT ck_requisicao_status 
+CHECK (status IN ('EM_ANALISE', 'APROVADO', 'REPROVADO', 'CANCELADO'));
+
+ALTER TABLE tb_requisicao
+ADD CONSTRAINT ck_requisicao_tipo 
+CHECK (tipo_requisicao IN ('COMPRA', 'TRANSFERENCIA', 'CONSUMO'));
+
+ALTER TABLE tb_inventario
+ADD CONSTRAINT ck_inventario_status 
+CHECK (status IN ('ABERTO', 'FECHADO', 'CANCELADO'));
+
+ALTER TABLE tb_alerta
+ADD CONSTRAINT ck_alerta_severidade 
+CHECK (severidade IN ('BAIXA', 'MEDIA', 'ALTA', 'CRITICA'));
