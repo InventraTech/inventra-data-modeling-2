@@ -1,5 +1,5 @@
 -- ---------------------------------------------------
--- CHAVES ESTRANGEIRAS
+-- CRIAÇÃO DE CHAVES ESTRANGEIRAS
 -- ---------------------------------------------------
 
 ALTER TABLE tb_usuario
@@ -123,7 +123,7 @@ FOREIGN KEY (id_lote) REFERENCES tb_estoque_lote (id_lote)
 ON UPDATE NO ACTION ON DELETE NO ACTION;
 
 -- ---------------------------------------------------
--- CONSTRAINTS DE CHECK (REGRAS DE NEGÓCIO)
+-- CRIAÇÃO DE CONSTRAINTS DE CHECK 
 -- ---------------------------------------------------
 
 ALTER TABLE tb_fornecedor

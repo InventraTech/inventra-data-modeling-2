@@ -1,5 +1,5 @@
 -- ---------------------------------------------------
--- ROLLBACK: DROP INDEXES
+-- ROLLBACK DE   INDEXES
 -- ---------------------------------------------------
 
 DROP INDEX IF EXISTS idx_usuario_perfil;

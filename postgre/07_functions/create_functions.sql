@@ -1,8 +1,8 @@
--- ===================================================
--- FUNCTIONS
--- ===================================================
+-- ---------------------------------------------------
+-- CRIAÇÃO DE FUNCTIONS
+-- ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION fn_validar_estoque()
+CREATE FUNCTION fn_validar_estoque()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS
@@ -20,7 +20,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION fn_atualizar_status_lote()
+CREATE FUNCTION fn_atualizar_status_lote()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS
@@ -39,7 +39,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION fn_calcular_divergencia()
+CREATE FUNCTION fn_calcular_divergencia()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS
@@ -54,7 +54,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION fn_aprovacao_requisicao()
+CREATE FUNCTION fn_aprovacao_requisicao()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS
@@ -73,7 +73,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION fn_alerta_estoque()
+CREATE FUNCTION fn_alerta_estoque()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS
@@ -134,7 +134,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION fn_alerta_validade()
+CREATE FUNCTION fn_alerta_validade()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS

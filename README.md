@@ -1,37 +1,32 @@
 # 📦 Inventra Database
 
-> **Repo utilizado para produção dos bancos de dados que serão utilizados no projeto interdisciplinar "Inventra".**
+> **Repo utilizado para produção do banco de dados que sera utilizado no projeto interdisciplinar "Inventra".**
 
 ---
 
 ## 📋 Sobre o Projeto
 
-Este repositório contém a **estrutura completa do banco de dados** do sistema **Inventra** — um sistema de gestão de estoque e cozinhas industriais. O projeto segue **boas práticas de engenharia de dados**, com versionamento de migrations, scripts de rollback e documentação técnica.
+Este repositório contém a **estrutura completa do banco de dados** do sistema **Inventra** — um sistema de gestão de estoque e cozinhas industriais. O projeto adota uma arquitetura de **Dicionário Estrito vs. Esteira de Migrations**, garantindo scripts idempotentes (seguros para múltiplas execuções), versionamento inteligente, auditoria embutida e excelente documentação técnica.
 
 ---
 
 ## 🗂️ Estrutura do Projeto
 
-```
+O projeto é dividido em **Dicionário de Dados** (Pastas 01 a 08) contendo os códigos estritos e isolados, e a **Esteira de Execução** (`09_migrations`), contendo os scripts consolidados e à prova de falhas.
+
+```text
 postgre/
-├── 01_modelagem/                    # Modelagem de dados
-│   └── logico/
-│       └── V1/                      # Versão 1 do modelo lógico
+├── 01_modelagem/                    # Modelagem de dados (Conceitual e Lógico)
+├── 02_ddl/                          # Dicionário de Criação (Tabelas, Constraints, Indexes e Logs)
+├── 05_triggers/                     # Dicionário de Gatilhos de Negócio e Auditoria
+├── 06_procedures/                   # Dicionário de Rotinas de Negócio
+├── 07_functions/                    # Dicionário de Funções do Sistema
+│   └── (Todas as pastas acima possuem uma subpasta `/rollback` com scripts de reversão)
 │
-├── 02_ddl/                          # Data Definition Language
-│   ├── tables/                      # Criação de tabelas
-│   ├── indexes/                     # Índices de performance
-│   ├── constraints/                 # Constraints (PK, FK, CHECK)
-│   └── rollback/                    # Scripts de reversão
-│
-├── 09_migrations/                   # Migrations versionadas (Flyway)
-│   ├── V001__init_database.sql      # Estrutura inicial
-│   ├── V002__insert_seeds.sql       # Dados iniciais
-│   ├── V003__create_indexes.sql     # Índices
-│   ├── V004__create_views.sql       # Views
-│   ├── V005__create_functions.sql   # Functions
-│   ├── V006__create_procedures.sql  # Stored Procedures
-│   └── V007__create_triggers.sql    # Triggers
+├── 09_migrations/                   # Scripts consolidados e idempotentes para execução direta
+│   ├── V001__initial_schema.sql     # Criação estrutural (Tabelas, FKs, Indexes, Checks)
+│   ├── V002__business_rules.sql     # Inteligência (Functions, Procedures e Triggers de negócio)
+│   └── V003__audit_logs.sql     # Rastreabilidade (Tabelas, Funções e Gatilhos de log)
 │
 └── inventra_erp_fluxo.html          # Diagrama de fluxo ERP
 ```
@@ -43,7 +38,7 @@ postgre/
 | Tecnologia | Descrição |
 |------------|-----------|
 | **PostgreSQL** | SGBD principal do projeto |
-| **Flyway** | Versionamento e migrations (padrão) |
+| **Scripts Idempotentes** | Abordagem manual e segura (`IF NOT EXISTS` / `OR REPLACE`) dispensando ferramentas externas obrigatórias |
 | **draw.io** | Modelagem conceitual/lógica |
 | **Git** | Controle de versão |
 
@@ -51,25 +46,31 @@ postgre/
 
 ## 🚀 Como Executar
 
+A arquitetura do `09_migrations` foi desenhada para ser executada diretamente, sem gerar erros caso os objetos já existam no banco de dados.
+
 ### 1. Clone o repositório
 
 ```bash
-git clone https://github.com/InventraTech/inventra-database.git
+git clone [https://github.com/InventraTech/inventra-database.git](https://github.com/InventraTech/inventra-database.git)
 cd inventra-database/postgre
 ```
 
-### 2. Execute as migrations na ordem
+### 2. Execute as migrations na ordem (Criação/Atualização)
+
+Você pode executar os arquivos diretamente na sua ferramenta SQL favorita (DBeaver, pgAdmin) ou via linha de comando:
 
 ```bash
-psql -U usuario -d inventra_db -f 09_migrations/V001__init_database.sql
-psql -U usuario -d inventra_db -f 09_migrations/V002__insert_seeds.sql
-psql -U usuario -d inventra_db -f 09_migrations/V003__create_indexes.sql
-# ... e assim por diante
+psql -U usuario -d inventra_db -f 09_migrations/V001__initial_schema.sql
+psql -U usuario -d inventra_db -f 09_migrations/V002__business_rules.sql
+psql -U usuario -d inventra_db -f 09_migrations/V003__audit_and_logs.sql
 ```
 
-### 3. Rollback (se necessário)
+### 3. Rollback (Limpeza / Reversão)
+
+Os scripts de destruição estão isolados por segurança nas pastas de dicionário. Para reverter algo, execute o arquivo da respectiva pasta. Exemplo:
 
 ```bash
+# Apagar tabelas em cascata:
 psql -U usuario -d inventra_db -f 02_ddl/tables/rollback/drop_tables.sql
 ```
 
@@ -77,32 +78,31 @@ psql -U usuario -d inventra_db -f 02_ddl/tables/rollback/drop_tables.sql
 
 ## 📊 Modelagem do Banco
 
-O banco de dados possui **18 tabelas** principais, organizadas em:
+O banco de dados possui **18 tabelas principais** e um ecossistema de **7 tabelas de log** (Auditoria Automática), organizadas em:
 
 - **Cadastros Base:** `tb_usuario`, `tb_perfil`, `tb_cozinha`, `tb_produto`, `tb_fornecedor`
 - **Movimentações:** `tb_estoque_lote`, `tb_requisicao`, `tb_inventario`
 - **Relacionamentos:** `tb_produto_fornecedor`, `tb_produto_parametro_cozinha`
-- **Eventos:** `tb_alerta`, `tb_inventario_contagem`
+- **Eventos & Logs:** `tb_alerta`, `tb_inventario_contagem`, e esquema de rastreabilidade (ex: `tb_log_usuario`)
 
 ---
 
-## 🔧 Scripts Disponíveis
+## 🔧 Compreendendo a Arquitetura
 
-| Diretório | Conteúdo |
-|-----------|----------|
-| `02_ddl/tables/` | CREATE TABLE de todas as entidades |
-| `02_ddl/indexes/` | Índices para otimização de consultas |
-| `02_ddl/constraints/` | FK, CHECK e regras de negócio |
-| `02_ddl/*/rollback/` | Scripts de reversão para cada objeto |
-| `09_migrations/` | Histórico versionado do banco |
+| Diretório | Propósito |
+|-----------|-----------|
+| **Dicionário (02 a 08)** | Fonte da verdade para consulta de desenvolvedores. Código estrito (`CREATE TABLE`). |
+| **Subpastas `rollback`** | Scripts isolados com comandos de destruição (ex: `DROP TABLE ... CASCADE`). |
+| **`09_migrations/`** | O que realmente roda no banco. Agrupa as instruções do dicionário utilizando validações (`IF NOT EXISTS`) para atualizações seguras. |
 
 ---
 
 ## 🗺️ Próximos Passos
 
-- [ ] Adicionar scripts de `views`, `functions`, `procedures` e `triggers`
+- [x] Adicionar scripts de `functions`, `procedures` e `triggers`
+- [x] Configurar sistema base de logs e auditoria
 - [ ] Criar testes de integridade e performance
-- [ ] Documentar dicionário de dados
+- [ ] Documentar dicionário de dados (Data Dictionary .md)
 - [ ] Configurar ambiente de desenvolvimento/homologação
 - [ ] Integrar com aplicação principal
 
@@ -113,6 +113,7 @@ O banco de dados possui **18 tabelas** principais, organizadas em:
 | Nome | Papel |
 |------|-------|
 | **@dvarakaki** | Desenvolvedor de Banco de Dados |
+| **@joohnyxxz** | Desenvolvedor de Banco de Dados |
 
 ---
 
