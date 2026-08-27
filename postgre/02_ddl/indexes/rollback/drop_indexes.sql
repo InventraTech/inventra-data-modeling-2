@@ -2,74 +2,74 @@
 -- ROLLBACK: DROP INDEXES
 -- ---------------------------------------------------
 
-DROP INDEX IF EXISTS idx_usuario_perfil;
+DROP INDEX IF EXISTS idx_user_profile;
 
-DROP INDEX IF EXISTS idx_usuario_cozinha;
+DROP INDEX IF EXISTS idx_user_kitchen;
 
-DROP INDEX IF EXISTS idx_usuario_email;
+DROP INDEX IF EXISTS idx_user_email;
 
-DROP INDEX IF EXISTS idx_usuario_ativo;
+DROP INDEX IF EXISTS idx_user_active;
 
-DROP INDEX IF EXISTS idx_produto_categoria;
+DROP INDEX IF EXISTS idx_product_category;
 
-DROP INDEX IF EXISTS idx_produto_unidade;
+DROP INDEX IF EXISTS idx_product_unit;
 
-DROP INDEX IF EXISTS idx_produto_codigo_barras;
+DROP INDEX IF EXISTS idx_product_barcode;
 
-DROP INDEX IF EXISTS idx_produto_ativo;
+DROP INDEX IF EXISTS idx_product_active;
 
-DROP INDEX IF EXISTS idx_produtofornecedor_produto;
+DROP INDEX IF EXISTS idx_productsupplier_product;
 
-DROP INDEX IF EXISTS idx_produtofornecedor_fornecedor;
+DROP INDEX IF EXISTS idx_productsupplier_supplier;
 
-DROP INDEX IF EXISTS idx_parametro_produto;
+DROP INDEX IF EXISTS idx_parameter_product;
 
-DROP INDEX IF EXISTS idx_parametro_cozinha;
+DROP INDEX IF EXISTS idx_parameter_kitchen;
 
-DROP INDEX IF EXISTS idx_lote_produto;
+DROP INDEX IF EXISTS idx_batch_product;
 
-DROP INDEX IF EXISTS idx_lote_cozinha;
+DROP INDEX IF EXISTS idx_batch_kitchen;
 
-DROP INDEX IF EXISTS idx_lote_fornecedor;
+DROP INDEX IF EXISTS idx_batch_supplier;
 
-DROP INDEX IF EXISTS idx_lote_status;
+DROP INDEX IF EXISTS idx_batch_status;
 
-DROP INDEX IF EXISTS idx_lote_data_validade;
+DROP INDEX IF EXISTS idx_batch_expiration_date;
 
-DROP INDEX IF EXISTS idx_requisicao_cozinha;
+DROP INDEX IF EXISTS idx_requisition_kitchen;
 
-DROP INDEX IF EXISTS idx_requisicao_usuario_solicitante;
+DROP INDEX IF EXISTS idx_requisition_requester_user;
 
-DROP INDEX IF EXISTS idx_requisicao_usuario_aprovador;
+DROP INDEX IF EXISTS idx_requisition_approver_user;
 
-DROP INDEX IF EXISTS idx_requisicao_status;
+DROP INDEX IF EXISTS idx_requisition_status;
 
-DROP INDEX IF EXISTS idx_requisicao_data_hora;
+DROP INDEX IF EXISTS idx_requisition_created_at;
 
-DROP INDEX IF EXISTS idx_requisicaoitem_requisicao;
+DROP INDEX IF EXISTS idx_requisitionitem_requisition;
 
-DROP INDEX IF EXISTS idx_requisicaoitem_produto;
+DROP INDEX IF EXISTS idx_requisitionitem_product;
 
-DROP INDEX IF EXISTS idx_requisicaoitem_fornecedor;
+DROP INDEX IF EXISTS idx_requisitionitem_supplier;
 
-DROP INDEX IF EXISTS idx_inventario_cozinha;
+DROP INDEX IF EXISTS idx_inventory_kitchen;
 
-DROP INDEX IF EXISTS idx_inventario_usuario;
+DROP INDEX IF EXISTS idx_inventory_user;
 
-DROP INDEX IF EXISTS idx_inventario_status;
+DROP INDEX IF EXISTS idx_inventory_status;
 
-DROP INDEX IF EXISTS idx_contagem_inventario;
+DROP INDEX IF EXISTS idx_count_inventory;
 
-DROP INDEX IF EXISTS idx_contagem_lote;
+DROP INDEX IF EXISTS idx_count_batch;
 
-DROP INDEX IF EXISTS idx_alerta_cozinha;
+DROP INDEX IF EXISTS idx_alert_kitchen;
 
-DROP INDEX IF EXISTS idx_alerta_produto;
+DROP INDEX IF EXISTS idx_alert_product;
 
-DROP INDEX IF EXISTS idx_alerta_lote;
+DROP INDEX IF EXISTS idx_alert_batch;
 
-DROP INDEX IF EXISTS idx_alerta_lido;
+DROP INDEX IF EXISTS idx_alert_is_read;
 
-DROP INDEX IF EXISTS idx_alerta_severidade;
+DROP INDEX IF EXISTS idx_alert_severity;
 
-DROP INDEX IF EXISTS idx_alerta_criado_em;
+DROP INDEX IF EXISTS idx_alert_created_at;

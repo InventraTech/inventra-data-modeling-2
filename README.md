@@ -16,7 +16,7 @@ O projeto é dividido em **Dicionário de Dados** (Pastas 01 a 08) contendo os c
 
 ```text
 postgre/
-├── 01_modelagem/                    # Modelagem de dados (Conceitual e Lógico)
+├── 01_modeling/                      # Modelagem de dados (Conceitual e Lógico)
 ├── 02_ddl/                          # Dicionário de Criação (Tabelas, Constraints, Indexes e Logs)
 ├── 05_triggers/                     # Dicionário de Gatilhos de Negócio e Auditoria
 ├── 06_procedures/                   # Dicionário de Rotinas de Negócio
@@ -24,11 +24,11 @@ postgre/
 │   └── (Todas as pastas acima possuem uma subpasta `/rollback` com scripts de reversão)
 │
 ├── 09_migrations/                   # Scripts consolidados e idempotentes para execução direta
-│   ├── V001__initial_schema.sql     # Criação estrutural (Tabelas, FKs, Indexes, Checks)
+│   ├── V001__init_database.sql      # Criação estrutural (Tabelas, FKs, Indexes, Checks)
 │   ├── V002__business_rules.sql     # Inteligência (Functions, Procedures e Triggers de negócio)
-│   └── V003__audit_logs.sql     # Rastreabilidade (Tabelas, Funções e Gatilhos de log)
+│   └── V003__audit_logs.sql         # Rastreabilidade (Tabelas, Funções e Gatilhos de log)
 │
-└── inventra_erp_fluxo.html          # Diagrama de fluxo ERP
+└── inventra_erp_flow.html           # Diagrama de fluxo ERP
 ```
 
 
@@ -60,9 +60,9 @@ cd inventra-database/postgre
 Você pode executar os arquivos diretamente na sua ferramenta SQL favorita (DBeaver, pgAdmin) ou via linha de comando:
 
 ```bash
-psql -U usuario -d inventra_db -f 09_migrations/V001__initial_schema.sql
+psql -U usuario -d inventra_db -f 09_migrations/V001__init_database.sql
 psql -U usuario -d inventra_db -f 09_migrations/V002__business_rules.sql
-psql -U usuario -d inventra_db -f 09_migrations/V003__audit_and_logs.sql
+psql -U usuario -d inventra_db -f 09_migrations/V003__audit_logs.sql
 ```
 
 ### 3. Rollback (Limpeza / Reversão)
@@ -80,10 +80,10 @@ psql -U usuario -d inventra_db -f 02_ddl/tables/rollback/drop_tables.sql
 
 O banco de dados possui **18 tabelas principais** e um ecossistema de **7 tabelas de log** (Auditoria Automática), organizadas em:
 
-- **Cadastros Base:** `tb_usuario`, `tb_perfil`, `tb_cozinha`, `tb_produto`, `tb_fornecedor`
-- **Movimentações:** `tb_estoque_lote`, `tb_requisicao`, `tb_inventario`
-- **Relacionamentos:** `tb_produto_fornecedor`, `tb_produto_parametro_cozinha`
-- **Eventos & Logs:** `tb_alerta`, `tb_inventario_contagem`, e esquema de rastreabilidade (ex: `tb_log_usuario`)
+- **Cadastros Base:** `tb_user`, `tb_profile`, `tb_kitchen`, `tb_product`, `tb_supplier`
+- **Movimentações:** `tb_stock_batch`, `tb_requisition`, `tb_inventory`
+- **Relacionamentos:** `tb_product_supplier`, `tb_product_kitchen_parameter`
+- **Eventos & Logs:** `tb_alert`, `tb_inventory_count`, e esquema de rastreabilidade (ex: `tb_log_user`)
 
 ---
 

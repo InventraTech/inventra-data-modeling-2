@@ -1,111 +1,111 @@
 -- ---------------------------------------------------
--- CRIAÇÃO DE ÍNDICES
+-- INDEX CREATION
 -- ---------------------------------------------------
 
-CREATE INDEX idx_usuario_perfil 
-ON tb_usuario (id_perfil);
+CREATE INDEX idx_user_profile 
+ON tb_user (id_profile);
 
-CREATE INDEX idx_usuario_cozinha 
-ON tb_usuario (id_cozinha);
+CREATE INDEX idx_user_kitchen 
+ON tb_user (id_kitchen);
 
-CREATE INDEX idx_usuario_email 
-ON tb_usuario (email);
+CREATE INDEX idx_user_email 
+ON tb_user (email);
 
-CREATE INDEX idx_usuario_ativo 
-ON tb_usuario (ativo);
+CREATE INDEX idx_user_active 
+ON tb_user (active);
 
-CREATE INDEX idx_produto_categoria 
-ON tb_produto (id_categoria);
+CREATE INDEX idx_product_category 
+ON tb_product (id_category);
 
-CREATE INDEX idx_produto_unidade 
-ON tb_produto (id_unidade);
+CREATE INDEX idx_product_unit 
+ON tb_product (id_unit);
 
-CREATE INDEX idx_produto_codigo_barras
-ON tb_produto (codigo_barras);
+CREATE INDEX idx_product_barcode
+ON tb_product (barcode);
 
-CREATE INDEX idx_produto_ativo 
-ON tb_produto (ativo);
+CREATE INDEX idx_product_active 
+ON tb_product (active);
 
-CREATE INDEX idx_produtofornecedor_produto 
-ON tb_produto_fornecedor (id_produto);
+CREATE INDEX idx_productsupplier_product 
+ON tb_product_supplier (id_product);
 
-CREATE INDEX idx_produtofornecedor_fornecedor 
-ON tb_produto_fornecedor (id_fornecedor);
+CREATE INDEX idx_productsupplier_supplier 
+ON tb_product_supplier (id_supplier);
 
-CREATE INDEX idx_parametro_produto 
-ON tb_produto_parametro_cozinha (id_produto);
+CREATE INDEX idx_parameter_product 
+ON tb_product_kitchen_parameter (id_product);
 
-CREATE INDEX idx_parametro_cozinha 
-ON tb_produto_parametro_cozinha (id_cozinha);
+CREATE INDEX idx_parameter_kitchen 
+ON tb_product_kitchen_parameter (id_kitchen);
 
-CREATE INDEX idx_lote_produto 
-ON tb_estoque_lote (id_produto);
+CREATE INDEX idx_batch_product 
+ON tb_stock_batch (id_product);
 
-CREATE INDEX idx_lote_cozinha 
-ON tb_estoque_lote (id_cozinha);
+CREATE INDEX idx_batch_kitchen 
+ON tb_stock_batch (id_kitchen);
 
-CREATE INDEX idx_lote_fornecedor 
-ON tb_estoque_lote (id_fornecedor);
+CREATE INDEX idx_batch_supplier 
+ON tb_stock_batch (id_supplier);
 
-CREATE INDEX idx_lote_status 
-ON tb_estoque_lote (status);
+CREATE INDEX idx_batch_status 
+ON tb_stock_batch (status);
 
-CREATE INDEX idx_lote_data_validade 
-ON tb_estoque_lote (data_validade);
+CREATE INDEX idx_batch_expiration_date 
+ON tb_stock_batch (expiration_date);
 
-CREATE INDEX idx_requisicao_cozinha 
-ON tb_requisicao (id_cozinha);
+CREATE INDEX idx_requisition_kitchen 
+ON tb_requisition (id_kitchen);
 
-CREATE INDEX idx_requisicao_usuario_solicitante 
-ON tb_requisicao (id_usuario_requisicao);
+CREATE INDEX idx_requisition_requester_user 
+ON tb_requisition (id_requester_user);
 
-CREATE INDEX idx_requisicao_usuario_aprovador 
-ON tb_requisicao (id_usuario_aprovador);
+CREATE INDEX idx_requisition_approver_user 
+ON tb_requisition (id_approver_user);
 
-CREATE INDEX idx_requisicao_status 
-ON tb_requisicao (status);
+CREATE INDEX idx_requisition_status 
+ON tb_requisition (status);
 
-CREATE INDEX idx_requisicao_data_hora 
-ON tb_requisicao (data_hora);
+CREATE INDEX idx_requisition_created_at 
+ON tb_requisition (created_at);
 
-CREATE INDEX idx_requisicaoitem_requisicao 
-ON tb_requisicao_item (id_requisicao);
+CREATE INDEX idx_requisitionitem_requisition 
+ON tb_requisition_item (id_requisition);
 
-CREATE INDEX idx_requisicaoitem_produto 
-ON tb_requisicao_item (id_produto);
+CREATE INDEX idx_requisitionitem_product 
+ON tb_requisition_item (id_product);
 
-CREATE INDEX idx_requisicaoitem_fornecedor 
-ON tb_requisicao_item (id_fornecedor_sugerido);
+CREATE INDEX idx_requisitionitem_supplier 
+ON tb_requisition_item (id_suggested_supplier);
 
-CREATE INDEX idx_inventario_cozinha 
-ON tb_inventario (id_cozinha);
+CREATE INDEX idx_inventory_kitchen 
+ON tb_inventory (id_kitchen);
 
-CREATE INDEX idx_inventario_usuario 
-ON tb_inventario (id_usuario_responsavel);
+CREATE INDEX idx_inventory_user 
+ON tb_inventory (id_responsible_user);
 
-CREATE INDEX idx_inventario_status 
-ON tb_inventario (status);
+CREATE INDEX idx_inventory_status 
+ON tb_inventory (status);
 
-CREATE INDEX idx_contagem_inventario 
-ON tb_inventario_contagem (id_inventario);
+CREATE INDEX idx_count_inventory 
+ON tb_inventory_count (id_inventory);
 
-CREATE INDEX idx_contagem_lote 
-ON tb_inventario_contagem (id_lote);
+CREATE INDEX idx_count_batch 
+ON tb_inventory_count (id_batch);
 
-CREATE INDEX idx_alerta_cozinha 
-ON tb_alerta (id_cozinha);
+CREATE INDEX idx_alert_kitchen 
+ON tb_alert (id_kitchen);
 
-CREATE INDEX idx_alerta_produto 
-ON tb_alerta (id_produto);
+CREATE INDEX idx_alert_product 
+ON tb_alert (id_product);
 
-CREATE INDEX idx_alerta_lote 
-ON tb_alerta (id_lote);
+CREATE INDEX idx_alert_batch 
+ON tb_alert (id_batch);
 
-CREATE INDEX idx_alerta_lido 
-ON tb_alerta (lido);
+CREATE INDEX idx_alert_is_read 
+ON tb_alert (is_read);
 
-CREATE INDEX idx_alerta_severidade 
-ON tb_alerta (severidade);
+CREATE INDEX idx_alert_severity 
+ON tb_alert (severity);
 
-CREATE INDEX idx_alerta_criado_em 
-ON tb_alerta (criado_em);
+CREATE INDEX idx_alert_created_at 
+ON tb_alert (created_at);

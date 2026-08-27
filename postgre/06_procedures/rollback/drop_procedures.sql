@@ -2,14 +2,14 @@
 -- ROLLBACK DE PROCEDURES
 -- ---------------------------------------------------
 
-DROP PROCEDURE IF EXISTS sp_fechar_inventario(INTEGER);
+DROP PROCEDURE IF EXISTS sp_close_inventory(INTEGER);
 
-DROP PROCEDURE IF EXISTS sp_baixar_estoque(INTEGER, DECIMAL);
+DROP PROCEDURE IF EXISTS sp_write_off_stock(INTEGER, DECIMAL);
 
-DROP PROCEDURE IF EXISTS sp_registrar_entrada_estoque(INTEGER, DECIMAL);
+DROP PROCEDURE IF EXISTS sp_register_stock_entry(INTEGER, DECIMAL);
 
-DROP PROCEDURE IF EXISTS sp_cancelar_requisicao(INTEGER, VARCHAR);
+DROP PROCEDURE IF EXISTS sp_cancel_requisition(INTEGER, VARCHAR);
 
-DROP PROCEDURE IF EXISTS sp_reprovar_requisicao(INTEGER, UUID, VARCHAR);
+DROP PROCEDURE IF EXISTS sp_reject_requisition(INTEGER, UUID, VARCHAR);
 
-DROP PROCEDURE IF EXISTS sp_aprovar_requisicao(INTEGER, UUID);
+DROP PROCEDURE IF EXISTS sp_approve_requisition(INTEGER, UUID);

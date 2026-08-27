@@ -139,7 +139,8 @@
   .phase-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
   .phase-btn[data-phase="setup"].active { background: var(--accent2); border-color: var(--accent2); }
   .phase-btn[data-phase="cadastro"].active { background: var(--teal); border-color: var(--teal); color: #0d0f14; }
-  .phase-btn[data-phase="operacao"].active { background: var(--amber); border-color: var(--amber); color: #0d0f14; }
+  .phase-btn[data-phase="operation"].active { background: var(--amber); border-color: var(--amber); color: #0d0f14; }
+  .phase-btn[data-phase="automation"].active { background: var(--coral); border-color: var(--coral); color: #0d0f14; }
   .phase-btn[data-phase="dashboard"].active { background: var(--green); border-color: var(--green); color: #0d0f14; }
 
   /* ─── LAYOUT ─── */
@@ -193,7 +194,8 @@
   }
   .b-setup { background: rgba(167,139,250,0.15); color: var(--accent2); }
   .b-cadastro { background: rgba(34,211,238,0.12); color: var(--teal); }
-  .b-operacao { background: rgba(251,191,36,0.12); color: var(--amber); }
+  .b-operation { background: rgba(251,191,36,0.12); color: var(--amber); }
+  .b-automation { background: rgba(251,113,133,0.12); color: var(--coral); }
   .b-dashboard { background: rgba(52,211,153,0.12); color: var(--green); }
 
   .step-title {
@@ -405,14 +407,15 @@
 <header>
   <div class="logo-chip"><span></span> inventra · erp</div>
   <h1>Ciclo completo do<br><em>sistema de estoque</em></h1>
-  <p class="subtitle">Do cadastro de usuários até os dashboards — todas as 15 etapas do fluxo, tabelas e campos do modelo lógico.</p>
+  <p class="subtitle">Do cadastro de usuários até os dashboards — todas as 17 etapas do fluxo, tabelas e campos do modelo lógico.</p>
 </header>
 
 <nav class="phase-nav">
   <button class="phase-btn active" data-phase="all" onclick="filterPhase('all')">Todos</button>
   <button class="phase-btn" data-phase="setup" onclick="filterPhase('setup')">Configuração</button>
   <button class="phase-btn" data-phase="cadastro" onclick="filterPhase('cadastro')">Cadastros</button>
-  <button class="phase-btn" data-phase="operacao" onclick="filterPhase('operacao')">Operação</button>
+  <button class="phase-btn" data-phase="operation" onclick="filterPhase('operation')">Operação</button>
+  <button class="phase-btn" data-phase="automation" onclick="filterPhase('automation')">Automação</button>
   <button class="phase-btn" data-phase="dashboard" onclick="filterPhase('dashboard')">Dashboard</button>
 </nav>
 
@@ -429,7 +432,8 @@
 const PHASES = {
   setup: { label: 'Config', color: 'b-setup' },
   cadastro: { label: 'Cadastro', color: 'b-cadastro' },
-  operacao: { label: 'Operação', color: 'b-operacao' },
+  operation: { label: 'Operação', color: 'b-operation' },
+  automation: { label: 'Automação', color: 'b-automation' },
   dashboard: { label: 'Dashboard', color: 'b-dashboard' },
 };
 
@@ -438,10 +442,10 @@ const steps = [
     id:1, phase:'setup', title:'Criar perfil de acesso',
     desc:'Antes de criar qualquer usuário, defina os perfis de acesso. Cada perfil determina o que o usuário pode ver e fazer no sistema. Modelo RBAC básico — a lógica de permissões fica na aplicação.',
     tables:{
-      tb_perfil:[
-        {name:'id_perfil',type:'INTEGER PK',note:'auto-incremento'},
-        {name:'tipo_ace...',type:'VARCHAR(50)',note:'ex: admin, gestor, operador'},
-        {name:'descri...',type:'VARCHAR(255)',note:'descrição das permissões'},
+      tb_profile:[
+        {name:'id_profile',type:'INTEGER PK',note:'auto-incremento'},
+        {name:'access_type',type:'VARCHAR(50)',note:'ex: admin, gestor, operador'},
+        {name:'description',type:'VARCHAR(255)',note:'descrição das permissões'},
       ]
     },
     tip:'💡 Crie ao menos: Administrador, Gestor de Cozinha, Operador e Auditor antes de criar usuários.'
@@ -450,61 +454,61 @@ const steps = [
     id:2, phase:'setup', title:'Cadastrar cozinha',
     desc:'O sistema é multi-cozinha. Cada unidade operacional é uma "cozinha". Quase tudo no sistema é vinculado a uma cozinha — usuários, produtos, estoques, inventários e requisições.',
     tables:{
-      tb_cozinha:[
-        {name:'id_cozinha',type:'INTEGER PK',note:'auto-incremento'},
-        {name:'nome',type:'VARCHAR(120)',note:'nome da unidade'},
-        {name:'codigo',type:'VARCHAR(20)',note:'código interno'},
-        {name:'ender...',type:'VARCHAR(255)',note:'endereço físico'},
-        {name:'ativo',type:'BOOLEAN',note:'ativa ou desativada'},
-        {name:'criado_em',type:'TIMESTAMP',note:'preenchido automaticamente'},
+      tb_kitchen:[
+        {name:'id_kitchen',type:'INTEGER PK',note:'auto-incremento'},
+        {name:'name',type:'VARCHAR(120)',note:'nome da unidade'},
+        {name:'code',type:'VARCHAR(20)',note:'código interno'},
+        {name:'address',type:'VARCHAR(255)',note:'endereço físico'},
+        {name:'active',type:'BOOLEAN',note:'ativa ou desativada'},
+        {name:'created_at',type:'TIMESTAMP',note:'preenchido automaticamente'},
       ]
     },
-    tip:'💡 Um usuário pode ser vinculado a uma cozinha específica (id_cozinha em tb_usuario).'
+    tip:'💡 Um usuário pode ser vinculado a uma cozinha específica (id_kitchen em tb_user).'
   },
   {
     id:3, phase:'setup', title:'Criar usuário',
-    desc:'Crie o usuário, vincule ao perfil e à cozinha. O id_usuario é UUID — garante unicidade global mesmo em ambientes distribuídos. Nunca armazene senha em texto puro — use hash (bcrypt, argon2).',
+    desc:'Crie o usuário, vincule ao perfil e à cozinha. O id_user é UUID — garante unicidade global mesmo em ambientes distribuídos. Nunca armazene senha em texto puro — use hash (bcrypt, argon2).',
     tables:{
-      tb_usuario:[
-        {name:'id_usuario',type:'UUID PK',note:'gerado automaticamente (uuid_generate_v4)'},
-        {name:'nome',type:'VARCHAR(120)',note:''},
+      tb_user:[
+        {name:'id_user',type:'UUID PK',note:'gerado automaticamente (uuid_generate_v4)'},
+        {name:'name',type:'VARCHAR(120)',note:''},
         {name:'email',type:'VARCHAR(150)',note:'login do usuário, único'},
-        {name:'senha_hash',type:'VARCHAR(255)',note:'hash bcrypt, nunca plain text'},
-        {name:'cargo',type:'VARCHAR(80)',note:'cargo livre, ex: chef de cozinha'},
-        {name:'id_cozinha',type:'INTEGER FK',note:'cozinha principal do usuário'},
-        {name:'id_perfil',type:'INTEGER FK',note:'perfil de acesso'},
-        {name:'ativo',type:'BOOLEAN',note:'suspender sem deletar'},
-        {name:'ultimo_login',type:'TIMESTAMP',note:'rastreia último acesso'},
-        {name:'criado_em',type:'TIMESTAMP',note:''},
+        {name:'password_hash',type:'VARCHAR(255)',note:'hash bcrypt, nunca texto puro'},
+        {name:'role',type:'VARCHAR(80)',note:'cargo livre, ex: chef de cozinha'},
+        {name:'id_kitchen',type:'INTEGER FK',note:'cozinha principal do usuário'},
+        {name:'id_profile',type:'INTEGER FK',note:'perfil de acesso'},
+        {name:'active',type:'BOOLEAN',note:'suspender sem deletar'},
+        {name:'last_login',type:'TIMESTAMP',note:'rastreia último acesso'},
+        {name:'created_at',type:'TIMESTAMP',note:''},
       ]
     },
-    tip:'💡 O campo ativo permite suspender acesso sem perder histórico de ações do usuário.'
+    tip:'💡 O campo active permite suspender acesso sem perder histórico de ações do usuário.'
   },
   {
     id:4, phase:'cadastro', title:'Cadastrar fornecedor',
-    desc:'Fornecedores são vinculados a produtos via tb_produto_fornecedor. Um produto pode ter múltiplos fornecedores com preços e lead times diferentes. O campo nota_avalia permite ranquear fornecedores.',
+    desc:'Fornecedores são vinculados a produtos via tb_product_supplier. Um produto pode ter múltiplos fornecedores com preços e lead times diferentes. O campo rating permite ranquear fornecedores.',
     tables:{
-      tb_fornecedor:[
-        {name:'id_fornece...',type:'INTEGER PK',note:''},
-        {name:'nome_j...',type:'VARCHAR(150)',note:'razão social'},
+      tb_supplier:[
+        {name:'id_supplier',type:'INTEGER PK',note:''},
+        {name:'legal_name',type:'VARCHAR(150)',note:'razão social'},
         {name:'cnpj',type:'VARCHAR(18)',note:'ex: 00.000.000/0001-00'},
         {name:'email',type:'VARCHAR(150)',note:''},
-        {name:'whatsa...',type:'VARCHAR(20)',note:'contato rápido por WhatsApp'},
-        {name:'nota_avali...',type:'INTEGER',note:'0-10, avaliação do fornecedor'},
-        {name:'ativo',type:'BOOLEAN',note:''},
-        {name:'criado_em',type:'TIMESTAMP',note:''},
+        {name:'whatsapp',type:'VARCHAR(20)',note:'contato rápido por WhatsApp'},
+        {name:'rating',type:'INTEGER',note:'1-5, avaliação do fornecedor'},
+        {name:'active',type:'BOOLEAN',note:''},
+        {name:'created_at',type:'TIMESTAMP',note:''},
       ]
     },
-    tip:'💡 nota_avalia permite ranquear e comparar fornecedores nos dashboards de compras.'
+    tip:'💡 rating permite ranquear e comparar fornecedores nos dashboards de compras.'
   },
   {
     id:5, phase:'cadastro', title:'Cadastrar unidade de medida',
     desc:'Defina as unidades de medida antes de criar produtos. Produtos são vinculados a uma unidade padrão, que determina como os saldos são exibidos e somados.',
     tables:{
-      tb_unidade_medida:[
-        {name:'id_unidade',type:'INTEGER PK',note:''},
-        {name:'sigla',type:'VARCHAR(10)',note:'ex: kg, L, cx, un, pct'},
-        {name:'descricao',type:'VARCHAR(60)',note:'ex: Quilograma, Litro, Caixa'},
+      tb_measurement_unit:[
+        {name:'id_unit',type:'INTEGER PK',note:''},
+        {name:'symbol',type:'VARCHAR(10)',note:'ex: kg, L, cx, un, pct'},
+        {name:'description',type:'VARCHAR(60)',note:'ex: Quilograma, Litro, Caixa'},
       ]
     },
     tip:'💡 Crie todas as unidades antes de cadastrar produtos. Inclua versões para peso, volume e contagem.'
@@ -513,10 +517,10 @@ const steps = [
     id:6, phase:'cadastro', title:'Cadastrar categoria',
     desc:'Categorias organizam os produtos para filtros em relatórios e dashboards. Estrutura simples: nome e descrição.',
     tables:{
-      tb_categoria:[
-        {name:'id_categ...',type:'INTEGER PK',note:''},
-        {name:'nome',type:'VARCHAR(80)',note:'ex: Proteínas, Hortifrutis, Laticínios'},
-        {name:'descricao',type:'TEXT',note:'descrição opcional da categoria'},
+      tb_category:[
+        {name:'id_category',type:'INTEGER PK',note:''},
+        {name:'name',type:'VARCHAR(80)',note:'ex: Proteínas, Hortifrutis, Laticínios'},
+        {name:'description',type:'TEXT',note:'descrição opcional da categoria'},
       ]
     },
     tip:'💡 Boas categorias: Carnes, Hortifrutis, Laticínios, Secos/Grãos, Bebidas, Descartáveis.'
@@ -525,167 +529,205 @@ const steps = [
     id:7, phase:'cadastro', title:'Cadastrar produto',
     desc:'O produto é o coração do sistema. Vincula categoria e unidade. Depois, configure os parâmetros por cozinha (mínimo, máximo, consumo médio) e vincule os fornecedores com seus preços e lead times.',
     tables:{
-      tb_produto:[
-        {name:'id_produto',type:'INTEGER PK',note:''},
-        {name:'nome',type:'VARCHAR',note:'nome do produto'},
-        {name:'marca',type:'VARCHAR(80)',note:'opcional'},
-        {name:'id_categoria',type:'INTEGER FK',note:'categoria do produto'},
-        {name:'id_unidade',type:'INTEGER FK',note:'unidade de medida padrão'},
-        {name:'codigo...',type:'VARCHAR(50)',note:'código interno ou EAN'},
-        {name:'foto_url',type:'VARCHAR(255)',note:'URL da imagem'},
-        {name:'ativo',type:'BOOLEAN',note:''},
-        {name:'criado_em',type:'TIMESTAMP',note:''},
+      tb_product:[
+        {name:'id_product',type:'INTEGER PK',note:''},
+        {name:'name',type:'VARCHAR',note:'nome do produto'},
+        {name:'brand',type:'VARCHAR(80)',note:'opcional'},
+        {name:'id_category',type:'INTEGER FK',note:'categoria do produto'},
+        {name:'id_unit',type:'INTEGER FK',note:'unidade de medida padrão'},
+        {name:'barcode',type:'VARCHAR(50)',note:'código interno ou EAN'},
+        {name:'photo_url',type:'VARCHAR(255)',note:'URL da imagem'},
+        {name:'active',type:'BOOLEAN',note:''},
+        {name:'created_at',type:'TIMESTAMP',note:''},
       ],
-      tb_produto_parametro_cozinha:[
-        {name:'id_produto',type:'FK',note:'chave composta com id_cozinha'},
-        {name:'id_cozinha',type:'FK',note:'parâmetros diferentes por cozinha!'},
-        {name:'estoq...min',type:'DECIMAL(12,3)',note:'nível mínimo → dispara alerta'},
-        {name:'esto...max',type:'DECIMAL(12,3)',note:'nível máximo de armazenamento'},
-        {name:'cons...med',type:'DECIMAL(12,3)',note:'consumo médio por período'},
+      tb_product_kitchen_parameter:[
+        {name:'id_product',type:'FK',note:'chave composta com id_kitchen'},
+        {name:'id_kitchen',type:'FK',note:'parâmetros diferentes por cozinha!'},
+        {name:'min_stock',type:'DECIMAL(12,3)',note:'nível mínimo → dispara alerta'},
+        {name:'max_stock',type:'DECIMAL(12,3)',note:'nível máximo de armazenamento'},
+        {name:'average_daily_consumption',type:'DECIMAL(12,3)',note:'consumo médio por período'},
       ],
-      tb_produto_fornecedor:[
-        {name:'id_produto',type:'FK',note:''},
-        {name:'id_fornece...',type:'FK',note:'vários fornecedores por produto'},
-        {name:'codigo...',type:'VARCHAR(50)',note:'código do produto no fornecedor'},
-        {name:'prec...',type:'DECIMAL(12,2)',note:'preço de custo unitário'},
-        {name:'lead_time_d...',type:'INTEGER',note:'dias para entrega'},
+      tb_product_supplier:[
+        {name:'id_product',type:'FK',note:''},
+        {name:'id_supplier',type:'FK',note:'vários fornecedores por produto'},
+        {name:'supplier_code',type:'VARCHAR(50)',note:'código do produto no fornecedor'},
+        {name:'reference_price',type:'DECIMAL(12,2)',note:'preço de custo unitário'},
+        {name:'lead_time_days',type:'INTEGER',note:'dias para entrega'},
       ]
     },
-    tip:'💡 tb_produto_parametro_cozinha define os limites POR UNIDADE — a mesma farinha pode ter estoques mínimos diferentes em cada cozinha.'
+    tip:'💡 tb_product_kitchen_parameter define os limites POR UNIDADE — a mesma farinha pode ter estoques mínimos diferentes em cada cozinha.'
   },
   {
-    id:8, phase:'operacao', title:'Criar inventário',
+    id:8, phase:'operation', title:'Criar inventário',
     desc:'Um inventário é uma sessão de contagem de estoque associada a uma cozinha. O responsável é rastreado pelo UUID. Enquanto "aberto", as contagens podem ser ajustadas. Ao fechar, as divergências ficam registradas.',
     tables:{
-      tb_inventario:[
-        {name:'id_invent...',type:'INTEGER PK',note:''},
-        {name:'id_cozinha',type:'FK',note:'qual cozinha está sendo inventariada'},
-        {name:'id_usuario_respo...',type:'UUID FK',note:'usuário responsável'},
-        {name:'data_inicio',type:'TIMESTAMP',note:'abertura do inventário'},
-        {name:'data_fech...',type:'TIMESTAMP',note:'fechamento — NULL se aberto'},
+      tb_inventory:[
+        {name:'id_inventory',type:'INTEGER PK',note:''},
+        {name:'id_kitchen',type:'FK',note:'qual cozinha está sendo inventariada'},
+        {name:'id_responsible_user',type:'UUID FK',note:'usuário responsável'},
+        {name:'started_at',type:'TIMESTAMP',note:'abertura do inventário'},
+        {name:'closed_at',type:'TIMESTAMP',note:'fechamento — NULL se aberto'},
         {name:'status',type:'VARCHAR(20)',note:'aberto → fechado'},
-        {name:'obser...',type:'VARCHAR(255)',note:'observações gerais'},
+        {name:'note',type:'VARCHAR(255)',note:'observações gerais'},
       ]
     },
     tip:'💡 Boas práticas: faça inventários periódicos (semanal, quinzenal) por categoria, não tudo de uma vez.'
   },
   {
-    id:9, phase:'operacao', title:'Registrar entrada (lote)',
-    desc:'Cada entrada de mercadoria cria um lote em tb_estoque_lote. O lote rastreia nota fiscal, número do lote do fornecedor, validade e custo unitário. O saldo atual (qtd_at) diminui conforme o produto é consumido.',
+    id:9, phase:'operation', title:'Registrar entrada (lote)',
+    desc:'Cada entrada de mercadoria cria um lote em tb_stock_batch. O lote rastreia nota fiscal, número do lote do fornecedor, validade e custo unitário. O saldo atual (current_quantity) diminui conforme o produto é consumido.',
     tables:{
-      tb_estoque_lote:[
-        {name:'id_lote',type:'INTEGER PK',note:''},
-        {name:'id_produto',type:'FK',note:''},
-        {name:'id_cozinha',type:'FK',note:''},
-        {name:'id_fornecedor',type:'FK',note:'de qual fornecedor veio'},
-        {name:'numero_j...',type:'VARCHAR(50)',note:'número da nota fiscal'},
-        {name:'numero_...',type:'VARCHAR(50)',note:'nº lote do fornecedor'},
-        {name:'qtd_ini...',type:'DECIMAL(12,3)',note:'quantidade que entrou'},
-        {name:'qtd_at...',type:'DECIMAL(12,3)',note:'saldo atual do lote'},
-        {name:'data_entrada',type:'DATE',note:''},
-        {name:'data_validade',type:'DATE',note:'controle de vencimento'},
-        {name:'prec...',type:'DECIMAL(12,2)',note:'custo unitário na entrada'},
-        {name:'status',type:'VARCHAR(20)',note:'ativo → consumido / vencido'},
+      tb_stock_batch:[
+        {name:'id_batch',type:'INTEGER PK',note:''},
+        {name:'id_product',type:'FK',note:''},
+        {name:'id_kitchen',type:'FK',note:''},
+        {name:'id_supplier',type:'FK',note:'de qual fornecedor veio'},
+        {name:'invoice_number',type:'VARCHAR(50)',note:'número da nota fiscal'},
+        {name:'batch_number',type:'VARCHAR(50)',note:'nº lote do fornecedor'},
+        {name:'initial_quantity',type:'DECIMAL(12,3)',note:'quantidade que entrou'},
+        {name:'current_quantity',type:'DECIMAL(12,3)',note:'saldo atual do lote'},
+        {name:'entry_date',type:'DATE',note:''},
+        {name:'expiration_date',type:'DATE',note:'controle de vencimento'},
+        {name:'unit_price',type:'DECIMAL(12,2)',note:'custo unitário na entrada'},
+        {name:'status',type:'VARCHAR(20)',note:'active → consumido / vencido'},
       ]
     },
-    tip:'💡 Saldo real do produto = SUM(qtd_at) WHERE status = "ativo" AND id_produto = X AND id_cozinha = Y.'
+    tip:'💡 Saldo real do produto = SUM(current_quantity) WHERE status = "active" AND id_product = X AND id_kitchen = Y.'
   },
   {
-    id:10, phase:'operacao', title:'Contagem de inventário',
-    desc:'Dentro de um inventário aberto, o operador registra a contagem física por lote. O sistema calcula automaticamente a divergência (real - sistema). Positivo = sobra, negativo = falta.',
+    id:10, phase:'operation', title:'Contagem de inventário',
+    desc:'Dentro de um inventário aberto, o operador registra a contagem física por lote. O sistema calcula automaticamente a divergência (físico - sistema). Positivo = sobra, negativo = falta.',
     tables:{
-      tb_inventario_contagem_:[
-        {name:'id_conta...',type:'INTEGER PK',note:''},
-        {name:'id_inventario',type:'FK',note:'a qual sessão pertence'},
-        {name:'id_lote',type:'FK',note:'qual lote foi contado'},
-        {name:'qtd_re...',type:'DECIMAL(12,3)',note:'quantidade real contada'},
-        {name:'qtd_fis...',type:'DECIMAL(12,3)',note:'quantidade esperada (sistema)'},
-        {name:'diver...',type:'DECIMAL(12,2)',note:'diferença = real - sistema'},
-        {name:'obser...',type:'VARCHAR(255)',note:'motivo da divergência'},
+      tb_inventory_count:[
+        {name:'id_count',type:'INTEGER PK',note:''},
+        {name:'id_inventory',type:'FK',note:'a qual sessão pertence'},
+        {name:'id_batch',type:'FK',note:'qual lote foi contado'},
+        {name:'registered_quantity',type:'DECIMAL(12,3)',note:'quantidade esperada (sistema)'},
+        {name:'physical_quantity',type:'DECIMAL(12,3)',note:'quantidade real contada'},
+        {name:'divergence',type:'DECIMAL(12,2)',note:'diferença = físico - sistema'},
+        {name:'note',type:'VARCHAR(255)',note:'motivo da divergência'},
       ]
     },
-    tip:'💡 Após fechar o inventário, atualize qtd_at dos lotes com as divergências para sincronizar o saldo.'
+    tip:'💡 Após fechar o inventário, atualize current_quantity dos lotes com as divergências para sincronizar o saldo.'
   },
   {
-    id:11, phase:'operacao', title:'Criar requisição',
+    id:11, phase:'operation', title:'Criar requisição',
     desc:'Uma requisição é um pedido interno de saída de produto. Criada por um operador, passa por aprovação de um gestor antes de movimentar o estoque. Rastreia quem pediu, quem aprovou e quando.',
     tables:{
-      tb_requisicao:[
-        {name:'id_requis...',type:'INTEGER PK',note:''},
-        {name:'tipo_req...',type:'VARCHAR(20)',note:'consumo, transferência, compra'},
-        {name:'origem',type:'VARCHAR(20)',note:'origem do pedido'},
+      tb_requisition:[
+        {name:'id_requisition',type:'INTEGER PK',note:''},
+        {name:'requisition_type',type:'VARCHAR(20)',note:'consumo, transferência, compra'},
+        {name:'origin',type:'VARCHAR(20)',note:'origem do pedido'},
         {name:'status',type:'VARCHAR(20)',note:'pendente→aprovada→concluída'},
-        {name:'motivo',type:'VARCHAR(255)',note:'justificativa do pedido'},
-        {name:'id_cozinha',type:'FK',note:'cozinha solicitante'},
-        {name:'id_usuario_requis...',type:'UUID FK',note:'quem criou o pedido'},
-        {name:'id_usuario_apro...',type:'UUID FK',note:'quem aprovou (NULL até aprovação)'},
-        {name:'data_hora',type:'TIMESTAMP',note:'criação da requisição'},
-        {name:'data_apr...',type:'TIMESTAMP',note:'data da aprovação'},
+        {name:'reason',type:'VARCHAR(255)',note:'justificativa do pedido'},
+        {name:'id_kitchen',type:'FK',note:'cozinha solicitante'},
+        {name:'id_requester_user',type:'UUID FK',note:'quem criou o pedido'},
+        {name:'id_approver_user',type:'UUID FK',note:'quem aprovou (NULL até aprovação)'},
+        {name:'created_at',type:'TIMESTAMP',note:'criação da requisição'},
+        {name:'approved_at',type:'TIMESTAMP',note:'data da aprovação'},
       ],
-      tb_requisicao_item:[
-        {name:'id_requis...',type:'FK',note:'a qual requisição pertence'},
-        {name:'id_produto',type:'FK',note:'produto solicitado'},
-        {name:'id_fornece...',type:'FK',note:'fornecedor sugerido (opcional)'},
-        {name:'quanti...',type:'DECIMAL(12,3)',note:'quantidade solicitada'},
-        {name:'prec...',type:'DECIMAL(12,2)',note:'preço de referência na data'},
-        {name:'obser...',type:'VARCHAR(255)',note:'observação do item'},
+      tb_requisition_item:[
+        {name:'id_requisition',type:'FK',note:'a qual requisição pertence'},
+        {name:'id_product',type:'FK',note:'produto solicitado'},
+        {name:'id_suggested_supplier',type:'FK',note:'fornecedor sugerido (opcional)'},
+        {name:'quantity',type:'DECIMAL(12,3)',note:'quantidade solicitada'},
+        {name:'estimated_price',type:'DECIMAL(12,2)',note:'preço de referência na data'},
+        {name:'note',type:'VARCHAR(255)',note:'observação do item'},
       ]
     },
-    tip:'💡 Fluxo de status: pendente → aprovada → em_separacao → concluída / cancelada.'
+    tip:'💡 Fluxo de status: pendente → aprovada → em separação → concluída / cancelada.'
   },
   {
-    id:12, phase:'operacao', title:'Alertas automáticos',
-    desc:'O sistema gera alertas baseados em regras: estoque abaixo do mínimo, lote próximo do vencimento, divergências de inventário. O campo "lido" rastreia se o usuário reconheceu o alerta.',
+    id:12, phase:'operation', title:'Alertas automáticos',
+    desc:'O sistema gera alertas baseados em regras: estoque abaixo do mínimo, lote próximo do vencimento, divergências de inventário. O campo "is_read" rastreia se o usuário reconheceu o alerta.',
     tables:{
-      tb_alerta:[
-        {name:'id_alerta',type:'INTEGER PK',note:''},
-        {name:'tipo',type:'VARCHAR(38)',note:'estoque_minimo, vencimento, divergencia'},
-        {name:'severida...',type:'VARCHAR(10)',note:'alta, media, baixa'},
-        {name:'id_lote',type:'FK',note:'lote que disparou o alerta'},
-        {name:'id_produto',type:'FK',note:''},
-        {name:'id_cozinha',type:'FK',note:''},
-        {name:'mensag...',type:'VARCHAR(255)',note:'texto descritivo do alerta'},
-        {name:'lido',type:'BOOLEAN',note:'usuário reconheceu?'},
-        {name:'criado_em',type:'TIMESTAMP',note:''},
+      tb_alert:[
+        {name:'id_alert',type:'INTEGER PK',note:''},
+        {name:'type',type:'VARCHAR(38)',note:'estoque, vencimento, divergência'},
+        {name:'severity',type:'VARCHAR(10)',note:'alta, média, baixa'},
+        {name:'id_batch',type:'FK',note:'lote que disparou o alerta'},
+        {name:'id_product',type:'FK',note:''},
+        {name:'id_kitchen',type:'FK',note:''},
+        {name:'message',type:'VARCHAR(255)',note:'texto descritivo do alerta'},
+        {name:'is_read',type:'BOOLEAN',note:'usuário reconheceu?'},
+        {name:'created_at',type:'TIMESTAMP',note:''},
       ]
     },
-    tip:'💡 Lógica: compare qtd_at (lote) com estoq_min (tb_produto_parametro_cozinha). Se qtd_at < estoq_min → crie alerta.'
+    tip:'💡 Lógica: compare current_quantity (lote) com min_stock (tb_product_kitchen_parameter). Se current_quantity < min_stock → crie um alerta.'
   },
   {
-    id:13, phase:'dashboard', title:'Dashboard de estoque',
+    id:13, phase:'automation', title:'Validações automáticas & regras de negócio',
+    desc:'Uma camada de functions, procedures e triggers aplica as regras de negócio principais diretamente no PostgreSQL — assim as garantias valem para qualquer aplicação, script ou pessoa que toque os dados, não só a API. Prefira as procedures a UPDATEs diretos para mudanças de status.',
+    tables:{
+      'Triggers em tb_stock_batch':[
+        {name:'trg_validate_stock',type:'BEFORE INSERT/UPDATE',note:'bloqueia current_quantity negativo'},
+        {name:'trg_update_batch_status',type:'BEFORE INSERT/UPDATE',note:'muda status para WRITTEN_OFF automaticamente quando current_quantity chega a 0'},
+        {name:'trg_stock_alert',type:'AFTER INSERT/UPDATE',note:'gera um alerta quando current_quantity cai para ≤ min_stock'},
+        {name:'trg_expiration_alert',type:'AFTER INSERT/UPDATE',note:'gera um alerta quando expiration_date já passou'},
+      ],
+      'Outros triggers':[
+        {name:'trg_calculate_divergence',type:'BEFORE INSERT/UPDATE · tb_inventory_count',note:'calcula divergence = physical_quantity − registered_quantity'},
+        {name:'trg_requisition_approval',type:'BEFORE UPDATE · tb_requisition',note:'grava approved_at no momento em que status vira APPROVED'},
+      ],
+      'Procedures (CALL)':[
+        {name:'sp_approve/reject/cancel_requisition',type:'CALL',note:'única forma sancionada de mudar o status de uma requisição — confere se ainda está UNDER_REVIEW antes'},
+        {name:'sp_register_stock_entry / sp_write_off_stock',type:'CALL',note:'incrementa/decrementa current_quantity com segurança, bloqueando saldo negativo'},
+        {name:'sp_close_inventory',type:'CALL',note:'fecha um inventário OPEN e grava closed_at'},
+      ]
+    },
+    tip:'💡 Por que no banco e não só no código da aplicação? Essas regras valem até numa sessão psql direta, um script ou um segundo serviço — ninguém consegue pular a validação sem querer.'
+  },
+  {
+    id:14, phase:'automation', title:'Trilha de auditoria (tb_log_*)',
+    desc:'Cada tabela principal (tb_user, tb_product, tb_supplier, tb_stock_batch, tb_requisition, tb_inventory, tb_alert) ganhou uma tabela tb_log_* correspondente neste ciclo. Um trigger AFTER INSERT/UPDATE/DELETE grava uma linha por mudança, capturando quem fez e o estado completo antes/depois — sem esforço nenhum da aplicação.',
+    tables:{
+      'tb_log_* (mesma estrutura nas 7)':[
+        {name:'id_log',type:'INTEGER PK',note:'auto-incremento'},
+        {name:'id_<entidade>',type:'ex: id_user, id_batch',note:'qual linha mudou'},
+        {name:'operation',type:'VARCHAR(10)',note:'INSERT, UPDATE ou DELETE — vindo de TG_OP'},
+        {name:'db_user',type:'VARCHAR(100)',note:'CURRENT_USER, o role do banco que fez a mudança'},
+        {name:'operation_date',type:'TIMESTAMP',note:'quando aconteceu'},
+        {name:'previous_data',type:'JSONB',note:'linha completa antes da mudança (NULL em INSERT)'},
+        {name:'new_data',type:'JSONB',note:'linha completa depois da mudança (NULL em DELETE)'},
+      ]
+    },
+    tip:'💡 Por quê: uma trilha de auditoria nível compliance (quem mudou o quê, quando, e os valores exatos antes/depois) que não pode ser pulada ou esquecida, porque roda como trigger de banco e não como log da aplicação.'
+  },
+  {
+    id:15, phase:'dashboard', title:'Dashboard de estoque',
     desc:'Visão consolidada da posição de estoque por cozinha: saldo atual vs. mínimo/máximo, alertas ativos, produtos próximos do vencimento e comparação entre cozinhas.',
     tables:{},
     queries:[
-      'Saldo atual: SELECT id_produto, SUM(qtd_at) FROM tb_estoque_lote WHERE status=\'ativo\' GROUP BY id_produto',
-      'Abaixo do mínimo: JOIN tb_produto_parametro_cozinha WHERE qtd_at < estoq_min',
-      'Validades próximas: WHERE data_validade BETWEEN NOW() AND NOW() + INTERVAL \'30 days\'',
-      'Alertas não lidos: WHERE lido = false ORDER BY criado_em DESC',
+      'Saldo atual: SELECT id_product, SUM(current_quantity) FROM tb_stock_batch WHERE status=\'ACTIVE\' GROUP BY id_product',
+      'Abaixo do mínimo: JOIN tb_product_kitchen_parameter WHERE current_quantity < min_stock',
+      'Validades próximas: WHERE expiration_date BETWEEN NOW() AND NOW() + INTERVAL \'30 days\'',
+      'Alertas não lidos: WHERE is_read = false ORDER BY created_at DESC',
     ],
-    tip:'💡 Use views materializadas para essas queries em produção — são pesadas com alto volume de lotes.'
+    tip:'💡 Use views materializadas para essas queries em produção — ficam pesadas com alto volume de lotes.'
   },
   {
-    id:14, phase:'dashboard', title:'Dashboard de requisições',
+    id:16, phase:'dashboard', title:'Dashboard de requisições',
     desc:'Acompanhe volume por status, custo total solicitado, produtos mais requisitados, tempo médio de aprovação e histórico por cozinha.',
     tables:{},
     queries:[
-      'Por status: SELECT status, COUNT(*) FROM tb_requisicao GROUP BY status',
-      'Custo total: SELECT id_requisicao, SUM(quanti * prec) AS total FROM tb_requisicao_item GROUP BY 1',
-      'Top produtos: SELECT id_produto, SUM(quanti) FROM tb_requisicao_item GROUP BY 1 ORDER BY 2 DESC',
-      'Tempo aprovação: AVG(EXTRACT(EPOCH FROM (data_apr - data_hora))/3600) AS horas_médias',
+      'Por status: SELECT status, COUNT(*) FROM tb_requisition GROUP BY status',
+      'Custo total: SELECT id_requisition, SUM(quantity * estimated_price) AS total FROM tb_requisition_item GROUP BY 1',
+      'Top produtos: SELECT id_product, SUM(quantity) FROM tb_requisition_item GROUP BY 1 ORDER BY 2 DESC',
+      'Tempo de aprovação: AVG(EXTRACT(EPOCH FROM (approved_at - created_at))/3600) AS horas_médias',
     ],
-    tip:'💡 Sempre filtre por id_cozinha para dashboards por unidade — nunca misture dados de cozinhas diferentes.'
+    tip:'💡 Sempre filtre por id_kitchen para dashboards por unidade — nunca misture dados de cozinhas diferentes.'
   },
   {
-    id:15, phase:'dashboard', title:'Dashboard de inventários',
+    id:17, phase:'dashboard', title:'Dashboard de inventários',
     desc:'Analise divergências de inventário: valor financeiro das perdas, produtos com mais ocorrências, acurácia por cozinha e evolução histórica de inventários.',
     tables:{},
     queries:[
-      'Divergências: SELECT id_produto, SUM(diver) FROM tb_inventario_contagem GROUP BY id_produto',
-      'Valor das perdas: JOIN tb_estoque_lote para cruzar diver × prec (custo unitário)',
-      'Acurácia: % de itens onde ABS(diver) < 0.01 por inventário',
+      'Divergências: SELECT id_product, SUM(divergence) FROM tb_inventory_count GROUP BY id_product',
+      'Valor das perdas: JOIN tb_stock_batch para cruzar divergence × unit_price (custo unitário)',
+      'Acurácia: % de itens onde ABS(divergence) < 0.01 por inventário',
       'Histórico: inventários fechados agrupados por mês e cozinha',
     ],
-    tip:'💡 Cruzar diver com prec do lote transforma a divergência física em valor financeiro — essencial para gestão.'
+    tip:'💡 Cruzar divergence com o unit_price do lote transforma a divergência física em valor financeiro — essencial para gestão.'
   },
 ];
 

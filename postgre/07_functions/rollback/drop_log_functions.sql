@@ -2,16 +2,16 @@
 -- ROLLBACK DE FUNCTIONS DE LOG
 -- ---------------------------------------------------
 
-DROP FUNCTION IF EXISTS fn_log_usuario();
+DROP FUNCTION IF EXISTS fn_log_user();
 
-DROP FUNCTION IF EXISTS fn_log_produto();
+DROP FUNCTION IF EXISTS fn_log_product();
 
-DROP FUNCTION IF EXISTS fn_log_fornecedor();
+DROP FUNCTION IF EXISTS fn_log_supplier();
 
-DROP FUNCTION IF EXISTS fn_log_estoque_lote();
+DROP FUNCTION IF EXISTS fn_log_stock_batch();
 
-DROP FUNCTION IF EXISTS fn_log_requisicao();
+DROP FUNCTION IF EXISTS fn_log_requisition();
 
-DROP FUNCTION IF EXISTS fn_log_inventario();
+DROP FUNCTION IF EXISTS fn_log_inventory();
 
-DROP FUNCTION IF EXISTS fn_log_alerta();
+DROP FUNCTION IF EXISTS fn_log_alert();

@@ -1,38 +1,38 @@
 -- ---------------------------------------------------
--- CRIAÇÃO DE TRIGGERS DE LOG
+-- LOG TRIGGER CREATION
 -- ---------------------------------------------------
 
-CREATE TRIGGER trg_log_usuario
+CREATE TRIGGER trg_log_user
 AFTER INSERT OR UPDATE OR DELETE
-ON tb_usuario
-FOR EACH ROW EXECUTE FUNCTION fn_log_usuario();
+ON tb_user
+FOR EACH ROW EXECUTE FUNCTION fn_log_user();
 
-CREATE TRIGGER trg_log_produto
+CREATE TRIGGER trg_log_product
 AFTER INSERT OR UPDATE OR DELETE
-ON tb_produto
-FOR EACH ROW EXECUTE FUNCTION fn_log_produto();
+ON tb_product
+FOR EACH ROW EXECUTE FUNCTION fn_log_product();
 
-CREATE TRIGGER trg_log_fornecedor
+CREATE TRIGGER trg_log_supplier
 AFTER INSERT OR UPDATE OR DELETE
-ON tb_fornecedor
-FOR EACH ROW EXECUTE FUNCTION fn_log_fornecedor();
+ON tb_supplier
+FOR EACH ROW EXECUTE FUNCTION fn_log_supplier();
 
-CREATE TRIGGER trg_log_estoque_lote
+CREATE TRIGGER trg_log_stock_batch
 AFTER INSERT OR UPDATE OR DELETE
-ON tb_estoque_lote
-FOR EACH ROW EXECUTE FUNCTION fn_log_estoque_lote();
+ON tb_stock_batch
+FOR EACH ROW EXECUTE FUNCTION fn_log_stock_batch();
 
-CREATE TRIGGER trg_log_requisicao
+CREATE TRIGGER trg_log_requisition
 AFTER INSERT OR UPDATE OR DELETE
-ON tb_requisicao
-FOR EACH ROW EXECUTE FUNCTION fn_log_requisicao();
+ON tb_requisition
+FOR EACH ROW EXECUTE FUNCTION fn_log_requisition();
 
-CREATE TRIGGER trg_log_inventario
+CREATE TRIGGER trg_log_inventory
 AFTER INSERT OR UPDATE OR DELETE
-ON tb_inventario
-FOR EACH ROW EXECUTE FUNCTION fn_log_inventario();
+ON tb_inventory
+FOR EACH ROW EXECUTE FUNCTION fn_log_inventory();
 
-CREATE TRIGGER trg_log_alerta
+CREATE TRIGGER trg_log_alert
 AFTER INSERT OR UPDATE OR DELETE
-ON tb_alerta
-FOR EACH ROW EXECUTE FUNCTION fn_log_alerta();
+ON tb_alert
+FOR EACH ROW EXECUTE FUNCTION fn_log_alert();
