@@ -1,7 +1,6 @@
--- ===================================================
--- ROLLBACK: DROP FUNCTIONS
--- ===================================================
-
+-- ---------------------------------------------------
+-- ROLLBACK DAS FUNCTIONS
+-- ---------------------------------------------------
 DROP FUNCTION IF EXISTS fn_alerta_validade();
 
 DROP FUNCTION IF EXISTS fn_alerta_estoque();

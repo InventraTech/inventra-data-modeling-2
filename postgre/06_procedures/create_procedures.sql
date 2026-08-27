@@ -1,8 +1,8 @@
--- ===================================================
--- PROCEDURES
--- ===================================================
+-- ---------------------------------------------------
+-- CRIAÇÃO DE PROCEDURES
+-- ---------------------------------------------------
 
-CREATE OR REPLACE PROCEDURE sp_aprovar_requisicao(
+CREATE PROCEDURE sp_aprovar_requisicao(
     p_id_requisicao INTEGER,
     p_id_usuario_aprovador UUID
 )
@@ -41,7 +41,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE sp_reprovar_requisicao(
+CREATE PROCEDURE sp_reprovar_requisicao(
     p_id_requisicao INTEGER,
     p_id_usuario_aprovador UUID,
     p_motivo VARCHAR(255)
@@ -83,7 +83,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE sp_cancelar_requisicao(
+CREATE PROCEDURE sp_cancelar_requisicao(
     p_id_requisicao INTEGER,
     p_motivo VARCHAR(255)
 )
@@ -122,7 +122,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE sp_registrar_entrada_estoque(
+CREATE PROCEDURE sp_registrar_entrada_estoque(
     p_id_lote INTEGER,
     p_quantidade DECIMAL(12,3)
 )
@@ -155,7 +155,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE sp_baixar_estoque(
+CREATE PROCEDURE sp_baixar_estoque(
     p_id_lote INTEGER,
     p_quantidade DECIMAL(12,3)
 )
@@ -197,7 +197,7 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE sp_fechar_inventario(
+CREATE PROCEDURE sp_fechar_inventario(
     p_id_inventario INTEGER
 )
 LANGUAGE plpgsql
