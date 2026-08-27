@@ -31,7 +31,6 @@ postgre/
 └── inventra_erp_fluxo.html          # Diagrama de fluxo ERP
 ```
 
----
 
 ## 🏗️ Tecnologias Utilizadas
 
@@ -45,6 +44,7 @@ postgre/
 ---
 
 ## 🚀 Como Executar
+
 
 A arquitetura do `09_migrations` foi desenhada para ser executada diretamente, sem gerar erros caso os objetos já existam no banco de dados.
 
@@ -103,6 +103,10 @@ O banco de dados possui **18 tabelas principais** e um ecossistema de **7 tabela
 - [x] Configurar sistema base de logs e auditoria
 - [ ] Criar testes de integridade e performance
 - [ ] Documentar dicionário de dados (Data Dictionary .md)
+- [x] Dividir a criação de logs, índices, functions, procedures e triggers em migrations próprias (`V002` a `V00N`)
+- [ ] Adicionar scripts de `views` e `DML` (seeds/dados iniciais)
+- [ ] Criar testes de integridade e performance
+- [ ] Documentar dicionário de dados
 - [ ] Configurar ambiente de desenvolvimento/homologação
 - [ ] Integrar com aplicação principal
 

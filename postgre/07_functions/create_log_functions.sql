@@ -75,7 +75,6 @@ BEGIN
 END;
 $$;
 
-
 CREATE FUNCTION fn_log_fornecedor()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -112,7 +111,6 @@ BEGIN
     END IF;
 END;
 $$;
-
 
 CREATE FUNCTION fn_log_estoque_lote()
 RETURNS TRIGGER
@@ -151,7 +149,6 @@ BEGIN
 END;
 $$;
 
-
 CREATE FUNCTION fn_log_requisicao()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -189,7 +186,6 @@ BEGIN
 END;
 $$;
 
-
 CREATE FUNCTION fn_log_inventario()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -226,7 +222,6 @@ BEGIN
     END IF;
 END;
 $$;
-
 
 CREATE FUNCTION fn_log_alerta()
 RETURNS TRIGGER
