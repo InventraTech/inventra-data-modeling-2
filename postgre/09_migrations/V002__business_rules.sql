@@ -1,18 +1,18 @@
 -- ---------------------------------------------------
--- CRIAÇÃO DE FUNCTIONS
+-- FUNCTION CREATION
 -- ---------------------------------------------------
 
-CREATE OR REPLACE FUNCTION fn_validar_estoque()
+CREATE OR REPLACE FUNCTION fn_validate_stock()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS
 $$
 BEGIN
 
-    IF NEW.qtd_atual < 0 THEN
+    IF NEW.current_quantity < 0 THEN
         RAISE EXCEPTION
-            'A quantidade atual do lote não pode ser negativa. Lote: %',
-            NEW.id_lote;
+            'The batch current quantity cannot be negative. Batch: %',
+            NEW.id_batch;
     END IF;
 
     RETURN NEW;
@@ -20,51 +20,17 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION fn_atualizar_status_lote()
+CREATE OR REPLACE FUNCTION fn_update_batch_status()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS
 $$
 BEGIN
 
-    IF NEW.qtd_atual = 0
-       AND NEW.status = 'ATIVO' THEN
+    IF NEW.current_quantity = 0
+       AND NEW.status = 'ACTIVE' THEN
 
-        NEW.status := 'BAIXA';
-
-    END IF;
-
-    RETURN NEW;
-
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION fn_calcular_divergencia()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS
-$$
-BEGIN
-
-    NEW.divergencia :=
-        NEW.qtd_fisica - NEW.qtd_registrada;
-
-    RETURN NEW;
-
-END;
-$$;
-
-CREATE OR REPLACE FUNCTION fn_aprovacao_requisicao()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS
-$$
-BEGIN
-
-    IF NEW.status = 'APROVADO'
-       AND OLD.status IS DISTINCT FROM 'APROVADO' THEN
-
-        NEW.data_aprovacao := CURRENT_TIMESTAMP;
+        NEW.status := 'WRITTEN_OFF';
 
     END IF;
 
@@ -73,56 +39,90 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION fn_alerta_estoque()
+CREATE OR REPLACE FUNCTION fn_calculate_divergence()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+
+    NEW.divergence :=
+        NEW.physical_quantity - NEW.registered_quantity;
+
+    RETURN NEW;
+
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION fn_requisition_approval()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+
+    IF NEW.status = 'APPROVED'
+       AND OLD.status IS DISTINCT FROM 'APPROVED' THEN
+
+        NEW.approved_at := CURRENT_TIMESTAMP;
+
+    END IF;
+
+    RETURN NEW;
+
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION fn_stock_alert()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS
 $$
 DECLARE
-    v_estoque_minimo DECIMAL(12,3);
-    v_alerta_existente INTEGER;
+    v_min_stock DECIMAL(12,3);
+    v_existing_alert INTEGER;
 BEGIN
 
-    SELECT estoque_minimo
-    INTO v_estoque_minimo
-    FROM tb_produto_parametro_cozinha
-    WHERE id_produto = NEW.id_produto
-      AND id_cozinha = NEW.id_cozinha;
+    SELECT min_stock
+    INTO v_min_stock
+    FROM tb_product_kitchen_parameter
+    WHERE id_product = NEW.id_product
+      AND id_kitchen = NEW.id_kitchen;
 
-    IF v_estoque_minimo IS NULL THEN
+    IF v_min_stock IS NULL THEN
         RETURN NEW;
     END IF;
 
-    IF NEW.qtd_atual <= v_estoque_minimo THEN
+    IF NEW.current_quantity <= v_min_stock THEN
 
-        SELECT id_alerta
-        INTO v_alerta_existente
-        FROM tb_alerta
-        WHERE id_produto = NEW.id_produto
-          AND id_cozinha = NEW.id_cozinha
-          AND tipo = 'ESTOQUE'
-          AND lido = false
+        SELECT id_alert
+        INTO v_existing_alert
+        FROM tb_alert
+        WHERE id_product = NEW.id_product
+          AND id_kitchen = NEW.id_kitchen
+          AND type = 'STOCK'
+          AND is_read = false
         LIMIT 1;
 
-        IF v_alerta_existente IS NULL THEN
+        IF v_existing_alert IS NULL THEN
 
-            INSERT INTO tb_alerta
+            INSERT INTO tb_alert
             (
-                tipo,
-                severidade,
-                id_lote,
-                id_produto,
-                id_cozinha,
-                mensagem
+                type,
+                severity,
+                id_batch,
+                id_product,
+                id_kitchen,
+                message
             )
             VALUES
             (
-                'ESTOQUE',
-                'ALTA',
-                NEW.id_lote,
-                NEW.id_produto,
-                NEW.id_cozinha,
-                'Produto abaixo do estoque mínimo.'
+                'STOCK',
+                'HIGH',
+                NEW.id_batch,
+                NEW.id_product,
+                NEW.id_kitchen,
+                'Product below minimum stock.'
             );
 
         END IF;
@@ -134,48 +134,48 @@ BEGIN
 END;
 $$;
 
-CREATE OR REPLACE FUNCTION fn_alerta_validade()
+CREATE OR REPLACE FUNCTION fn_expiration_alert()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS
 $$
 DECLARE
-    v_alerta_existente INTEGER;
+    v_existing_alert INTEGER;
 BEGIN
 
-    IF NEW.data_validade IS NULL THEN
+    IF NEW.expiration_date IS NULL THEN
         RETURN NEW;
     END IF;
 
-    IF NEW.data_validade < CURRENT_DATE THEN
+    IF NEW.expiration_date < CURRENT_DATE THEN
 
-        SELECT id_alerta
-        INTO v_alerta_existente
-        FROM tb_alerta
-        WHERE id_lote = NEW.id_lote
-          AND tipo = 'VALIDADE'
-          AND lido = false
+        SELECT id_alert
+        INTO v_existing_alert
+        FROM tb_alert
+        WHERE id_batch = NEW.id_batch
+          AND type = 'EXPIRATION'
+          AND is_read = false
         LIMIT 1;
 
-        IF v_alerta_existente IS NULL THEN
+        IF v_existing_alert IS NULL THEN
 
-            INSERT INTO tb_alerta
+            INSERT INTO tb_alert
             (
-                tipo,
-                severidade,
-                id_lote,
-                id_produto,
-                id_cozinha,
-                mensagem
+                type,
+                severity,
+                id_batch,
+                id_product,
+                id_kitchen,
+                message
             )
             VALUES
             (
-                'VALIDADE',
-                'CRITICA',
-                NEW.id_lote,
-                NEW.id_produto,
-                NEW.id_cozinha,
-                'Lote vencido. Verifique a validade do produto.'
+                'EXPIRATION',
+                'CRITICAL',
+                NEW.id_batch,
+                NEW.id_product,
+                NEW.id_kitchen,
+                'Batch expired. Check the product expiration date.'
             );
 
         END IF;
@@ -188,12 +188,12 @@ END;
 $$;
 
 -- ---------------------------------------------------
--- CRIAÇÃO DE PROCEDURES
+-- PROCEDURE CREATION
 -- ---------------------------------------------------
 
-CREATE OR REPLACE PROCEDURE sp_aprovar_requisicao(
-    p_id_requisicao INTEGER,
-    p_id_usuario_aprovador UUID
+CREATE OR REPLACE PROCEDURE sp_approve_requisition(
+    p_id_requisition INTEGER,
+    p_id_approver_user UUID
 )
 LANGUAGE plpgsql
 AS
@@ -202,38 +202,38 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_requisicao
-        WHERE id_requisicao = p_id_requisicao
+        FROM tb_requisition
+        WHERE id_requisition = p_id_requisition
     ) THEN
         RAISE EXCEPTION
-            'Requisição % não encontrada.',
-            p_id_requisicao;
+            'Requisition % not found.',
+            p_id_requisition;
     END IF;
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_requisicao
-        WHERE id_requisicao = p_id_requisicao
-          AND status = 'EM_ANALISE'
+        FROM tb_requisition
+        WHERE id_requisition = p_id_requisition
+          AND status = 'UNDER_REVIEW'
     ) THEN
         RAISE EXCEPTION
-            'A requisição % não está em análise.',
-            p_id_requisicao;
+            'Requisition % is not under review.',
+            p_id_requisition;
     END IF;
 
-    UPDATE tb_requisicao
+    UPDATE tb_requisition
     SET
-        status = 'APROVADO',
-        id_usuario_aprovador = p_id_usuario_aprovador
-    WHERE id_requisicao = p_id_requisicao;
+        status = 'APPROVED',
+        id_approver_user = p_id_approver_user
+    WHERE id_requisition = p_id_requisition;
 
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE sp_reprovar_requisicao(
-    p_id_requisicao INTEGER,
-    p_id_usuario_aprovador UUID,
-    p_motivo VARCHAR(255)
+CREATE OR REPLACE PROCEDURE sp_reject_requisition(
+    p_id_requisition INTEGER,
+    p_id_approver_user UUID,
+    p_reason VARCHAR(255)
 )
 LANGUAGE plpgsql
 AS
@@ -242,39 +242,39 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_requisicao
-        WHERE id_requisicao = p_id_requisicao
+        FROM tb_requisition
+        WHERE id_requisition = p_id_requisition
     ) THEN
         RAISE EXCEPTION
-            'Requisição % não encontrada.',
-            p_id_requisicao;
+            'Requisition % not found.',
+            p_id_requisition;
     END IF;
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_requisicao
-        WHERE id_requisicao = p_id_requisicao
-          AND status = 'EM_ANALISE'
+        FROM tb_requisition
+        WHERE id_requisition = p_id_requisition
+          AND status = 'UNDER_REVIEW'
     ) THEN
         RAISE EXCEPTION
-            'A requisição % não está em análise.',
-            p_id_requisicao;
+            'Requisition % is not under review.',
+            p_id_requisition;
     END IF;
 
-    UPDATE tb_requisicao
+    UPDATE tb_requisition
     SET
-        status = 'REPROVADO',
-        id_usuario_aprovador = p_id_usuario_aprovador,
-        motivo = p_motivo,
-        data_aprovacao = CURRENT_TIMESTAMP
-    WHERE id_requisicao = p_id_requisicao;
+        status = 'REJECTED',
+        id_approver_user = p_id_approver_user,
+        reason = p_reason,
+        approved_at = CURRENT_TIMESTAMP
+    WHERE id_requisition = p_id_requisition;
 
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE sp_cancelar_requisicao(
-    p_id_requisicao INTEGER,
-    p_motivo VARCHAR(255)
+CREATE OR REPLACE PROCEDURE sp_cancel_requisition(
+    p_id_requisition INTEGER,
+    p_reason VARCHAR(255)
 )
 LANGUAGE plpgsql
 AS
@@ -283,111 +283,111 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_requisicao
-        WHERE id_requisicao = p_id_requisicao
+        FROM tb_requisition
+        WHERE id_requisition = p_id_requisition
     ) THEN
         RAISE EXCEPTION
-            'Requisição % não encontrada.',
-            p_id_requisicao;
+            'Requisition % not found.',
+            p_id_requisition;
     END IF;
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_requisicao
-        WHERE id_requisicao = p_id_requisicao
-          AND status IN ('EM_ANALISE', 'APROVADO')
+        FROM tb_requisition
+        WHERE id_requisition = p_id_requisition
+          AND status IN ('UNDER_REVIEW', 'APPROVED')
     ) THEN
         RAISE EXCEPTION
-            'A requisição % não pode ser cancelada no status atual.',
-            p_id_requisicao;
+            'Requisition % cannot be cancelled in its current status.',
+            p_id_requisition;
     END IF;
 
-    UPDATE tb_requisicao
+    UPDATE tb_requisition
     SET
-        status = 'CANCELADO',
-        motivo = p_motivo
-    WHERE id_requisicao = p_id_requisicao;
+        status = 'CANCELLED',
+        reason = p_reason
+    WHERE id_requisition = p_id_requisition;
 
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE sp_registrar_entrada_estoque(
-    p_id_lote INTEGER,
-    p_quantidade DECIMAL(12,3)
+CREATE OR REPLACE PROCEDURE sp_register_stock_entry(
+    p_id_batch INTEGER,
+    p_quantity DECIMAL(12,3)
 )
 LANGUAGE plpgsql
 AS
 $$
 BEGIN
 
-    IF p_quantidade <= 0 THEN
+    IF p_quantity <= 0 THEN
         RAISE EXCEPTION
-            'A quantidade de entrada deve ser maior que zero.';
+            'Entry quantity must be greater than zero.';
     END IF;
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_estoque_lote
-        WHERE id_lote = p_id_lote
+        FROM tb_stock_batch
+        WHERE id_batch = p_id_batch
     ) THEN
         RAISE EXCEPTION
-            'Lote % não encontrado.',
-            p_id_lote;
+            'Batch % not found.',
+            p_id_batch;
     END IF;
 
-    UPDATE tb_estoque_lote
+    UPDATE tb_stock_batch
     SET
-        qtd_atual = qtd_atual + p_quantidade,
-        status = 'ATIVO'
-    WHERE id_lote = p_id_lote;
+        current_quantity = current_quantity + p_quantity,
+        status = 'ACTIVE'
+    WHERE id_batch = p_id_batch;
 
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE sp_baixar_estoque(
-    p_id_lote INTEGER,
-    p_quantidade DECIMAL(12,3)
+CREATE OR REPLACE PROCEDURE sp_write_off_stock(
+    p_id_batch INTEGER,
+    p_quantity DECIMAL(12,3)
 )
 LANGUAGE plpgsql
 AS
 $$
 BEGIN
 
-    IF p_quantidade <= 0 THEN
+    IF p_quantity <= 0 THEN
         RAISE EXCEPTION
-            'A quantidade da baixa deve ser maior que zero.';
+            'Write-off quantity must be greater than zero.';
     END IF;
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_estoque_lote
-        WHERE id_lote = p_id_lote
+        FROM tb_stock_batch
+        WHERE id_batch = p_id_batch
     ) THEN
         RAISE EXCEPTION
-            'Lote % não encontrado.',
-            p_id_lote;
+            'Batch % not found.',
+            p_id_batch;
     END IF;
 
     IF (
-        SELECT qtd_atual
-        FROM tb_estoque_lote
-        WHERE id_lote = p_id_lote
-    ) < p_quantidade THEN
+        SELECT current_quantity
+        FROM tb_stock_batch
+        WHERE id_batch = p_id_batch
+    ) < p_quantity THEN
         RAISE EXCEPTION
-            'Estoque insuficiente para realizar a baixa do lote %.',
-            p_id_lote;
+            'Insufficient stock to write off batch %.',
+            p_id_batch;
     END IF;
 
-    UPDATE tb_estoque_lote
+    UPDATE tb_stock_batch
     SET
-        qtd_atual = qtd_atual - p_quantidade
-    WHERE id_lote = p_id_lote;
+        current_quantity = current_quantity - p_quantity
+    WHERE id_batch = p_id_batch;
 
 END;
 $$;
 
-CREATE OR REPLACE PROCEDURE sp_fechar_inventario(
-    p_id_inventario INTEGER
+CREATE OR REPLACE PROCEDURE sp_close_inventory(
+    p_id_inventory INTEGER
 )
 LANGUAGE plpgsql
 AS
@@ -396,106 +396,106 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_inventario
-        WHERE id_inventario = p_id_inventario
+        FROM tb_inventory
+        WHERE id_inventory = p_id_inventory
     ) THEN
         RAISE EXCEPTION
-            'Inventário % não encontrado.',
-            p_id_inventario;
+            'Inventory % not found.',
+            p_id_inventory;
     END IF;
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_inventario
-        WHERE id_inventario = p_id_inventario
-          AND status = 'ABERTO'
+        FROM tb_inventory
+        WHERE id_inventory = p_id_inventory
+          AND status = 'OPEN'
     ) THEN
         RAISE EXCEPTION
-            'O inventário % não está aberto.',
-            p_id_inventario;
+            'Inventory % is not open.',
+            p_id_inventory;
     END IF;
 
-    UPDATE tb_inventario
+    UPDATE tb_inventory
     SET
-        status = 'FECHADO',
-        data_fechamento = CURRENT_TIMESTAMP
-    WHERE id_inventario = p_id_inventario;
+        status = 'CLOSED',
+        closed_at = CURRENT_TIMESTAMP
+    WHERE id_inventory = p_id_inventory;
 
 END;
 $$;
 
 -- ---------------------------------------------------
--- CRIAÇÃO DE TRIGGERS
+-- TRIGGER CREATION
 -- ---------------------------------------------------
 
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_validar_estoque') THEN
-        CREATE TRIGGER trg_validar_estoque
-        BEFORE INSERT OR UPDATE OF qtd_atual
-        ON tb_estoque_lote
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_validate_stock') THEN
+        CREATE TRIGGER trg_validate_stock
+        BEFORE INSERT OR UPDATE OF current_quantity
+        ON tb_stock_batch
         FOR EACH ROW
-        EXECUTE FUNCTION fn_validar_estoque();
+        EXECUTE FUNCTION fn_validate_stock();
     END IF;
 END;
 $$;        
 
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_atualizar_status_lote') THEN
-        CREATE TRIGGER trg_atualizar_status_lote
-        BEFORE INSERT OR UPDATE OF qtd_atual, status
-        ON tb_estoque_lote
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_update_batch_status') THEN
+        CREATE TRIGGER trg_update_batch_status
+        BEFORE INSERT OR UPDATE OF current_quantity, status
+        ON tb_stock_batch
         FOR EACH ROW
-        EXECUTE FUNCTION fn_atualizar_status_lote();
+        EXECUTE FUNCTION fn_update_batch_status();
     END IF;
 END;
 $$;        
 
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_calcular_divergencia') THEN
-        CREATE TRIGGER trg_calcular_divergencia
-        BEFORE INSERT OR UPDATE OF qtd_registrada, qtd_fisica
-        ON tb_inventario_contagem
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_calculate_divergence') THEN
+        CREATE TRIGGER trg_calculate_divergence
+        BEFORE INSERT OR UPDATE OF registered_quantity, physical_quantity
+        ON tb_inventory_count
         FOR EACH ROW
-        EXECUTE FUNCTION fn_calcular_divergencia();
+        EXECUTE FUNCTION fn_calculate_divergence();
     END IF;
 END;
 $$;
 
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_aprovacao_requisicao') THEN
-        CREATE TRIGGER trg_aprovacao_requisicao
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_requisition_approval') THEN
+        CREATE TRIGGER trg_requisition_approval
         BEFORE UPDATE OF status
-        ON tb_requisicao
+        ON tb_requisition
         FOR EACH ROW
-        EXECUTE FUNCTION fn_aprovacao_requisicao();
+        EXECUTE FUNCTION fn_requisition_approval();
     END IF;
 END;
 $$;
 
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_alerta_estoque') THEN
-        CREATE TRIGGER trg_alerta_estoque
-        AFTER INSERT OR UPDATE OF qtd_atual
-        ON tb_estoque_lote
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_stock_alert') THEN
+        CREATE TRIGGER trg_stock_alert
+        AFTER INSERT OR UPDATE OF current_quantity
+        ON tb_stock_batch
         FOR EACH ROW
-        EXECUTE FUNCTION fn_alerta_estoque();
+        EXECUTE FUNCTION fn_stock_alert();
     END IF;
 END;
 $$;
 
 DO $$
 BEGIN
-    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_alerta_validade') THEN
-        CREATE TRIGGER trg_alerta_validade
-        AFTER INSERT OR UPDATE OF data_validade
-        ON tb_estoque_lote
+    IF NOT EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_expiration_alert') THEN
+        CREATE TRIGGER trg_expiration_alert
+        AFTER INSERT OR UPDATE OF expiration_date
+        ON tb_stock_batch
         FOR EACH ROW
-        EXECUTE FUNCTION fn_alerta_validade();
+        EXECUTE FUNCTION fn_expiration_alert();
     END IF;
 END;
 $$;

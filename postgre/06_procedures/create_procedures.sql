@@ -1,10 +1,10 @@
 -- ---------------------------------------------------
--- CRIAÇÃO DE PROCEDURES
+-- PROCEDURE CREATION
 -- ---------------------------------------------------
 
-CREATE PROCEDURE sp_aprovar_requisicao(
-    p_id_requisicao INTEGER,
-    p_id_usuario_aprovador UUID
+CREATE PROCEDURE sp_approve_requisition(
+    p_id_requisition INTEGER,
+    p_id_approver_user UUID
 )
 LANGUAGE plpgsql
 AS
@@ -13,38 +13,38 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_requisicao
-        WHERE id_requisicao = p_id_requisicao
+        FROM tb_requisition
+        WHERE id_requisition = p_id_requisition
     ) THEN
         RAISE EXCEPTION
-            'Requisição % não encontrada.',
-            p_id_requisicao;
+            'Requisition % not found.',
+            p_id_requisition;
     END IF;
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_requisicao
-        WHERE id_requisicao = p_id_requisicao
-          AND status = 'EM_ANALISE'
+        FROM tb_requisition
+        WHERE id_requisition = p_id_requisition
+          AND status = 'UNDER_REVIEW'
     ) THEN
         RAISE EXCEPTION
-            'A requisição % não está em análise.',
-            p_id_requisicao;
+            'Requisition % is not under review.',
+            p_id_requisition;
     END IF;
 
-    UPDATE tb_requisicao
+    UPDATE tb_requisition
     SET
-        status = 'APROVADO',
-        id_usuario_aprovador = p_id_usuario_aprovador
-    WHERE id_requisicao = p_id_requisicao;
+        status = 'APPROVED',
+        id_approver_user = p_id_approver_user
+    WHERE id_requisition = p_id_requisition;
 
 END;
 $$;
 
-CREATE PROCEDURE sp_reprovar_requisicao(
-    p_id_requisicao INTEGER,
-    p_id_usuario_aprovador UUID,
-    p_motivo VARCHAR(255)
+CREATE PROCEDURE sp_reject_requisition(
+    p_id_requisition INTEGER,
+    p_id_approver_user UUID,
+    p_reason VARCHAR(255)
 )
 LANGUAGE plpgsql
 AS
@@ -53,39 +53,39 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_requisicao
-        WHERE id_requisicao = p_id_requisicao
+        FROM tb_requisition
+        WHERE id_requisition = p_id_requisition
     ) THEN
         RAISE EXCEPTION
-            'Requisição % não encontrada.',
-            p_id_requisicao;
+            'Requisition % not found.',
+            p_id_requisition;
     END IF;
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_requisicao
-        WHERE id_requisicao = p_id_requisicao
-          AND status = 'EM_ANALISE'
+        FROM tb_requisition
+        WHERE id_requisition = p_id_requisition
+          AND status = 'UNDER_REVIEW'
     ) THEN
         RAISE EXCEPTION
-            'A requisição % não está em análise.',
-            p_id_requisicao;
+            'Requisition % is not under review.',
+            p_id_requisition;
     END IF;
 
-    UPDATE tb_requisicao
+    UPDATE tb_requisition
     SET
-        status = 'REPROVADO',
-        id_usuario_aprovador = p_id_usuario_aprovador,
-        motivo = p_motivo,
-        data_aprovacao = CURRENT_TIMESTAMP
-    WHERE id_requisicao = p_id_requisicao;
+        status = 'REJECTED',
+        id_approver_user = p_id_approver_user,
+        reason = p_reason,
+        approved_at = CURRENT_TIMESTAMP
+    WHERE id_requisition = p_id_requisition;
 
 END;
 $$;
 
-CREATE PROCEDURE sp_cancelar_requisicao(
-    p_id_requisicao INTEGER,
-    p_motivo VARCHAR(255)
+CREATE PROCEDURE sp_cancel_requisition(
+    p_id_requisition INTEGER,
+    p_reason VARCHAR(255)
 )
 LANGUAGE plpgsql
 AS
@@ -94,111 +94,111 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_requisicao
-        WHERE id_requisicao = p_id_requisicao
+        FROM tb_requisition
+        WHERE id_requisition = p_id_requisition
     ) THEN
         RAISE EXCEPTION
-            'Requisição % não encontrada.',
-            p_id_requisicao;
+            'Requisition % not found.',
+            p_id_requisition;
     END IF;
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_requisicao
-        WHERE id_requisicao = p_id_requisicao
-          AND status IN ('EM_ANALISE', 'APROVADO')
+        FROM tb_requisition
+        WHERE id_requisition = p_id_requisition
+          AND status IN ('UNDER_REVIEW', 'APPROVED')
     ) THEN
         RAISE EXCEPTION
-            'A requisição % não pode ser cancelada no status atual.',
-            p_id_requisicao;
+            'Requisition % cannot be cancelled in its current status.',
+            p_id_requisition;
     END IF;
 
-    UPDATE tb_requisicao
+    UPDATE tb_requisition
     SET
-        status = 'CANCELADO',
-        motivo = p_motivo
-    WHERE id_requisicao = p_id_requisicao;
+        status = 'CANCELLED',
+        reason = p_reason
+    WHERE id_requisition = p_id_requisition;
 
 END;
 $$;
 
-CREATE PROCEDURE sp_registrar_entrada_estoque(
-    p_id_lote INTEGER,
-    p_quantidade DECIMAL(12,3)
+CREATE PROCEDURE sp_register_stock_entry(
+    p_id_batch INTEGER,
+    p_quantity DECIMAL(12,3)
 )
 LANGUAGE plpgsql
 AS
 $$
 BEGIN
 
-    IF p_quantidade <= 0 THEN
+    IF p_quantity <= 0 THEN
         RAISE EXCEPTION
-            'A quantidade de entrada deve ser maior que zero.';
+            'Entry quantity must be greater than zero.';
     END IF;
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_estoque_lote
-        WHERE id_lote = p_id_lote
+        FROM tb_stock_batch
+        WHERE id_batch = p_id_batch
     ) THEN
         RAISE EXCEPTION
-            'Lote % não encontrado.',
-            p_id_lote;
+            'Batch % not found.',
+            p_id_batch;
     END IF;
 
-    UPDATE tb_estoque_lote
+    UPDATE tb_stock_batch
     SET
-        qtd_atual = qtd_atual + p_quantidade,
-        status = 'ATIVO'
-    WHERE id_lote = p_id_lote;
+        current_quantity = current_quantity + p_quantity,
+        status = 'ACTIVE'
+    WHERE id_batch = p_id_batch;
 
 END;
 $$;
 
-CREATE PROCEDURE sp_baixar_estoque(
-    p_id_lote INTEGER,
-    p_quantidade DECIMAL(12,3)
+CREATE PROCEDURE sp_write_off_stock(
+    p_id_batch INTEGER,
+    p_quantity DECIMAL(12,3)
 )
 LANGUAGE plpgsql
 AS
 $$
 BEGIN
 
-    IF p_quantidade <= 0 THEN
+    IF p_quantity <= 0 THEN
         RAISE EXCEPTION
-            'A quantidade da baixa deve ser maior que zero.';
+            'Write-off quantity must be greater than zero.';
     END IF;
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_estoque_lote
-        WHERE id_lote = p_id_lote
+        FROM tb_stock_batch
+        WHERE id_batch = p_id_batch
     ) THEN
         RAISE EXCEPTION
-            'Lote % não encontrado.',
-            p_id_lote;
+            'Batch % not found.',
+            p_id_batch;
     END IF;
 
     IF (
-        SELECT qtd_atual
-        FROM tb_estoque_lote
-        WHERE id_lote = p_id_lote
-    ) < p_quantidade THEN
+        SELECT current_quantity
+        FROM tb_stock_batch
+        WHERE id_batch = p_id_batch
+    ) < p_quantity THEN
         RAISE EXCEPTION
-            'Estoque insuficiente para realizar a baixa do lote %.',
-            p_id_lote;
+            'Insufficient stock to write off batch %.',
+            p_id_batch;
     END IF;
 
-    UPDATE tb_estoque_lote
+    UPDATE tb_stock_batch
     SET
-        qtd_atual = qtd_atual - p_quantidade
-    WHERE id_lote = p_id_lote;
+        current_quantity = current_quantity - p_quantity
+    WHERE id_batch = p_id_batch;
 
 END;
 $$;
 
-CREATE PROCEDURE sp_fechar_inventario(
-    p_id_inventario INTEGER
+CREATE PROCEDURE sp_close_inventory(
+    p_id_inventory INTEGER
 )
 LANGUAGE plpgsql
 AS
@@ -207,30 +207,30 @@ BEGIN
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_inventario
-        WHERE id_inventario = p_id_inventario
+        FROM tb_inventory
+        WHERE id_inventory = p_id_inventory
     ) THEN
         RAISE EXCEPTION
-            'Inventário % não encontrado.',
-            p_id_inventario;
+            'Inventory % not found.',
+            p_id_inventory;
     END IF;
 
     IF NOT EXISTS (
         SELECT 1
-        FROM tb_inventario
-        WHERE id_inventario = p_id_inventario
-          AND status = 'ABERTO'
+        FROM tb_inventory
+        WHERE id_inventory = p_id_inventory
+          AND status = 'OPEN'
     ) THEN
         RAISE EXCEPTION
-            'O inventário % não está aberto.',
-            p_id_inventario;
+            'Inventory % is not open.',
+            p_id_inventory;
     END IF;
 
-    UPDATE tb_inventario
+    UPDATE tb_inventory
     SET
-        status = 'FECHADO',
-        data_fechamento = CURRENT_TIMESTAMP
-    WHERE id_inventario = p_id_inventario;
+        status = 'CLOSED',
+        closed_at = CURRENT_TIMESTAMP
+    WHERE id_inventory = p_id_inventory;
 
 END;
 $$;

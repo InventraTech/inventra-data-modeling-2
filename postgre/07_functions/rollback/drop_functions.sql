@@ -1,14 +1,14 @@
 -- ---------------------------------------------------
 -- ROLLBACK DAS FUNCTIONS
 -- ---------------------------------------------------
-DROP FUNCTION IF EXISTS fn_alerta_validade();
+DROP FUNCTION IF EXISTS fn_expiration_alert();
 
-DROP FUNCTION IF EXISTS fn_alerta_estoque();
+DROP FUNCTION IF EXISTS fn_stock_alert();
 
-DROP FUNCTION IF EXISTS fn_aprovacao_requisicao();
+DROP FUNCTION IF EXISTS fn_requisition_approval();
 
-DROP FUNCTION IF EXISTS fn_calcular_divergencia();
+DROP FUNCTION IF EXISTS fn_calculate_divergence();
 
-DROP FUNCTION IF EXISTS fn_atualizar_status_lote();
+DROP FUNCTION IF EXISTS fn_update_batch_status();
 
-DROP FUNCTION IF EXISTS fn_validar_estoque();
+DROP FUNCTION IF EXISTS fn_validate_stock();
