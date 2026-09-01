@@ -104,7 +104,8 @@ O banco de dados possui **18 tabelas principais** e um ecossistema de **7 tabela
 - [ ] Criar testes de integridade e performance
 - [ ] Documentar dicionário de dados (Data Dictionary .md)
 - [x] Dividir a criação de logs, índices, functions, procedures e triggers em migrations próprias (`V002` a `V00N`)
-- [ ] Adicionar scripts de `views` e `DML` (seeds/dados iniciais)
+- [x] Adicionar script de seed/dataload inicial — `postgre/08_seeds/seed.ipynb`
+- [ ] Adicionar scripts de `views`
 - [ ] Criar testes de integridade e performance
 - [ ] Documentar dicionário de dados
 - [ ] Configurar ambiente de desenvolvimento/homologação
