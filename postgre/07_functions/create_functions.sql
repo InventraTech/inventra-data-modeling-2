@@ -1,18 +1,18 @@
 -- ---------------------------------------------------
--- CRIAÇÃO DE FUNCTIONS
+-- FUNCTION CREATION
 -- ---------------------------------------------------
 
-CREATE FUNCTION fn_validar_estoque()
+CREATE FUNCTION fn_validate_stock()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS
 $$
 BEGIN
 
-    IF NEW.qtd_atual < 0 THEN
+    IF NEW.current_quantity < 0 THEN
         RAISE EXCEPTION
-            'A quantidade atual do lote não pode ser negativa. Lote: %',
-            NEW.id_lote;
+            'The batch current quantity cannot be negative. Batch: %',
+            NEW.id_batch;
     END IF;
 
     RETURN NEW;
@@ -20,51 +20,17 @@ BEGIN
 END;
 $$;
 
-CREATE FUNCTION fn_atualizar_status_lote()
+CREATE FUNCTION fn_update_batch_status()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS
 $$
 BEGIN
 
-    IF NEW.qtd_atual = 0
-       AND NEW.status = 'ATIVO' THEN
+    IF NEW.current_quantity = 0
+       AND NEW.status = 'ACTIVE' THEN
 
-        NEW.status := 'BAIXA';
-
-    END IF;
-
-    RETURN NEW;
-
-END;
-$$;
-
-CREATE FUNCTION fn_calcular_divergencia()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS
-$$
-BEGIN
-
-    NEW.divergencia :=
-        NEW.qtd_fisica - NEW.qtd_registrada;
-
-    RETURN NEW;
-
-END;
-$$;
-
-CREATE FUNCTION fn_aprovacao_requisicao()
-RETURNS TRIGGER
-LANGUAGE plpgsql
-AS
-$$
-BEGIN
-
-    IF NEW.status = 'APROVADO'
-       AND OLD.status IS DISTINCT FROM 'APROVADO' THEN
-
-        NEW.data_aprovacao := CURRENT_TIMESTAMP;
+        NEW.status := 'WRITTEN_OFF';
 
     END IF;
 
@@ -73,56 +39,90 @@ BEGIN
 END;
 $$;
 
-CREATE FUNCTION fn_alerta_estoque()
+CREATE FUNCTION fn_calculate_divergence()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+
+    NEW.divergence :=
+        NEW.physical_quantity - NEW.registered_quantity;
+
+    RETURN NEW;
+
+END;
+$$;
+
+CREATE FUNCTION fn_requisition_approval()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+
+    IF NEW.status = 'APPROVED'
+       AND OLD.status IS DISTINCT FROM 'APPROVED' THEN
+
+        NEW.approved_at := CURRENT_TIMESTAMP;
+
+    END IF;
+
+    RETURN NEW;
+
+END;
+$$;
+
+CREATE FUNCTION fn_stock_alert()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS
 $$
 DECLARE
-    v_estoque_minimo DECIMAL(12,3);
-    v_alerta_existente INTEGER;
+    v_min_stock DECIMAL(12,3);
+    v_existing_alert INTEGER;
 BEGIN
 
-    SELECT estoque_minimo
-    INTO v_estoque_minimo
-    FROM tb_produto_parametro_cozinha
-    WHERE id_produto = NEW.id_produto
-      AND id_cozinha = NEW.id_cozinha;
+    SELECT min_stock
+    INTO v_min_stock
+    FROM tb_product_kitchen_parameter
+    WHERE id_product = NEW.id_product
+      AND id_kitchen = NEW.id_kitchen;
 
-    IF v_estoque_minimo IS NULL THEN
+    IF v_min_stock IS NULL THEN
         RETURN NEW;
     END IF;
 
-    IF NEW.qtd_atual <= v_estoque_minimo THEN
+    IF NEW.current_quantity <= v_min_stock THEN
 
-        SELECT id_alerta
-        INTO v_alerta_existente
-        FROM tb_alerta
-        WHERE id_produto = NEW.id_produto
-          AND id_cozinha = NEW.id_cozinha
-          AND tipo = 'ESTOQUE'
-          AND lido = false
+        SELECT id_alert
+        INTO v_existing_alert
+        FROM tb_alert
+        WHERE id_product = NEW.id_product
+          AND id_kitchen = NEW.id_kitchen
+          AND type = 'STOCK'
+          AND is_read = false
         LIMIT 1;
 
-        IF v_alerta_existente IS NULL THEN
+        IF v_existing_alert IS NULL THEN
 
-            INSERT INTO tb_alerta
+            INSERT INTO tb_alert
             (
-                tipo,
-                severidade,
-                id_lote,
-                id_produto,
-                id_cozinha,
-                mensagem
+                type,
+                severity,
+                id_batch,
+                id_product,
+                id_kitchen,
+                message
             )
             VALUES
             (
-                'ESTOQUE',
-                'ALTA',
-                NEW.id_lote,
-                NEW.id_produto,
-                NEW.id_cozinha,
-                'Produto abaixo do estoque mínimo.'
+                'STOCK',
+                'HIGH',
+                NEW.id_batch,
+                NEW.id_product,
+                NEW.id_kitchen,
+                'Product below minimum stock.'
             );
 
         END IF;
@@ -134,48 +134,48 @@ BEGIN
 END;
 $$;
 
-CREATE FUNCTION fn_alerta_validade()
+CREATE FUNCTION fn_expiration_alert()
 RETURNS TRIGGER
 LANGUAGE plpgsql
 AS
 $$
 DECLARE
-    v_alerta_existente INTEGER;
+    v_existing_alert INTEGER;
 BEGIN
 
-    IF NEW.data_validade IS NULL THEN
+    IF NEW.expiration_date IS NULL THEN
         RETURN NEW;
     END IF;
 
-    IF NEW.data_validade < CURRENT_DATE THEN
+    IF NEW.expiration_date < CURRENT_DATE THEN
 
-        SELECT id_alerta
-        INTO v_alerta_existente
-        FROM tb_alerta
-        WHERE id_lote = NEW.id_lote
-          AND tipo = 'VALIDADE'
-          AND lido = false
+        SELECT id_alert
+        INTO v_existing_alert
+        FROM tb_alert
+        WHERE id_batch = NEW.id_batch
+          AND type = 'EXPIRATION'
+          AND is_read = false
         LIMIT 1;
 
-        IF v_alerta_existente IS NULL THEN
+        IF v_existing_alert IS NULL THEN
 
-            INSERT INTO tb_alerta
+            INSERT INTO tb_alert
             (
-                tipo,
-                severidade,
-                id_lote,
-                id_produto,
-                id_cozinha,
-                mensagem
+                type,
+                severity,
+                id_batch,
+                id_product,
+                id_kitchen,
+                message
             )
             VALUES
             (
-                'VALIDADE',
-                'CRITICA',
-                NEW.id_lote,
-                NEW.id_produto,
-                NEW.id_cozinha,
-                'Lote vencido. Verifique a validade do produto.'
+                'EXPIRATION',
+                'CRITICAL',
+                NEW.id_batch,
+                NEW.id_product,
+                NEW.id_kitchen,
+                'Batch expired. Check the product expiration date.'
             );
 
         END IF;

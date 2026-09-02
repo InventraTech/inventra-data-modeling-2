@@ -1,39 +1,39 @@
 -- ---------------------------------------------------
--- CRIAÇÃO DE TRIGGERS
+-- TRIGGER CREATION
 -- ---------------------------------------------------
 
-CREATE TRIGGER trg_validar_estoque
-BEFORE INSERT OR UPDATE OF qtd_atual
-ON tb_estoque_lote
+CREATE TRIGGER trg_validate_stock
+BEFORE INSERT OR UPDATE OF current_quantity
+ON tb_stock_batch
 FOR EACH ROW
-EXECUTE FUNCTION fn_validar_estoque();
+EXECUTE FUNCTION fn_validate_stock();
 
-CREATE TRIGGER trg_atualizar_status_lote
-BEFORE INSERT OR UPDATE OF qtd_atual, status
-ON tb_estoque_lote
+CREATE TRIGGER trg_update_batch_status
+BEFORE INSERT OR UPDATE OF current_quantity, status
+ON tb_stock_batch
 FOR EACH ROW
-EXECUTE FUNCTION fn_atualizar_status_lote();
+EXECUTE FUNCTION fn_update_batch_status();
 
-CREATE TRIGGER trg_calcular_divergencia
-BEFORE INSERT OR UPDATE OF qtd_registrada, qtd_fisica
-ON tb_inventario_contagem
+CREATE TRIGGER trg_calculate_divergence
+BEFORE INSERT OR UPDATE OF registered_quantity, physical_quantity
+ON tb_inventory_count
 FOR EACH ROW
-EXECUTE FUNCTION fn_calcular_divergencia();
+EXECUTE FUNCTION fn_calculate_divergence();
 
-CREATE TRIGGER trg_aprovacao_requisicao
+CREATE TRIGGER trg_requisition_approval
 BEFORE UPDATE OF status
-ON tb_requisicao
+ON tb_requisition
 FOR EACH ROW
-EXECUTE FUNCTION fn_aprovacao_requisicao();
+EXECUTE FUNCTION fn_requisition_approval();
 
-CREATE TRIGGER trg_alerta_estoque
-AFTER INSERT OR UPDATE OF qtd_atual
-ON tb_estoque_lote
+CREATE TRIGGER trg_stock_alert
+AFTER INSERT OR UPDATE OF current_quantity
+ON tb_stock_batch
 FOR EACH ROW
-EXECUTE FUNCTION fn_alerta_estoque();
+EXECUTE FUNCTION fn_stock_alert();
 
-CREATE TRIGGER trg_alerta_validade
-AFTER INSERT OR UPDATE OF data_validade
-ON tb_estoque_lote
+CREATE TRIGGER trg_expiration_alert
+AFTER INSERT OR UPDATE OF expiration_date
+ON tb_stock_batch
 FOR EACH ROW
-EXECUTE FUNCTION fn_alerta_validade();
+EXECUTE FUNCTION fn_expiration_alert();

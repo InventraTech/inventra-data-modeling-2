@@ -2,96 +2,96 @@
 -- ROLLBACK DE CHAVES ESTRANGEIRAS
 -- ---------------------------------------------------
 
-ALTER TABLE tb_usuario
-DROP CONSTRAINT IF EXISTS fk_usuario_perfil;
+ALTER TABLE tb_user
+DROP CONSTRAINT IF EXISTS fk_user_profile;
 
-ALTER TABLE tb_usuario
-DROP CONSTRAINT IF EXISTS fk_usuario_cozinha;
+ALTER TABLE tb_user
+DROP CONSTRAINT IF EXISTS fk_user_kitchen;
 
-ALTER TABLE tb_produto
-DROP CONSTRAINT IF EXISTS fk_produto_categoria;
+ALTER TABLE tb_product
+DROP CONSTRAINT IF EXISTS fk_product_category;
 
-ALTER TABLE tb_produto
-DROP CONSTRAINT IF EXISTS fk_produto_unidade;
+ALTER TABLE tb_product
+DROP CONSTRAINT IF EXISTS fk_product_unit;
 
-ALTER TABLE tb_produto_fornecedor
-DROP CONSTRAINT IF EXISTS fk_produtofornecedor_produto;
+ALTER TABLE tb_product_supplier
+DROP CONSTRAINT IF EXISTS fk_productsupplier_product;
 
-ALTER TABLE tb_produto_fornecedor
-DROP CONSTRAINT IF EXISTS fk_produtofornecedor_fornecedor;
+ALTER TABLE tb_product_supplier
+DROP CONSTRAINT IF EXISTS fk_productsupplier_supplier;
 
-ALTER TABLE tb_produto_parametro_cozinha
-DROP CONSTRAINT IF EXISTS fk_parametro_produto;
+ALTER TABLE tb_product_kitchen_parameter
+DROP CONSTRAINT IF EXISTS fk_parameter_product;
 
-ALTER TABLE tb_produto_parametro_cozinha
-DROP CONSTRAINT IF EXISTS fk_parametro_cozinha;
+ALTER TABLE tb_product_kitchen_parameter
+DROP CONSTRAINT IF EXISTS fk_parameter_kitchen;
 
-ALTER TABLE tb_estoque_lote
-DROP CONSTRAINT IF EXISTS fk_lote_produto;
+ALTER TABLE tb_stock_batch
+DROP CONSTRAINT IF EXISTS fk_batch_product;
 
-ALTER TABLE tb_estoque_lote
-DROP CONSTRAINT IF EXISTS fk_lote_cozinha;
+ALTER TABLE tb_stock_batch
+DROP CONSTRAINT IF EXISTS fk_batch_kitchen;
 
-ALTER TABLE tb_estoque_lote
-DROP CONSTRAINT IF EXISTS fk_lote_fornecedor;
+ALTER TABLE tb_stock_batch
+DROP CONSTRAINT IF EXISTS fk_batch_supplier;
 
-ALTER TABLE tb_requisicao
-DROP CONSTRAINT IF EXISTS fk_requisicao_cozinha;
+ALTER TABLE tb_requisition
+DROP CONSTRAINT IF EXISTS fk_requisition_kitchen;
 
-ALTER TABLE tb_requisicao
-DROP CONSTRAINT IF EXISTS fk_requisicao_usuario_solicitante;
+ALTER TABLE tb_requisition
+DROP CONSTRAINT IF EXISTS fk_requisition_requester_user;
 
-ALTER TABLE tb_requisicao
-DROP CONSTRAINT IF EXISTS fk_requisicao_usuario_aprovador;
+ALTER TABLE tb_requisition
+DROP CONSTRAINT IF EXISTS fk_requisition_approver_user;
 
-ALTER TABLE tb_requisicao_item
-DROP CONSTRAINT IF EXISTS fk_requisicaoitem_requisicao;
+ALTER TABLE tb_requisition_item
+DROP CONSTRAINT IF EXISTS fk_requisitionitem_requisition;
 
-ALTER TABLE tb_requisicao_item
-DROP CONSTRAINT IF EXISTS fk_requisicaoitem_produto;
+ALTER TABLE tb_requisition_item
+DROP CONSTRAINT IF EXISTS fk_requisitionitem_product;
 
-ALTER TABLE tb_requisicao_item
-DROP CONSTRAINT IF EXISTS fk_requisicaoitem_fornecedor;
+ALTER TABLE tb_requisition_item
+DROP CONSTRAINT IF EXISTS fk_requisitionitem_supplier;
 
-ALTER TABLE tb_inventario
-DROP CONSTRAINT IF EXISTS fk_inventario_cozinha;
+ALTER TABLE tb_inventory
+DROP CONSTRAINT IF EXISTS fk_inventory_kitchen;
 
-ALTER TABLE tb_inventario
-DROP CONSTRAINT IF EXISTS fk_inventario_usuario;
+ALTER TABLE tb_inventory
+DROP CONSTRAINT IF EXISTS fk_inventory_user;
 
-ALTER TABLE tb_inventario_contagem
-DROP CONSTRAINT IF EXISTS fk_contagem_inventario;
+ALTER TABLE tb_inventory_count
+DROP CONSTRAINT IF EXISTS fk_count_inventory;
 
-ALTER TABLE tb_inventario_contagem
-DROP CONSTRAINT IF EXISTS fk_contagem_lote;
+ALTER TABLE tb_inventory_count
+DROP CONSTRAINT IF EXISTS fk_count_batch;
 
-ALTER TABLE tb_alerta
-DROP CONSTRAINT IF EXISTS fk_alerta_cozinha;
+ALTER TABLE tb_alert
+DROP CONSTRAINT IF EXISTS fk_alert_kitchen;
 
-ALTER TABLE tb_alerta
-DROP CONSTRAINT IF EXISTS fk_alerta_produto;
+ALTER TABLE tb_alert
+DROP CONSTRAINT IF EXISTS fk_alert_product;
 
-ALTER TABLE tb_alerta
-DROP CONSTRAINT IF EXISTS fk_alerta_lote;
+ALTER TABLE tb_alert
+DROP CONSTRAINT IF EXISTS fk_alert_batch;
 
 -- ---------------------------------------------------
 -- ROLLBACK DE CONSTRAINTS DE CHECK 
 -- ---------------------------------------------------
 
-ALTER TABLE tb_fornecedor
-DROP CONSTRAINT IF EXISTS ck_fornecedor_nota;
+ALTER TABLE tb_supplier
+DROP CONSTRAINT IF EXISTS ck_supplier_rating;
 
-ALTER TABLE tb_estoque_lote
-DROP CONSTRAINT IF EXISTS ck_lote_status;
+ALTER TABLE tb_stock_batch
+DROP CONSTRAINT IF EXISTS ck_batch_status;
 
-ALTER TABLE tb_requisicao
-DROP CONSTRAINT IF EXISTS ck_requisicao_status;
+ALTER TABLE tb_requisition
+DROP CONSTRAINT IF EXISTS ck_requisition_status;
 
-ALTER TABLE tb_requisicao
-DROP CONSTRAINT IF EXISTS ck_requisicao_tipo;
+ALTER TABLE tb_requisition
+DROP CONSTRAINT IF EXISTS ck_requisition_type;
 
-ALTER TABLE tb_inventario
-DROP CONSTRAINT IF EXISTS ck_inventario_status;
+ALTER TABLE tb_inventory
+DROP CONSTRAINT IF EXISTS ck_inventory_status;
 
-ALTER TABLE tb_alerta
-DROP CONSTRAINT IF EXISTS ck_alerta_severidade;
+ALTER TABLE tb_alert
+DROP CONSTRAINT IF EXISTS ck_alert_severity;

@@ -2,32 +2,32 @@
 -- ROLLBACK DAS TABELAS
 -- ---------------------------------------------------
 
-DROP TABLE IF EXISTS tb_usuario CASCADE;
+DROP TABLE IF EXISTS tb_user CASCADE;
 
-DROP TABLE IF EXISTS tb_perfil CASCADE;
+DROP TABLE IF EXISTS tb_profile CASCADE;
 
-DROP TABLE IF EXISTS tb_cozinha CASCADE;
+DROP TABLE IF EXISTS tb_kitchen CASCADE;
 
-DROP TABLE IF EXISTS tb_produto CASCADE;
+DROP TABLE IF EXISTS tb_product CASCADE;
 
-DROP TABLE IF EXISTS tb_categoria CASCADE;
+DROP TABLE IF EXISTS tb_category CASCADE;
 
-DROP TABLE IF EXISTS tb_unidade_medida CASCADE;
+DROP TABLE IF EXISTS tb_measurement_unit CASCADE;
 
-DROP TABLE IF EXISTS tb_produto_fornecedor CASCADE;
+DROP TABLE IF EXISTS tb_product_supplier CASCADE;
 
-DROP TABLE IF EXISTS tb_fornecedor CASCADE;
+DROP TABLE IF EXISTS tb_supplier CASCADE;
 
-DROP TABLE IF EXISTS tb_produto_parametro_cozinha CASCADE;
+DROP TABLE IF EXISTS tb_product_kitchen_parameter CASCADE;
 
-DROP TABLE IF EXISTS tb_estoque_lote CASCADE;
+DROP TABLE IF EXISTS tb_stock_batch CASCADE;
 
-DROP TABLE IF EXISTS tb_requisicao CASCADE;
+DROP TABLE IF EXISTS tb_requisition CASCADE;
 
-DROP TABLE IF EXISTS tb_requisicao_item CASCADE;
+DROP TABLE IF EXISTS tb_requisition_item CASCADE;
 
-DROP TABLE IF EXISTS tb_inventario CASCADE;
+DROP TABLE IF EXISTS tb_inventory CASCADE;
 
-DROP TABLE IF EXISTS tb_inventario_contagem CASCADE;
+DROP TABLE IF EXISTS tb_inventory_count CASCADE;
 
-DROP TABLE IF EXISTS tb_alerta CASCADE;
+DROP TABLE IF EXISTS tb_alert CASCADE;
