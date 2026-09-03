@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Inventra ERP — Guia do Ciclo Completo</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -25,8 +25,8 @@
     --coral: #fb7185;
     --teal: #22d3ee;
     --font-head: 'Syne', sans-serif;
-    --font-body: 'DM Sans', sans-serif;
-    --font-mono: 'DM Mono', monospace;
+    --font-body: 'IBM Plex Sans', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
   }
 
   body {
@@ -74,18 +74,19 @@
   .logo-chip {
     display: inline-flex; align-items: center; gap: 8px;
     background: rgba(91,138,255,0.1);
-    border: 1px solid rgba(91,138,255,0.25);
+    border: 1px solid var(--border);
     border-radius: 20px;
-    padding: 5px 14px;
+    padding: 6px 16px;
     font-family: var(--font-mono);
     font-size: 12px;
     color: var(--accent);
     margin-bottom: 1.5rem;
-    letter-spacing: 0.05em;
+    letter-spacing: 1px;
+    text-transform: uppercase;
   }
-  .logo-chip span { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
+  .logo-chip span { width: 7px; height: 7px; background: var(--accent); border-radius: 50%; animation: pulse 2s ease-in-out infinite; }
 
-  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(0.8)} }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.5)} }
 
   h1 {
     font-family: var(--font-head);
@@ -119,29 +120,30 @@
     padding: 1.25rem 2rem;
     position: sticky; top: 0; z-index: 20;
     background: rgba(13,15,20,0.92);
-    backdrop-filter: blur(12px);
+    backdrop-filter: blur(14px);
     border-bottom: 1px solid var(--border);
   }
 
   .phase-btn {
     font-family: var(--font-mono);
     font-size: 11px;
-    padding: 5px 14px;
+    padding: 6px 15px;
     border-radius: 20px;
-    border: 1px solid var(--border-hi);
-    background: transparent;
+    border: 1px solid var(--border);
+    background: rgba(91,138,255,0.05);
     color: var(--text2);
     cursor: pointer;
     transition: all .2s;
-    letter-spacing: 0.04em;
+    letter-spacing: 1px;
+    text-transform: uppercase;
   }
-  .phase-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.3); }
-  .phase-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .phase-btn[data-phase="setup"].active { background: var(--accent2); border-color: var(--accent2); }
-  .phase-btn[data-phase="cadastro"].active { background: var(--teal); border-color: var(--teal); color: #0d0f14; }
-  .phase-btn[data-phase="operation"].active { background: var(--amber); border-color: var(--amber); color: #0d0f14; }
-  .phase-btn[data-phase="automation"].active { background: var(--coral); border-color: var(--coral); color: #0d0f14; }
-  .phase-btn[data-phase="dashboard"].active { background: var(--green); border-color: var(--green); color: #0d0f14; }
+  .phase-btn:hover { color: var(--text); border-color: var(--border-hi); background: rgba(91,138,255,0.1); }
+  .phase-btn.active { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 600; }
+  .phase-btn[data-phase="setup"].active { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+  .phase-btn[data-phase="cadastro"].active { background: var(--teal); border-color: var(--teal); color: var(--bg); }
+  .phase-btn[data-phase="operation"].active { background: var(--amber); border-color: var(--amber); color: var(--bg); }
+  .phase-btn[data-phase="automation"].active { background: var(--coral); border-color: var(--coral); color: var(--bg); }
+  .phase-btn[data-phase="dashboard"].active { background: var(--green); border-color: var(--green); color: var(--bg); }
 
   /* ─── LAYOUT ─── */
   .container {
@@ -172,7 +174,7 @@
   }
   .step-item:hover { background: var(--bg3); border-color: var(--border); }
   .step-item.active {
-    background: var(--bg3);
+    background: rgba(91,138,255,0.06);
     border-color: var(--border-hi);
   }
 
@@ -192,11 +194,11 @@
     letter-spacing: 0.04em;
     white-space: nowrap;
   }
-  .b-setup { background: rgba(167,139,250,0.15); color: var(--accent2); }
-  .b-cadastro { background: rgba(34,211,238,0.12); color: var(--teal); }
-  .b-operation { background: rgba(251,191,36,0.12); color: var(--amber); }
-  .b-automation { background: rgba(251,113,133,0.12); color: var(--coral); }
-  .b-dashboard { background: rgba(52,211,153,0.12); color: var(--green); }
+  .b-setup { background: rgba(167,139,250,0.15); border: 1px solid rgba(167,139,250,0.35); color: var(--accent2); }
+  .b-cadastro { background: rgba(34,211,238,0.12); border: 1px solid rgba(34,211,238,0.35); color: var(--teal); }
+  .b-operation { background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.35); color: var(--amber); }
+  .b-automation { background: rgba(251,113,133,0.12); border: 1px solid rgba(251,113,133,0.35); color: var(--coral); }
+  .b-dashboard { background: rgba(52,211,153,0.12); border: 1px solid rgba(52,211,153,0.32); color: var(--green); }
 
   .step-title {
     font-size: 12px;
@@ -222,8 +224,9 @@
     border-radius: 16px;
     padding: 2rem;
     min-height: 480px;
-    transition: all .2s;
+    transition: all .2s, border-color .2s, box-shadow .2s;
   }
+  .detail-panel:hover { border-color: var(--border-hi); box-shadow: 0 0 0 1px rgba(91,138,255,0.06); }
 
   .panel-header {
     display: flex; align-items: flex-start; gap: 12px;
@@ -270,7 +273,7 @@
   }
 
   .table-block {
-    background: var(--bg3);
+    background: rgba(0,0,0,0.25);
     border: 1px solid var(--border);
     border-radius: 10px;
     overflow: hidden;
@@ -278,8 +281,8 @@
   }
 
   .table-header {
-    padding: 8px 14px;
-    background: rgba(255,255,255,0.03);
+    padding: 9px 14px;
+    background: rgba(0,0,0,0.4);
     border-bottom: 1px solid var(--border);
     display: flex; align-items: center; gap: 8px;
   }
@@ -295,16 +298,17 @@
     display: grid;
     grid-template-columns: 180px 140px 1fr;
     gap: 8px;
-    padding: 5px 14px;
+    padding: 8px 14px;
     font-size: 12px;
-    border-bottom: 1px solid rgba(255,255,255,0.03);
+    border-bottom: 1px solid rgba(255,255,255,0.05);
     align-items: center;
   }
   .field-row:last-child { border-bottom: none; }
+  .field-row:hover { background: rgba(91,138,255,0.03); }
 
-  .field-name { font-family: var(--font-mono); color: var(--text); font-size: 11px; }
+  .field-name { font-family: var(--font-mono); color: var(--text); font-size: 11px; background: rgba(0,0,0,0.3); padding: 1px 6px; border-radius: 4px; display: inline-block; }
   .field-type { font-family: var(--font-mono); font-size: 10px; color: var(--teal); }
-  .field-note { font-size: 11px; color: var(--text3); }
+  .field-note { font-size: 11px; color: var(--text2); }
 
   /* Queries section */
   .queries-section { margin-bottom: 1.5rem; }
@@ -312,11 +316,12 @@
     font-family: var(--font-mono);
     font-size: 11px;
     color: var(--text2);
-    padding: 6px 14px;
-    background: var(--bg3);
-    border-radius: 6px;
+    padding: 8px 14px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
     margin-bottom: 6px;
-    border-left: 2px solid var(--green);
+    border-left: 3px solid var(--green);
   }
 
   /* Tip */
@@ -341,18 +346,18 @@
   .nav-btn {
     flex: 1;
     padding: 10px;
-    border-radius: 8px;
-    border: 1px solid var(--border-hi);
-    background: transparent;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: rgba(91,138,255,0.05);
     color: var(--text2);
-    font-family: var(--font-body);
-    font-size: 13px;
+    font-family: var(--font-mono);
+    font-size: 12px;
     cursor: pointer;
     transition: all .15s;
   }
-  .nav-btn:hover:not(:disabled) { background: var(--bg3); color: var(--text); border-color: var(--border-hi); }
+  .nav-btn:hover:not(:disabled) { background: rgba(91,138,255,0.12); color: var(--text); border-color: var(--border-hi); }
   .nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-  .nav-btn.next { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; }
+  .nav-btn.next { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
   .nav-btn.next:hover { opacity: 0.85; }
 
   /* ─── PROGRESS BAR ─── */
@@ -377,7 +382,7 @@
   .phase-header-label {
     font-family: var(--font-mono);
     font-size: 9px;
-    letter-spacing: 0.1em;
+    letter-spacing: 2px;
     text-transform: uppercase;
     color: var(--text3);
   }
@@ -400,14 +405,22 @@
     font-size: 14px; gap: 8px;
   }
   .empty-state span { font-size: 32px; }
+
+  /* ─── GALAXY BACKGROUND ─── */
+  #bg {
+    position: fixed; inset: 0; z-index: 0;
+    pointer-events: none;
+  }
 </style>
 </head>
 <body>
 
+<canvas id="bg"></canvas>
+
 <header>
-  <div class="logo-chip"><span></span> inventra · erp</div>
+  <div class="logo-chip"><span></span> INVENTRA · ERP · POSTGRESQL</div>
   <h1>Ciclo completo do<br><em>sistema de estoque</em></h1>
-  <p class="subtitle">Do cadastro de usuários até os dashboards — todas as 17 etapas do fluxo, tabelas e campos do modelo lógico.</p>
+  <p class="subtitle">Do cadastro de usuários até os dashboards — todas as 18 etapas do fluxo, tabelas e campos do modelo lógico.</p>
 </header>
 
 <nav class="phase-nav">
@@ -429,6 +442,94 @@
 <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
 
 <script>
+// ══════════════════════════ GALAXY BACKGROUND ══════════════════════════
+const bgCanvas = document.getElementById('bg');
+const bgCtx = bgCanvas.getContext('2d');
+let BW, BH, stars = [], nodes = [];
+
+function resizeBg() {
+  BW = bgCanvas.width = window.innerWidth;
+  BH = bgCanvas.height = window.innerHeight;
+}
+
+function initField() {
+  stars = [];
+  const starCount = Math.floor((BW * BH) / 3200);
+  for (let i = 0; i < starCount; i++) {
+    stars.push({
+      x: Math.random() * BW,
+      y: Math.random() * BH,
+      r: Math.random() * 1.3 + 0.2,
+      baseAlpha: Math.random() * 0.6 + 0.15,
+      tw: Math.random() * Math.PI * 2,
+      tws: Math.random() * 0.02 + 0.006,
+    });
+  }
+  nodes = [];
+  const nodeCount = Math.floor((BW * BH) / 26000);
+  for (let i = 0; i < nodeCount; i++) {
+    nodes.push({
+      x: Math.random() * BW,
+      y: Math.random() * BH,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: (Math.random() - 0.5) * 0.25,
+      r: Math.random() * 1.8 + 1,
+    });
+  }
+}
+
+resizeBg();
+initField();
+window.addEventListener('resize', () => { resizeBg(); initField(); });
+
+function drawBg() {
+  bgCtx.clearRect(0, 0, BW, BH);
+
+  // static starfield with subtle twinkle
+  stars.forEach(s => {
+    s.tw += s.tws;
+    const a = s.baseAlpha * (0.6 + 0.4 * Math.sin(s.tw));
+    bgCtx.beginPath();
+    bgCtx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    bgCtx.fillStyle = `rgba(232,244,248,${a})`;
+    bgCtx.fill();
+  });
+
+  // slow drifting nodes with constellation links
+  nodes.forEach(n => {
+    n.x += n.vx; n.y += n.vy;
+    if (n.x < 0 || n.x > BW) n.vx *= -1;
+    if (n.y < 0 || n.y > BH) n.vy *= -1;
+  });
+  for (let i = 0; i < nodes.length; i++) {
+    for (let j = i + 1; j < nodes.length; j++) {
+      const dx = nodes[i].x - nodes[j].x, dy = nodes[i].y - nodes[j].y;
+      const d = Math.sqrt(dx * dx + dy * dy);
+      if (d < 140) {
+        bgCtx.beginPath();
+        bgCtx.moveTo(nodes[i].x, nodes[i].y);
+        bgCtx.lineTo(nodes[j].x, nodes[j].y);
+        bgCtx.strokeStyle = `rgba(167,139,250,${0.18 * (1 - d / 140)})`;
+        bgCtx.lineWidth = 0.6;
+        bgCtx.stroke();
+      }
+    }
+  }
+  nodes.forEach(n => {
+    bgCtx.beginPath();
+    bgCtx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+    bgCtx.fillStyle = 'rgba(91,138,255,.55)';
+    bgCtx.fill();
+    bgCtx.beginPath();
+    bgCtx.arc(n.x, n.y, n.r * 3, 0, Math.PI * 2);
+    bgCtx.fillStyle = 'rgba(91,138,255,.06)';
+    bgCtx.fill();
+  });
+
+  requestAnimationFrame(drawBg);
+}
+drawBg();
+
 const PHASES = {
   setup: { label: 'Config', color: 'b-setup' },
   cadastro: { label: 'Cadastro', color: 'b-cadastro' },
@@ -531,7 +632,7 @@ const steps = [
     tables:{
       tb_product:[
         {name:'id_product',type:'INTEGER PK',note:''},
-        {name:'name',type:'VARCHAR',note:'nome do produto'},
+        {name:'name',type:'VARCHAR(150)',note:'nome do produto'},
         {name:'brand',type:'VARCHAR(80)',note:'opcional'},
         {name:'id_category',type:'INTEGER FK',note:'categoria do produto'},
         {name:'id_unit',type:'INTEGER FK',note:'unidade de medida padrão'},
@@ -643,7 +744,7 @@ const steps = [
     tables:{
       tb_alert:[
         {name:'id_alert',type:'INTEGER PK',note:''},
-        {name:'type',type:'VARCHAR(38)',note:'estoque, vencimento, divergência'},
+        {name:'type',type:'VARCHAR(30)',note:'estoque, vencimento, divergência'},
         {name:'severity',type:'VARCHAR(10)',note:'alta, média, baixa'},
         {name:'id_batch',type:'FK',note:'lote que disparou o alerta'},
         {name:'id_product',type:'FK',note:''},
@@ -694,7 +795,19 @@ const steps = [
     tip:'💡 Por quê: uma trilha de auditoria nível compliance (quem mudou o quê, quando, e os valores exatos antes/depois) que não pode ser pulada ou esquecida, porque roda como trigger de banco e não como log da aplicação.'
   },
   {
-    id:15, phase:'dashboard', title:'Dashboard de estoque',
+    id:15, phase:'automation', title:'Popular banco com dados de teste (seed)',
+    desc:'Um notebook Jupyter (postgre/08_seeds/seed.ipynb) conecta via psycopg2/dotenv direto no banco e gera uma carga fictícia ambientada nas empresas do grupo J&F — cozinhas, fornecedores, produtos e todo o ciclo operacional (lotes, requisições, inventários, alertas) já populados e coerentes entre si.',
+    tables:{
+      'Ordem de carga (respeitando FKs)':[
+        {name:'01–07',type:'tb_profile → tb_user',note:'perfis, cozinhas, categorias, unidades, usuários, fornecedores, produtos'},
+        {name:'08–09',type:'tb_product_supplier, tb_product_kitchen_parameter',note:'vínculos produto×fornecedor e parâmetros por cozinha'},
+        {name:'10–15',type:'tb_stock_batch → tb_alert',note:'lotes, requisições e itens, inventários, contagens, alertas'},
+      ]
+    },
+    tip:'💡 A célula "RESET TOTAL DO BANCO" faz TRUNCATE em todas as tabelas antes de popular — use com cuidado, e só em ambiente de desenvolvimento. Há também uma célula de rollback independente para desfazer só a carga do seed.'
+  },
+  {
+    id:16, phase:'dashboard', title:'Dashboard de estoque',
     desc:'Visão consolidada da posição de estoque por cozinha: saldo atual vs. mínimo/máximo, alertas ativos, produtos próximos do vencimento e comparação entre cozinhas.',
     tables:{},
     queries:[
@@ -706,7 +819,7 @@ const steps = [
     tip:'💡 Use views materializadas para essas queries em produção — ficam pesadas com alto volume de lotes.'
   },
   {
-    id:16, phase:'dashboard', title:'Dashboard de requisições',
+    id:17, phase:'dashboard', title:'Dashboard de requisições',
     desc:'Acompanhe volume por status, custo total solicitado, produtos mais requisitados, tempo médio de aprovação e histórico por cozinha.',
     tables:{},
     queries:[
@@ -718,7 +831,7 @@ const steps = [
     tip:'💡 Sempre filtre por id_kitchen para dashboards por unidade — nunca misture dados de cozinhas diferentes.'
   },
   {
-    id:17, phase:'dashboard', title:'Dashboard de inventários',
+    id:18, phase:'dashboard', title:'Dashboard de inventários',
     desc:'Analise divergências de inventário: valor financeiro das perdas, produtos com mais ocorrências, acurácia por cozinha e evolução histórica de inventários.',
     tables:{},
     queries:[
