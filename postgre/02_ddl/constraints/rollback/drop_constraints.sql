@@ -1,5 +1,5 @@
 -- ---------------------------------------------------
--- ROLLBACK DE CHAVES ESTRANGEIRAS
+-- ROLLBACK FOREIGN KEYS
 -- ---------------------------------------------------
 
 ALTER TABLE tb_user

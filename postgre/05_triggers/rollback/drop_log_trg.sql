@@ -1,5 +1,5 @@
 -- ---------------------------------------------------
--- ROLLBACK DE TRIGGERS DE LOG
+-- ROLLBACK LOG TRIGGERS
 -- ---------------------------------------------------
 
 DROP TRIGGER IF EXISTS trg_log_user 
