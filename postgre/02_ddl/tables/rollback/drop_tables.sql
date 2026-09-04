@@ -1,5 +1,5 @@
 -- ---------------------------------------------------
--- ROLLBACK DAS TABELAS
+-- ROLLBACK TABLES
 -- ---------------------------------------------------
 
 DROP TABLE IF EXISTS tb_user CASCADE;

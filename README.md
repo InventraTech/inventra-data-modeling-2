@@ -18,6 +18,7 @@ O projeto é dividido em **Dicionário de Dados** (Pastas 01 a 08) contendo os c
 postgre/
 ├── 01_modeling/                      # Modelagem de dados (Conceitual e Lógico)
 ├── 02_ddl/                          # Dicionário de Criação (Tabelas, Constraints, Indexes e Logs)
+├── 03_views/                        # Dicionário de Views de consulta/relatório (vw_*) + Data Mart (dim_*/fact_*)
 ├── 05_triggers/                     # Dicionário de Gatilhos de Negócio e Auditoria
 ├── 06_procedures/                   # Dicionário de Rotinas de Negócio
 ├── 07_functions/                    # Dicionário de Funções do Sistema
@@ -26,7 +27,9 @@ postgre/
 ├── 09_migrations/                   # Scripts consolidados e idempotentes para execução direta
 │   ├── V001__init_database.sql      # Criação estrutural (Tabelas, FKs, Indexes, Checks)
 │   ├── V002__business_rules.sql     # Inteligência (Functions, Procedures e Triggers de negócio)
-│   └── V003__audit_logs.sql         # Rastreabilidade (Tabelas, Funções e Gatilhos de log)
+│   ├── V003__audit_logs.sql         # Rastreabilidade (Tabelas, Funções e Gatilhos de log)
+│   ├── V004__views.sql              # Views de consulta/relatório (vw_*)
+│   └── V005__data_mart.sql          # Data Mart / Star Schema (dim_*/fact_*)
 │
 └── inventra_erp_flow.html           # Diagrama de fluxo ERP
 ```
@@ -63,6 +66,8 @@ Você pode executar os arquivos diretamente na sua ferramenta SQL favorita (DBea
 psql -U usuario -d inventra_db -f 09_migrations/V001__init_database.sql
 psql -U usuario -d inventra_db -f 09_migrations/V002__business_rules.sql
 psql -U usuario -d inventra_db -f 09_migrations/V003__audit_logs.sql
+psql -U usuario -d inventra_db -f 09_migrations/V004__views.sql
+psql -U usuario -d inventra_db -f 09_migrations/V005__data_mart.sql
 ```
 
 ### 3. Rollback (Limpeza / Reversão)
@@ -91,7 +96,7 @@ O banco de dados possui **18 tabelas principais** e um ecossistema de **7 tabela
 
 | Diretório | Propósito |
 |-----------|-----------|
-| **Dicionário (02 a 08)** | Fonte da verdade para consulta de desenvolvedores. Código estrito (`CREATE TABLE`). |
+| **Dicionário (02 a 08)** | Fonte da verdade para consulta de desenvolvedores. Código estrito (`CREATE TABLE`, `CREATE VIEW`). |
 | **Subpastas `rollback`** | Scripts isolados com comandos de destruição (ex: `DROP TABLE ... CASCADE`). |
 | **`09_migrations/`** | O que realmente roda no banco. Agrupa as instruções do dicionário utilizando validações (`IF NOT EXISTS`) para atualizações seguras. |
 
@@ -105,7 +110,7 @@ O banco de dados possui **18 tabelas principais** e um ecossistema de **7 tabela
 - [ ] Documentar dicionário de dados (Data Dictionary .md)
 - [x] Dividir a criação de logs, índices, functions, procedures e triggers em migrations próprias (`V002` a `V00N`)
 - [x] Adicionar script de seed/dataload inicial — `postgre/08_seeds/seed.ipynb`
-- [ ] Adicionar scripts de `views`
+- [x] Adicionar scripts de `views`
 - [ ] Criar testes de integridade e performance
 - [ ] Documentar dicionário de dados
 - [ ] Configurar ambiente de desenvolvimento/homologação

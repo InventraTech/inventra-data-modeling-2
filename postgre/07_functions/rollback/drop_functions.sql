@@ -1,5 +1,5 @@
 -- ---------------------------------------------------
--- ROLLBACK DAS FUNCTIONS
+-- ROLLBACK FUNCTIONS
 -- ---------------------------------------------------
 DROP FUNCTION IF EXISTS fn_expiration_alert();
 
