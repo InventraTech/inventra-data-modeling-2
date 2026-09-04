@@ -28,8 +28,7 @@ postgre/
 │   ├── V001__init_database.sql      # Criação estrutural (Tabelas, FKs, Indexes, Checks)
 │   ├── V002__business_rules.sql     # Inteligência (Functions, Procedures e Triggers de negócio)
 │   ├── V003__audit_logs.sql         # Rastreabilidade (Tabelas, Funções e Gatilhos de log)
-│   ├── V004__views.sql              # Views de consulta/relatório (vw_*)
-│   └── V005__data_mart.sql          # Data Mart / Star Schema (dim_*/fact_*)
+│   └── V004__views.sql              # Views operacionais (vw_*) + Data Mart / Star Schema (dim_*/fact_*)
 │
 └── inventra_erp_flow.html           # Diagrama de fluxo ERP
 ```
@@ -67,7 +66,6 @@ psql -U usuario -d inventra_db -f 09_migrations/V001__init_database.sql
 psql -U usuario -d inventra_db -f 09_migrations/V002__business_rules.sql
 psql -U usuario -d inventra_db -f 09_migrations/V003__audit_logs.sql
 psql -U usuario -d inventra_db -f 09_migrations/V004__views.sql
-psql -U usuario -d inventra_db -f 09_migrations/V005__data_mart.sql
 ```
 
 ### 3. Rollback (Limpeza / Reversão)

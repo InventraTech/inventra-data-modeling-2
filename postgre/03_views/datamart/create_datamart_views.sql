@@ -37,8 +37,8 @@ FROM tb_supplier s;
 CREATE VIEW dim_date AS
 WITH calendar AS (
     SELECT generate_series(
-        DATE '2023-01-01',
-        DATE '2030-12-31',
+        DATE_TRUNC('year', CURRENT_DATE - INTERVAL '10 years'),
+        DATE_TRUNC('year', CURRENT_DATE + INTERVAL '10 years') + INTERVAL '1 year' - INTERVAL '1 day',
         INTERVAL '1 day'
     )::DATE AS date_key
 )
@@ -46,11 +46,14 @@ SELECT
     date_key,
     EXTRACT(YEAR FROM date_key)::INT AS year_number,
     EXTRACT(MONTH FROM date_key)::INT AS month_number,
-    TRIM(TO_CHAR(date_key, 'Month')) AS month_name,
+    (ARRAY['January','February','March','April','May','June','July',
+           'August','September','October','November','December']
+    )[EXTRACT(MONTH FROM date_key)::INT] AS month_name,
     EXTRACT(DAY FROM date_key)::INT AS day_number,
     EXTRACT(QUARTER FROM date_key)::INT AS quarter_number,
     EXTRACT(ISODOW FROM date_key)::INT AS day_of_week_number,
-    TRIM(TO_CHAR(date_key, 'Day')) AS day_of_week_name,
+    (ARRAY['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+    )[EXTRACT(ISODOW FROM date_key)::INT] AS day_of_week_name,
     (EXTRACT(ISODOW FROM date_key) IN (6, 7)) AS is_weekend
 FROM calendar;
 
@@ -81,7 +84,7 @@ SELECT
         - COALESCE((l.previous_data ->> 'current_quantity')::DECIMAL(12,3), 0)
     ) * COALESCE(sb.unit_price, 0) AS movement_value
 FROM tb_log_stock_batch l
-JOIN tb_stock_batch sb ON sb.id_batch = l.id_batch
+LEFT JOIN tb_stock_batch sb ON sb.id_batch = l.id_batch
 WHERE l.operation IN ('INSERT', 'UPDATE');
 
 CREATE VIEW fact_requisition_item AS

@@ -250,7 +250,7 @@ WITH daily AS (
             END
         ) AS withdrawal_quantity
     FROM tb_log_stock_batch l
-    JOIN tb_stock_batch sb ON sb.id_batch = l.id_batch
+    LEFT JOIN tb_stock_batch sb ON sb.id_batch = l.id_batch
     WHERE l.operation IN ('INSERT', 'UPDATE')
     GROUP BY sb.id_kitchen, (l.operation_date)::DATE
 )
@@ -266,7 +266,7 @@ SELECT
         ORDER BY d.movement_date
     ) AS running_total_quantity
 FROM daily d
-JOIN tb_kitchen k ON k.id_kitchen = d.id_kitchen;
+LEFT JOIN tb_kitchen k ON k.id_kitchen = d.id_kitchen;
 
 CREATE VIEW vw_product_requisition_ranking AS
 SELECT
@@ -355,7 +355,8 @@ WHERE stock_status = 'BELOW_MINIMUM';
 CREATE VIEW vw_batches_needing_attention AS
 SELECT *
 FROM vw_stock_batch_detail
-WHERE expiration_status IN ('EXPIRED', 'CRITICAL');
+WHERE expiration_status IN ('EXPIRED', 'CRITICAL')
+  AND status = 'ACTIVE';
 
 CREATE VIEW vw_supplier_profile AS
 SELECT
@@ -410,7 +411,7 @@ WITH movement AS (
             ELSE 0
         END AS withdrawal_after_expiration_quantity
     FROM tb_log_stock_batch l
-    JOIN tb_stock_batch sb ON sb.id_batch = l.id_batch
+    LEFT JOIN tb_stock_batch sb ON sb.id_batch = l.id_batch
     WHERE l.operation IN ('INSERT', 'UPDATE')
 )
 SELECT
@@ -428,5 +429,5 @@ SELECT
         )
     END AS waste_proxy_rate_pct
 FROM movement m
-JOIN tb_kitchen k ON k.id_kitchen = m.id_kitchen
+LEFT JOIN tb_kitchen k ON k.id_kitchen = m.id_kitchen
 GROUP BY m.id_kitchen, k.name, m.reference_month;

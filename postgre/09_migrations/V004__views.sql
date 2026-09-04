@@ -250,7 +250,7 @@ WITH daily AS (
             END
         ) AS withdrawal_quantity
     FROM tb_log_stock_batch l
-    JOIN tb_stock_batch sb ON sb.id_batch = l.id_batch
+    LEFT JOIN tb_stock_batch sb ON sb.id_batch = l.id_batch
     WHERE l.operation IN ('INSERT', 'UPDATE')
     GROUP BY sb.id_kitchen, (l.operation_date)::DATE
 )
@@ -266,7 +266,7 @@ SELECT
         ORDER BY d.movement_date
     ) AS running_total_quantity
 FROM daily d
-JOIN tb_kitchen k ON k.id_kitchen = d.id_kitchen;
+LEFT JOIN tb_kitchen k ON k.id_kitchen = d.id_kitchen;
 
 CREATE OR REPLACE VIEW vw_product_requisition_ranking AS
 SELECT
@@ -355,7 +355,8 @@ WHERE stock_status = 'BELOW_MINIMUM';
 CREATE OR REPLACE VIEW vw_batches_needing_attention AS
 SELECT *
 FROM vw_stock_batch_detail
-WHERE expiration_status IN ('EXPIRED', 'CRITICAL');
+WHERE expiration_status IN ('EXPIRED', 'CRITICAL')
+  AND status = 'ACTIVE';
 
 CREATE OR REPLACE VIEW vw_supplier_profile AS
 SELECT
@@ -410,7 +411,7 @@ WITH movement AS (
             ELSE 0
         END AS withdrawal_after_expiration_quantity
     FROM tb_log_stock_batch l
-    JOIN tb_stock_batch sb ON sb.id_batch = l.id_batch
+    LEFT JOIN tb_stock_batch sb ON sb.id_batch = l.id_batch
     WHERE l.operation IN ('INSERT', 'UPDATE')
 )
 SELECT
@@ -428,7 +429,7 @@ SELECT
         )
     END AS waste_proxy_rate_pct
 FROM movement m
-JOIN tb_kitchen k ON k.id_kitchen = m.id_kitchen
+LEFT JOIN tb_kitchen k ON k.id_kitchen = m.id_kitchen
 GROUP BY m.id_kitchen, k.name, m.reference_month;
 
 -- ---------------------------------------------------
@@ -470,8 +471,8 @@ FROM tb_supplier s;
 CREATE OR REPLACE VIEW dim_date AS
 WITH calendar AS (
     SELECT generate_series(
-        DATE '2023-01-01',
-        DATE '2030-12-31',
+        DATE_TRUNC('year', CURRENT_DATE - INTERVAL '10 years'),
+        DATE_TRUNC('year', CURRENT_DATE + INTERVAL '10 years') + INTERVAL '1 year' - INTERVAL '1 day',
         INTERVAL '1 day'
     )::DATE AS date_key
 )
@@ -479,11 +480,14 @@ SELECT
     date_key,
     EXTRACT(YEAR FROM date_key)::INT AS year_number,
     EXTRACT(MONTH FROM date_key)::INT AS month_number,
-    TRIM(TO_CHAR(date_key, 'Month')) AS month_name,
+    (ARRAY['January','February','March','April','May','June','July',
+           'August','September','October','November','December']
+    )[EXTRACT(MONTH FROM date_key)::INT] AS month_name,
     EXTRACT(DAY FROM date_key)::INT AS day_number,
     EXTRACT(QUARTER FROM date_key)::INT AS quarter_number,
     EXTRACT(ISODOW FROM date_key)::INT AS day_of_week_number,
-    TRIM(TO_CHAR(date_key, 'Day')) AS day_of_week_name,
+    (ARRAY['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+    )[EXTRACT(ISODOW FROM date_key)::INT] AS day_of_week_name,
     (EXTRACT(ISODOW FROM date_key) IN (6, 7)) AS is_weekend
 FROM calendar;
 
@@ -514,7 +518,7 @@ SELECT
         - COALESCE((l.previous_data ->> 'current_quantity')::DECIMAL(12,3), 0)
     ) * COALESCE(sb.unit_price, 0) AS movement_value
 FROM tb_log_stock_batch l
-JOIN tb_stock_batch sb ON sb.id_batch = l.id_batch
+LEFT JOIN tb_stock_batch sb ON sb.id_batch = l.id_batch
 WHERE l.operation IN ('INSERT', 'UPDATE');
 
 CREATE OR REPLACE VIEW fact_requisition_item AS
