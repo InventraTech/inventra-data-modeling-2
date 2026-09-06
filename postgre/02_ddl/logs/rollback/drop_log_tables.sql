@@ -1,5 +1,5 @@
 -- ---------------------------------------------------
--- ROLLBACK DAS TABELAS DE LOG
+-- ROLLBACK LOG TABLES
 -- ---------------------------------------------------
 
 DROP TABLE IF EXISTS tb_log_alert;

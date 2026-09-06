@@ -1,5 +1,5 @@
 -- ---------------------------------------------------
--- ROLLBACK DE PROCEDURES
+-- ROLLBACK PROCEDURES
 -- ---------------------------------------------------
 
 DROP PROCEDURE IF EXISTS sp_close_inventory(INTEGER);
