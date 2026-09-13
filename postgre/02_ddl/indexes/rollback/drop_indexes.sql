@@ -73,3 +73,9 @@ DROP INDEX IF EXISTS idx_alert_is_read;
 DROP INDEX IF EXISTS idx_alert_severity;
 
 DROP INDEX IF EXISTS idx_alert_created_at;
+
+DROP INDEX IF EXISTS idx_batch_kitchen_status_expiration;
+
+DROP INDEX IF EXISTS idx_requisition_status_created_at;
+
+DROP INDEX IF EXISTS idx_productsupplier_product_price;
