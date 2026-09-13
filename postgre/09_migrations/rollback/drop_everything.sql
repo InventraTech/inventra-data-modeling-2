@@ -13,6 +13,11 @@
 -- log tables last among tables since nothing depends on them.
 -- Every statement is IF EXISTS, so this is safe to run even
 -- on a partially-created or already-empty database.
+--
+-- Log and base tables use CASCADE: BI views/tables (vw_*, dim_*,
+-- fact_*) built directly on the database by another team are not
+-- tracked in this repo, and CASCADE also removes those. Back up
+-- their definitions first if they need to be recreated afterward.
 
 -- ---------------------------------------------------
 -- LOG TRIGGERS
@@ -254,13 +259,13 @@ DROP INDEX IF EXISTS idx_alert_created_at;
 -- LOG TABLES
 -- ---------------------------------------------------
 
-DROP TABLE IF EXISTS tb_log_alert;
-DROP TABLE IF EXISTS tb_log_inventory;
-DROP TABLE IF EXISTS tb_log_requisition;
-DROP TABLE IF EXISTS tb_log_stock_batch;
-DROP TABLE IF EXISTS tb_log_supplier;
-DROP TABLE IF EXISTS tb_log_product;
-DROP TABLE IF EXISTS tb_log_user;
+DROP TABLE IF EXISTS tb_log_alert CASCADE;
+DROP TABLE IF EXISTS tb_log_inventory CASCADE;
+DROP TABLE IF EXISTS tb_log_requisition CASCADE;
+DROP TABLE IF EXISTS tb_log_stock_batch CASCADE;
+DROP TABLE IF EXISTS tb_log_supplier CASCADE;
+DROP TABLE IF EXISTS tb_log_product CASCADE;
+DROP TABLE IF EXISTS tb_log_user CASCADE;
 
 -- ---------------------------------------------------
 -- TABLES
