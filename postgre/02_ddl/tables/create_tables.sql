@@ -7,7 +7,6 @@ CREATE TABLE tb_user (
 	name VARCHAR(120) NOT NULL,
 	email VARCHAR(150) NOT NULL UNIQUE,
 	password_hash VARCHAR(255) NOT NULL,
-	role VARCHAR(80),
 	id_kitchen INTEGER,
 	id_profile INTEGER NOT NULL,
 	active BOOLEAN NOT NULL DEFAULT true,

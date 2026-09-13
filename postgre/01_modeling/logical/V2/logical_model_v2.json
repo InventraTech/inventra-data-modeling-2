@@ -194,19 +194,6 @@
           "size": 255
         },
         {
-          "id": "Cu3ZR1zTOlUcR64cXQLio",
-          "name": "role",
-          "type": "VARCHAR",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": false,
-          "primary": false,
-          "default": "",
-          "check": "",
-          "size": 80
-        },
-        {
           "id": "DnkHIfxIq2HZt_PlJhx2j",
           "name": "id_kitchen",
           "type": "INTEGER",
