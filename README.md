@@ -30,6 +30,8 @@ postgre/
 │   ├── V003__audit_logs.sql         # Rastreabilidade (Tabelas, Funções e Gatilhos de log)
 │   └── V004__views.sql              # Views operacionais (vw_*) + Data Mart / Star Schema (dim_*/fact_*)
 │
+├── 10_query_optimization/           # Evidência de otimização de consultas (EXPLAIN ANALYZE)
+│
 └── inventra_erp_flow.html           # Diagrama de fluxo ERP
 ```
 
@@ -173,6 +175,22 @@ Uma ferramenta de BI (Power BI, Metabase, etc.) conectada nessas 7 views consegu
 
 ---
 
+## 🔍 Otimização de Consultas (EXPLAIN ANALYZE)
+
+Evidência completa (queries, plano antes/depois, script replayable, e um candidato testado e descartado) em [`10_query_optimization/EXPLAIN_ANALYZE.md`](postgre/10_query_optimization/EXPLAIN_ANALYZE.md).
+
+Medição feita no banco real do grupo, já com a massa de dados do MD-03 carregada.
+
+| Índice criado | Onde vive | Consulta que ele resolve | Antes → Depois |
+|---|---|---|---|
+| `idx_log_stock_batch_id_batch` (`id_batch`) | `02_ddl/logs/create_log_indexes.sql` | Histórico de um lote (`vw_stock_movement_log` e afins), antes só tinha a PK como índice | 8,58 ms → 2,86 ms (~3x) |
+| `idx_requisition_status_created_at` (`status`, `created_at DESC`) | `02_ddl/indexes/create_indexes.sql` | Lista de requisições em análise, mais recentes primeiro | 0,21 ms → 0,13 ms (~1,7x) |
+| `idx_productsupplier_product_price` (`id_product`, `reference_price`) | `02_ddl/indexes/create_indexes.sql` | Fornecedores de um produto ordenados por preço (`vw_product_supplier_catalog`) | 4,09 ms → 3,75 ms (~8%) |
+| `idx_batch_kitchen_status_expiration` (`id_kitchen`, `status`, `expiration_date`) | `02_ddl/indexes/create_indexes.sql` | Filtro do Dashboard "lotes precisando de atenção" (`vw_batches_needing_attention`), por cozinha | 7,66 ms → 1,98 ms (~3,9x) |
+
+Os quatro índices são permanentes e já estão nas migrations `V001__init_database.sql` e `V003__audit_logs.sql`, com rollback isolado e no `drop_everything.sql`.
+
+---
 
 ## 🔧 Compreendendo a Arquitetura
 

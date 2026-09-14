@@ -610,3 +610,12 @@ ON tb_alert (severity);
 
 CREATE INDEX IF NOT EXISTS idx_alert_created_at 
 ON tb_alert (created_at);
+
+CREATE INDEX IF NOT EXISTS idx_batch_kitchen_status_expiration
+ON tb_stock_batch (id_kitchen, status, expiration_date);
+
+CREATE INDEX IF NOT EXISTS idx_requisition_status_created_at
+ON tb_requisition (status, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_productsupplier_product_price
+ON tb_product_supplier (id_product, reference_price);
