@@ -30,6 +30,16 @@ DROP VIEW IF EXISTS vw_category_monthly_requisition_trend;
 DROP VIEW IF EXISTS vw_category_stock_balance;
 
 -- ---------------------------------------------------
+-- ETL / ANALYTICS VIEWS
+-- ---------------------------------------------------
+
+DROP VIEW IF EXISTS vw_product_expiration_urgency;
+
+DROP VIEW IF EXISTS vw_category_monthly_requisition_trend;
+
+DROP VIEW IF EXISTS vw_category_stock_balance;
+
+-- ---------------------------------------------------
 -- DATA MART VIEWS (STAR SCHEMA)
 -- ---------------------------------------------------
 
@@ -341,6 +351,8 @@ DROP TABLE IF EXISTS tb_log_stock_batch CASCADE;
 DROP TABLE IF EXISTS tb_log_supplier CASCADE;
 DROP TABLE IF EXISTS tb_log_product CASCADE;
 DROP TABLE IF EXISTS tb_log_user CASCADE;
+DROP TABLE IF EXISTS tb_log_base CASCADE;
+DROP SEQUENCE IF EXISTS seq_log_id;
 
 -- ---------------------------------------------------
 -- TABLES

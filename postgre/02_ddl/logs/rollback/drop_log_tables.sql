@@ -15,3 +15,7 @@ DROP TABLE IF EXISTS tb_log_supplier;
 DROP TABLE IF EXISTS tb_log_product;
 
 DROP TABLE IF EXISTS tb_log_user;
+
+DROP TABLE IF EXISTS tb_log_base;
+
+DROP SEQUENCE IF EXISTS seq_log_id;
