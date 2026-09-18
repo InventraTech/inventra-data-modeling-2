@@ -1469,83 +1469,9 @@
       "color": "#7a5c17",
       "fields": [
         {
-          "id": "N5ouP47ULvjfb7-kQHn-3",
-          "name": "id_log",
-          "type": "INTEGER",
-          "comment": "",
-          "unique": false,
-          "increment": true,
-          "notNull": false,
-          "primary": true,
-          "default": "",
-          "check": ""
-        },
-        {
           "id": "-yPbTlKGFkrddYsLVxvnN",
           "name": "id_user",
           "type": "UUID",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": false,
-          "primary": false,
-          "default": "",
-          "check": ""
-        },
-        {
-          "id": "PWxTODVrVGEhfnZgB_2_u",
-          "name": "operation",
-          "type": "VARCHAR",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "",
-          "check": "",
-          "size": 10
-        },
-        {
-          "id": "MksDur4Zlf49yBVae2sKj",
-          "name": "db_user",
-          "type": "VARCHAR",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "",
-          "check": "",
-          "size": 100
-        },
-        {
-          "id": "h1Ri4bwvWLa4Sz8kP62tZ",
-          "name": "operation_date",
-          "type": "TIMESTAMP",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "CURRENT_TIMESTAMP",
-          "check": ""
-        },
-        {
-          "id": "khQM1V9rMRdyC5ksV1UE4",
-          "name": "previous_data",
-          "type": "JSONB",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": false,
-          "primary": false,
-          "default": "",
-          "check": ""
-        },
-        {
-          "id": "YHoDxzoCGmyG-D6Cok0j4",
-          "name": "new_data",
-          "type": "JSONB",
           "comment": "",
           "unique": false,
           "increment": false,
@@ -1558,8 +1484,11 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "ron6Yvy8lrVhZEgVfbB6M",
-      "x": 2140,
-      "y": 0
+      "x": 2658.650900189107,
+      "y": -70.53134804010807,
+      "inherits": [
+        "tb_log_base"
+      ]
     },
     {
       "name": "tb_log_product",
@@ -1567,83 +1496,9 @@
       "color": "#7a5c17",
       "fields": [
         {
-          "id": "pr2lzoTvURbGpEVT-fTmT",
-          "name": "id_log",
-          "type": "INTEGER",
-          "comment": "",
-          "unique": false,
-          "increment": true,
-          "notNull": false,
-          "primary": true,
-          "default": "",
-          "check": ""
-        },
-        {
           "id": "PoeFGTy5c4oc-ojHxtLWs",
           "name": "id_product",
           "type": "INTEGER",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": false,
-          "primary": false,
-          "default": "",
-          "check": ""
-        },
-        {
-          "id": "GI4bdRt-9eejxY8u5YDjU",
-          "name": "operation",
-          "type": "VARCHAR",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "",
-          "check": "",
-          "size": 10
-        },
-        {
-          "id": "QBNqfBvU7Q7XTOaQ9QDcF",
-          "name": "db_user",
-          "type": "VARCHAR",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "",
-          "check": "",
-          "size": 100
-        },
-        {
-          "id": "6fssIXIiHTremz2mUKEsj",
-          "name": "operation_date",
-          "type": "TIMESTAMP",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "CURRENT_TIMESTAMP",
-          "check": ""
-        },
-        {
-          "id": "MRUFSZQhRP9VFEStrAa6Z",
-          "name": "previous_data",
-          "type": "JSONB",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": false,
-          "primary": false,
-          "default": "",
-          "check": ""
-        },
-        {
-          "id": "5YMvisMNGRjykwMT7T2i-",
-          "name": "new_data",
-          "type": "JSONB",
           "comment": "",
           "unique": false,
           "increment": false,
@@ -1656,8 +1511,11 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "OwJGcvIEcBgZ5zKmzEhqg",
-      "x": 2419.6262347717266,
-      "y": -0.033758508899268236
+      "x": 2417.8195570561984,
+      "y": 88.42242366721973,
+      "inherits": [
+        "tb_log_base"
+      ]
     },
     {
       "name": "tb_log_supplier",
@@ -1665,83 +1523,9 @@
       "color": "#7a5c17",
       "fields": [
         {
-          "id": "kjRrayIbPdBPPd-ZRwh1f",
-          "name": "id_log",
-          "type": "INTEGER",
-          "comment": "",
-          "unique": false,
-          "increment": true,
-          "notNull": false,
-          "primary": true,
-          "default": "",
-          "check": ""
-        },
-        {
           "id": "lQ_ZG7bdOOh1QulctAslT",
           "name": "id_supplier",
           "type": "INTEGER",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": false,
-          "primary": false,
-          "default": "",
-          "check": ""
-        },
-        {
-          "id": "U2StQDH9eN6JUJqGb8mUt",
-          "name": "operation",
-          "type": "VARCHAR",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "",
-          "check": "",
-          "size": 10
-        },
-        {
-          "id": "DZldrphAxHUtwudSF4_BS",
-          "name": "db_user",
-          "type": "VARCHAR",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "",
-          "check": "",
-          "size": 100
-        },
-        {
-          "id": "X6BPdnbiZShDW0WCdGcH3",
-          "name": "operation_date",
-          "type": "TIMESTAMP",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "CURRENT_TIMESTAMP",
-          "check": ""
-        },
-        {
-          "id": "EDTAP2JM_Bu9IrMKlQa-F",
-          "name": "previous_data",
-          "type": "JSONB",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": false,
-          "primary": false,
-          "default": "",
-          "check": ""
-        },
-        {
-          "id": "uO5BgAUf4x3rMdotbrMtT",
-          "name": "new_data",
-          "type": "JSONB",
           "comment": "",
           "unique": false,
           "increment": false,
@@ -1754,8 +1538,11 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "mv7Yl1RYQeEzberD3ncgO",
-      "x": 2713.004579450258,
-      "y": 2.224501300002487
+      "x": 2660.2416313698827,
+      "y": 46.42860759587256,
+      "inherits": [
+        "tb_log_base"
+      ]
     },
     {
       "name": "tb_log_stock_batch",
@@ -1763,83 +1550,9 @@
       "color": "#7a5c17",
       "fields": [
         {
-          "id": "iop-r2awCsoT_jSBCjIwb",
-          "name": "id_log",
-          "type": "INTEGER",
-          "comment": "",
-          "unique": false,
-          "increment": true,
-          "notNull": false,
-          "primary": true,
-          "default": "",
-          "check": ""
-        },
-        {
           "id": "HIifzg0UIbPf6KQ0IZ2O1",
           "name": "id_batch",
           "type": "INTEGER",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": false,
-          "primary": false,
-          "default": "",
-          "check": ""
-        },
-        {
-          "id": "XtXX0saEGWEzolegZP4O6",
-          "name": "operation",
-          "type": "VARCHAR",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "",
-          "check": "",
-          "size": 10
-        },
-        {
-          "id": "a88RWEWTiYIPjCHH8S9Cs",
-          "name": "db_user",
-          "type": "VARCHAR",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "",
-          "check": "",
-          "size": 100
-        },
-        {
-          "id": "iUAvUEwt6wfPWU2p0tGWn",
-          "name": "operation_date",
-          "type": "TIMESTAMP",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "CURRENT_TIMESTAMP",
-          "check": ""
-        },
-        {
-          "id": "UTM5lJYL5o59wtaqU-EVR",
-          "name": "previous_data",
-          "type": "JSONB",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": false,
-          "primary": false,
-          "default": "",
-          "check": ""
-        },
-        {
-          "id": "WGczaHhwNJPGEH4l_lzq2",
-          "name": "new_data",
-          "type": "JSONB",
           "comment": "",
           "unique": false,
           "increment": false,
@@ -1852,8 +1565,11 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "LVf4WUfL03GTEXqyViAQj",
-      "x": 2997.2148508575865,
-      "y": -0.10127552669786155
+      "x": 2416.735068127726,
+      "y": -30.989805703852312,
+      "inherits": [
+        "tb_log_base"
+      ]
     },
     {
       "name": "tb_log_requisition",
@@ -1861,83 +1577,9 @@
       "color": "#7a5c17",
       "fields": [
         {
-          "id": "k5WY1_dn77318wi4Y-rbD",
-          "name": "id_log",
-          "type": "INTEGER",
-          "comment": "",
-          "unique": false,
-          "increment": true,
-          "notNull": false,
-          "primary": true,
-          "default": "",
-          "check": ""
-        },
-        {
           "id": "zZfLQX6plCjbn_lB6hzQ9",
           "name": "id_requisition",
           "type": "INTEGER",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": false,
-          "primary": false,
-          "default": "",
-          "check": ""
-        },
-        {
-          "id": "h1r0gsPQyaxJHlOXGMY1g",
-          "name": "operation",
-          "type": "VARCHAR",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "",
-          "check": "",
-          "size": 10
-        },
-        {
-          "id": "NMFW3GNzqgAV7-sURz6gO",
-          "name": "db_user",
-          "type": "VARCHAR",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "",
-          "check": "",
-          "size": 100
-        },
-        {
-          "id": "bi0PeJC4LzA6Z4AAhx3pg",
-          "name": "operation_date",
-          "type": "TIMESTAMP",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "CURRENT_TIMESTAMP",
-          "check": ""
-        },
-        {
-          "id": "rj_xbv_CLBusAm7mzlg1C",
-          "name": "previous_data",
-          "type": "JSONB",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": false,
-          "primary": false,
-          "default": "",
-          "check": ""
-        },
-        {
-          "id": "G42thrfu5LDOtNHPBtDYe",
-          "name": "new_data",
-          "type": "JSONB",
           "comment": "",
           "unique": false,
           "increment": false,
@@ -1950,8 +1592,11 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "PWtLClz7tx3QZoeTpAjL-",
-      "x": 2140,
-      "y": 382.6320250371756
+      "x": 2668.2721511066684,
+      "y": 274.24154536708795,
+      "inherits": [
+        "tb_log_base"
+      ]
     },
     {
       "name": "tb_log_inventory",
@@ -1959,83 +1604,9 @@
       "color": "#7a5c17",
       "fields": [
         {
-          "id": "Sc_lz-JMlzr8IDMemaSyt",
-          "name": "id_log",
-          "type": "INTEGER",
-          "comment": "",
-          "unique": false,
-          "increment": true,
-          "notNull": false,
-          "primary": true,
-          "default": "",
-          "check": ""
-        },
-        {
           "id": "MgwQS59FQUwoMi6mouY7e",
           "name": "id_inventory",
           "type": "INTEGER",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": false,
-          "primary": false,
-          "default": "",
-          "check": ""
-        },
-        {
-          "id": "efm0q1TjVuUvlQa9MtHmn",
-          "name": "operation",
-          "type": "VARCHAR",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "",
-          "check": "",
-          "size": 10
-        },
-        {
-          "id": "Eot_IpP7FufGUzKZAqEEm",
-          "name": "db_user",
-          "type": "VARCHAR",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "",
-          "check": "",
-          "size": 100
-        },
-        {
-          "id": "bng-ADlvtHd2YoLpkBDFh",
-          "name": "operation_date",
-          "type": "TIMESTAMP",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "CURRENT_TIMESTAMP",
-          "check": ""
-        },
-        {
-          "id": "FjRmfBwMRk7xbO00elFsv",
-          "name": "previous_data",
-          "type": "JSONB",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": false,
-          "primary": false,
-          "default": "",
-          "check": ""
-        },
-        {
-          "id": "tSrAzCQia9e_QiizgU0lS",
-          "name": "new_data",
-          "type": "JSONB",
           "comment": "",
           "unique": false,
           "increment": false,
@@ -2048,8 +1619,11 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "u__rHMg7v3XMoiGDEz6E_",
-      "x": 2421.918253089527,
-      "y": 380.30624821047536
+      "x": 2415.651316059655,
+      "y": 217.30774540294578,
+      "inherits": [
+        "tb_log_base"
+      ]
     },
     {
       "name": "tb_log_alert",
@@ -2057,83 +1631,9 @@
       "color": "#7a5c17",
       "fields": [
         {
-          "id": "gYYRWZlDR2NaM-co810M6",
-          "name": "id_log",
-          "type": "INTEGER",
-          "comment": "",
-          "unique": false,
-          "increment": true,
-          "notNull": false,
-          "primary": true,
-          "default": "",
-          "check": ""
-        },
-        {
           "id": "sQBkTY7eLQlIx40EpBfWx",
           "name": "id_alert",
           "type": "INTEGER",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": false,
-          "primary": false,
-          "default": "",
-          "check": ""
-        },
-        {
-          "id": "XIQtUvCSYN_OyuYbawnF6",
-          "name": "operation",
-          "type": "VARCHAR",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "",
-          "check": "",
-          "size": 10
-        },
-        {
-          "id": "GTmWrG1jQ4ILUNWh__Uch",
-          "name": "db_user",
-          "type": "VARCHAR",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "",
-          "check": "",
-          "size": 100
-        },
-        {
-          "id": "pW5Nt6eP9raIsyfYwJELd",
-          "name": "operation_date",
-          "type": "TIMESTAMP",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": true,
-          "primary": false,
-          "default": "CURRENT_TIMESTAMP",
-          "check": ""
-        },
-        {
-          "id": "10kW_UJPu_gSrzhuNvNgM",
-          "name": "previous_data",
-          "type": "JSONB",
-          "comment": "",
-          "unique": false,
-          "increment": false,
-          "notNull": false,
-          "primary": false,
-          "default": "",
-          "check": ""
-        },
-        {
-          "id": "XUxIN8zP4ZnHUYOX8IoA5",
-          "name": "new_data",
-          "type": "JSONB",
           "comment": "",
           "unique": false,
           "increment": false,
@@ -2146,8 +1646,107 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "0uOftJ80jJYUYKpH5bfNT",
-      "x": 2713.0045794502585,
-      "y": 380.272489701576
+      "x": 2665.0630323018095,
+      "y": 162.55737791771503,
+      "inherits": [
+        "tb_log_base"
+      ]
+    },
+    {
+      "id": "-8E-MUrYrl8QN8ZfQvQZI",
+      "name": "tb_log_base",
+      "x": 2167.0430650097464,
+      "y": 18.6109989172802,
+      "locked": false,
+      "fields": [
+        {
+          "name": "id_log",
+          "type": "INTEGER",
+          "default": "",
+          "check": "",
+          "primary": true,
+          "unique": false,
+          "unsigned": true,
+          "notNull": false,
+          "increment": true,
+          "comment": "",
+          "id": "VWGjcbf2TmJKPszh_yTBy"
+        },
+        {
+          "id": "-hbCVv-iE2PI65pov9oCH",
+          "name": "operation",
+          "type": "VARCHAR",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": true,
+          "increment": false,
+          "comment": "",
+          "size": 10
+        },
+        {
+          "id": "ZGeYTgFLfhQcEbe2Finxl",
+          "name": "db_user",
+          "type": "VARCHAR",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": true,
+          "increment": false,
+          "comment": "",
+          "size": 100
+        },
+        {
+          "id": "Wd5S7Psi5p7Bs5V_hTCiR",
+          "name": "operation_date",
+          "type": "TIMESTAMP",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": true,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
+        },
+        {
+          "id": "e3GX9aRU3hWD-sDjbF5Od",
+          "name": "previous_data",
+          "type": "JSONB",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
+        },
+        {
+          "id": "93i7dsjMPXEzMdJR-uiEt",
+          "name": "new_data",
+          "type": "JSONB",
+          "default": "",
+          "check": "",
+          "primary": false,
+          "unique": false,
+          "notNull": false,
+          "increment": false,
+          "comment": "",
+          "size": "",
+          "values": []
+        }
+      ],
+      "comment": "",
+      "indices": [],
+      "uniqueConstraints": [],
+      "color": "#7a5c17",
+      "collapsed": false,
+      "inherits": []
     }
   ],
   "relationships": [
@@ -2565,8 +2164,8 @@
       "id": 0,
       "title": "Auditoria (tb_log_*)",
       "content": "As 7 tabelas tb_log_* (marrom) nao tem FK: sao alimentadas apenas por triggers AFTER INSERT/UPDATE/DELETE (fn_log_*) nas tabelas principais correspondentes. Estrutura igual nas 7: id_log PK, id_<entidade>, operation, db_user, operation_date, previous_data (JSONB), new_data (JSONB).",
-      "x": 3015.550997399995,
-      "y": 390.08439627224834,
+      "x": 2931.415278069621,
+      "y": -88.24942560038068,
       "color": "#fbbf24",
       "height": 450
     }
