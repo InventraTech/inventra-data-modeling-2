@@ -1,6 +1,33 @@
 -- =====================================================
 -- FULL TEARDOWN — reverses V001 + V002 + V003 + V004 + V005
 -- =====================================================
+-- WARNING: destructive and irreversible. Drops every table
+-- (and all data in them), function, procedure, trigger,
+-- constraint and index created by this project. There is no
+-- seed/DML migration yet (see README "Próximos Passos"), so
+-- there is nothing to reverse on that front.
+--
+-- Order matters: triggers before the functions they call,
+-- functions/procedures before the tables they reference,
+-- constraints and indexes before the tables that own them,
+-- log tables last among tables since nothing depends on them.
+-- Every statement is IF EXISTS, so this is safe to run even
+-- on a partially-created or already-empty database.
+--
+-- Log and base tables use CASCADE: BI views/tables (vw_*, dim_*,
+-- fact_*) built directly on the database by another team are not
+-- tracked in this repo, and CASCADE also removes those. Back up
+-- their definitions first if they need to be recreated afterward.
+
+-- ---------------------------------------------------
+-- ETL / ANALYTICS VIEWS
+-- ---------------------------------------------------
+
+DROP VIEW IF EXISTS vw_product_expiration_urgency;
+
+DROP VIEW IF EXISTS vw_category_monthly_requisition_trend;
+
+DROP VIEW IF EXISTS vw_category_stock_balance;
 
 -- ---------------------------------------------------
 -- ETL / ANALYTICS VIEWS
@@ -317,13 +344,13 @@ DROP INDEX IF EXISTS idx_log_stock_batch_id_batch;
 -- LOG TABLES
 -- ---------------------------------------------------
 
-DROP TABLE IF EXISTS tb_log_alert;
-DROP TABLE IF EXISTS tb_log_inventory;
-DROP TABLE IF EXISTS tb_log_requisition;
-DROP TABLE IF EXISTS tb_log_stock_batch;
-DROP TABLE IF EXISTS tb_log_supplier;
-DROP TABLE IF EXISTS tb_log_product;
-DROP TABLE IF EXISTS tb_log_user;
+DROP TABLE IF EXISTS tb_log_alert CASCADE;
+DROP TABLE IF EXISTS tb_log_inventory CASCADE;
+DROP TABLE IF EXISTS tb_log_requisition CASCADE;
+DROP TABLE IF EXISTS tb_log_stock_batch CASCADE;
+DROP TABLE IF EXISTS tb_log_supplier CASCADE;
+DROP TABLE IF EXISTS tb_log_product CASCADE;
+DROP TABLE IF EXISTS tb_log_user CASCADE;
 
 -- ---------------------------------------------------
 -- TABLES
