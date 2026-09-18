@@ -47,8 +47,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "fjORS_6ilI8ihN5KXSc7T",
-      "x": 0,
-      "y": 0
+      "x": 77.92862280523514,
+      "y": -55.00843962722479
     },
     {
       "name": "tb_kitchen",
@@ -134,8 +134,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "a9SkpXz9w3QlY7Zkuvqdt",
-      "x": 420,
-      "y": 0
+      "x": 557.5210990680621,
+      "y": -107.72486093664861
     },
     {
       "name": "tb_user",
@@ -257,8 +257,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "Wk8JzFalHlsZfYcMMDktX",
-      "x": 0,
-      "y": 260
+      "x": -38.96431140261768,
+      "y": 161.44321233455548
     },
     {
       "name": "tb_category",
@@ -307,8 +307,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "zNk8cL6j5IXAAjlsHUqJo",
-      "x": 840,
-      "y": 0
+      "x": 1007.3173371994752,
+      "y": -25.21220149581137
     },
     {
       "name": "tb_measurement_unit",
@@ -357,8 +357,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "1RKMGHZEM9YpvujA_C5Q5",
-      "x": 840,
-      "y": 220
+      "x": 1149.4224729031398,
+      "y": 385.0253188816745
     },
     {
       "name": "tb_product",
@@ -481,8 +481,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "fHOJMaidDn87XG3_q_xbM",
-      "x": 1260,
-      "y": 0
+      "x": 666.3672556895316,
+      "y": 378.18302243717056
     },
     {
       "name": "tb_supplier",
@@ -593,8 +593,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "fZuXTptFyfePpX6N1NF2X",
-      "x": 1680,
-      "y": 300
+      "x": 1443.922113266493,
+      "y": 249.57559700837726
     },
     {
       "name": "tb_product_supplier",
@@ -667,8 +667,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "MnTC0MrAU8urbFt5misIZ",
-      "x": 1260,
-      "y": 300
+      "x": 1319.592476262826,
+      "y": -23.17458280994586
     },
     {
       "name": "tb_product_kitchen_parameter",
@@ -742,8 +742,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "mqmALOR2HcSGKgVP8Kd0d",
-      "x": 420,
-      "y": 300
+      "x": 330.6112856057598,
+      "y": 189.9831207455503
     },
     {
       "name": "tb_stock_batch",
@@ -904,8 +904,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "-F_vauP7_L7V21jxUdcfQ",
-      "x": 1680,
-      "y": 560
+      "x": 1563.1070657921473,
+      "y": 640.2206411230363
     },
     {
       "name": "tb_requisition",
@@ -1040,8 +1040,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "tOdSJcmeA-BHJ2m5qGeRz",
-      "x": 0,
-      "y": 560
+      "x": -121.47697084345464,
+      "y": 601.2563297204185
     },
     {
       "name": "tb_requisition_item",
@@ -1139,8 +1139,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "wAryNzbi0hSQK_lb09rIF",
-      "x": 420,
-      "y": 620
+      "x": 273.3108276607338,
+      "y": 544.363395512566
     },
     {
       "name": "tb_inventory",
@@ -1237,8 +1237,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "uEPP-IKBLhcuiS4hX4TnC",
-      "x": 840,
-      "y": 620
+      "x": 695.602845978535,
+      "y": 828.5736669198942
     },
     {
       "name": "tb_inventory_count",
@@ -1337,8 +1337,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "CYf4gEFCfuwOa6M1G_iFX",
-      "x": 1260,
-      "y": 620
+      "x": 1083.5145895293203,
+      "y": 647.5042198136124
     },
     {
       "name": "tb_alert",
@@ -1460,8 +1460,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "EQp2vt7ZAoLbU-AfhJMzo",
-      "x": 0,
-      "y": 880
+      "x": 185.65348374188386,
+      "y": 948.760549534031
     },
     {
       "name": "tb_log_user",
@@ -1656,8 +1656,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "OwJGcvIEcBgZ5zKmzEhqg",
-      "x": 2140,
-      "y": 220
+      "x": 2419.6262347717266,
+      "y": -0.033758508899268236
     },
     {
       "name": "tb_log_supplier",
@@ -1754,8 +1754,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "mv7Yl1RYQeEzberD3ncgO",
-      "x": 2140,
-      "y": 440
+      "x": 2713.004579450258,
+      "y": 2.224501300002487
     },
     {
       "name": "tb_log_stock_batch",
@@ -1852,8 +1852,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "LVf4WUfL03GTEXqyViAQj",
-      "x": 2140,
-      "y": 660
+      "x": 2997.2148508575865,
+      "y": -0.10127552669786155
     },
     {
       "name": "tb_log_requisition",
@@ -1951,7 +1951,7 @@
       "uniqueConstraints": [],
       "id": "PWtLClz7tx3QZoeTpAjL-",
       "x": 2140,
-      "y": 880
+      "y": 382.6320250371756
     },
     {
       "name": "tb_log_inventory",
@@ -2048,8 +2048,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "u__rHMg7v3XMoiGDEz6E_",
-      "x": 2140,
-      "y": 1100
+      "x": 2421.918253089527,
+      "y": 380.30624821047536
     },
     {
       "name": "tb_log_alert",
@@ -2146,8 +2146,8 @@
       "indices": [],
       "uniqueConstraints": [],
       "id": "0uOftJ80jJYUYKpH5bfNT",
-      "x": 2140,
-      "y": 1320
+      "x": 2713.0045794502585,
+      "y": 380.272489701576
     }
   ],
   "relationships": [
@@ -2565,15 +2565,16 @@
       "id": 0,
       "title": "Auditoria (tb_log_*)",
       "content": "As 7 tabelas tb_log_* (marrom) nao tem FK: sao alimentadas apenas por triggers AFTER INSERT/UPDATE/DELETE (fn_log_*) nas tabelas principais correspondentes. Estrutura igual nas 7: id_log PK, id_<entidade>, operation, db_user, operation_date, previous_data (JSONB), new_data (JSONB).",
-      "x": 2140,
-      "y": -160,
+      "x": 3015.550997399995,
+      "y": 390.08439627224834,
       "color": "#fbbf24",
-      "height": 140
+      "height": 450
     }
   ],
   "subjectAreas": [],
+  "views": [],
   "database": "postgresql",
   "types": [],
   "enums": [],
-  "title": "inventra_erp_db_v2"
+  "title": "inventra_erp_db_v3"
 }
