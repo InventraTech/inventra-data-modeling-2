@@ -1,6 +1,16 @@
 -- =====================================================
--- FULL TEARDOWN — reverses V001 + V002 + V003 + V004
+-- FULL TEARDOWN — reverses V001 + V002 + V003 + V004 + V005
 -- =====================================================
+
+-- ---------------------------------------------------
+-- ETL / ANALYTICS VIEWS
+-- ---------------------------------------------------
+
+DROP VIEW IF EXISTS vw_product_expiration_urgency;
+
+DROP VIEW IF EXISTS vw_category_monthly_requisition_trend;
+
+DROP VIEW IF EXISTS vw_category_stock_balance;
 
 -- ---------------------------------------------------
 -- DATA MART VIEWS (STAR SCHEMA)

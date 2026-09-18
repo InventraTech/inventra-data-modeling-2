@@ -28,9 +28,11 @@ postgre/
 │   ├── V001__init_database.sql      # Criação estrutural (Tabelas, FKs, Indexes, Checks)
 │   ├── V002__business_rules.sql     # Inteligência (Functions, Procedures e Triggers de negócio)
 │   ├── V003__audit_logs.sql         # Rastreabilidade (Tabelas, Funções e Gatilhos de log)
-│   └── V004__views.sql              # Views operacionais (vw_*) + Data Mart / Star Schema (dim_*/fact_*)
+│   ├── V004__views.sql              # Views operacionais (vw_*) + Data Mart / Star Schema (dim_*/fact_*)
+│   └── V005__etl_analytics.sql      # Views analíticas com CTEs + Window Functions
 │
 ├── 10_query_optimization/           # Evidência de otimização de consultas (EXPLAIN ANALYZE)
+├── 11_etl_analytics/                # Views analíticas: CTEs, running total e ranking
 │
 └── inventra_erp_flow.html           # Diagrama de fluxo ERP
 ```
@@ -68,6 +70,7 @@ psql -U usuario -d inventra_db -f 09_migrations/V001__init_database.sql
 psql -U usuario -d inventra_db -f 09_migrations/V002__business_rules.sql
 psql -U usuario -d inventra_db -f 09_migrations/V003__audit_logs.sql
 psql -U usuario -d inventra_db -f 09_migrations/V004__views.sql
+psql -U usuario -d inventra_db -f 09_migrations/V005__etl_analytics.sql
 ```
 
 ### 3. Rollback (Limpeza / Reversão)
@@ -192,6 +195,20 @@ Os quatro índices são permanentes e já estão nas migrations `V001__init_data
 
 ---
 
+## 🧮 Views Analíticas (CTEs + Window Functions)
+
+Três views novas em [`11_etl_analytics/create_etl_views.sql`](postgre/11_etl_analytics/create_etl_views.sql), com CTEs organizando os cálculos e Window Functions por cima.
+
+| View | Pra que serve |
+|------|----------------|
+| `vw_category_stock_balance` | Estoque atual vs. mínimo por categoria (2 CTEs), com ranking de risco (`RANK()`) da categoria mais apertada pra mais tranquila |
+| `vw_category_monthly_requisition_trend` | Demanda requisitada por categoria, mês a mês, com total acumulado (`SUM() OVER`) |
+| `vw_product_expiration_urgency` | Lotes ativos por produto/cozinha ordenados por validade, com acumulado de quantidade em risco (`SUM() OVER`) e ranking de urgência por cozinha (`RANK()`) |
+
+Permanentes na migration `V005__etl_analytics.sql`, com rollback isolado em `11_etl_analytics/rollback/drop_etl_views.sql` e no `drop_everything.sql`.
+
+---
+
 ## 🔧 Compreendendo a Arquitetura
 
 | Diretório | Propósito |
@@ -211,8 +228,6 @@ Os quatro índices são permanentes e já estão nas migrations `V001__init_data
 - [x] Dividir a criação de logs, índices, functions, procedures e triggers em migrations próprias (`V002` a `V00N`)
 - [x] Adicionar script de seed/dataload inicial — `postgre/08_seeds/seed.ipynb`
 - [x] Adicionar scripts de `views`
-- [ ] Criar testes de integridade e performance
-- [ ] Documentar dicionário de dados
 - [ ] Configurar ambiente de desenvolvimento/homologação
 - [ ] Integrar com aplicação principal
 
