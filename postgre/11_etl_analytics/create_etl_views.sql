@@ -1,5 +1,5 @@
 -- ---------------------------------------------------
--- ETL / ANALYTICS VIEWS CREATION
+-- ETL / ANALYTICS VIEW CREATION
 -- ---------------------------------------------------
 
 CREATE VIEW vw_category_stock_balance AS
@@ -29,7 +29,6 @@ FROM tb_category c
 LEFT JOIN estoque_atual ea ON ea.id_category = c.id_category
 LEFT JOIN estoque_minimo em ON em.id_category = c.id_category;
 
-
 CREATE VIEW vw_category_monthly_requisition_trend AS
 WITH monthly_demand AS (
     SELECT
@@ -39,6 +38,7 @@ WITH monthly_demand AS (
     FROM tb_requisition r
     JOIN tb_requisition_item ri ON ri.id_requisition = r.id_requisition
     JOIN tb_product p ON p.id_product = ri.id_product
+    WHERE r.status IN ('UNDER_REVIEW', 'APPROVED')
     GROUP BY p.id_category, DATE_TRUNC('month', r.created_at)::DATE
 )
 SELECT
@@ -54,7 +54,6 @@ SELECT
 FROM monthly_demand md
 JOIN tb_category c ON c.id_category = md.id_category
 ORDER BY md.id_category, md.reference_month;
-
 
 CREATE VIEW vw_product_expiration_urgency AS
 WITH batch_risk AS (
@@ -86,7 +85,7 @@ SELECT
     br.days_to_expire,
     SUM(br.current_quantity) OVER (
         PARTITION BY br.id_product, br.id_kitchen
-        ORDER BY br.expiration_date
+        ORDER BY br.expiration_date, br.id_batch
         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
     ) AS cumulative_quantity_at_risk,
     RANK() OVER (

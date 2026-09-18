@@ -38,6 +38,7 @@ WITH monthly_demand AS (
     FROM tb_requisition r
     JOIN tb_requisition_item ri ON ri.id_requisition = r.id_requisition
     JOIN tb_product p ON p.id_product = ri.id_product
+    WHERE r.status IN ('UNDER_REVIEW', 'APPROVED')
     GROUP BY p.id_category, DATE_TRUNC('month', r.created_at)::DATE
 )
 SELECT
@@ -84,7 +85,7 @@ SELECT
     br.days_to_expire,
     SUM(br.current_quantity) OVER (
         PARTITION BY br.id_product, br.id_kitchen
-        ORDER BY br.expiration_date
+        ORDER BY br.expiration_date, br.id_batch
         ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
     ) AS cumulative_quantity_at_risk,
     RANK() OVER (
