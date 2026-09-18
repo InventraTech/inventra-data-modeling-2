@@ -1,5 +1,5 @@
 -- ---------------------------------------------------
--- ROLLBACK DE FUNCTIONS DE LOG
+-- ROLLBACK LOG FUNCTIONS
 -- ---------------------------------------------------
 
 DROP FUNCTION IF EXISTS fn_log_user();

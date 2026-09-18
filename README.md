@@ -18,6 +18,7 @@ O projeto é dividido em **Dicionário de Dados** (Pastas 01 a 08) contendo os c
 postgre/
 ├── 01_modeling/                      # Modelagem de dados (Conceitual e Lógico)
 ├── 02_ddl/                          # Dicionário de Criação (Tabelas, Constraints, Indexes e Logs)
+├── 03_views/                        # Dicionário de Views de consulta/relatório (vw_*) + Data Mart (dim_*/fact_*)
 ├── 05_triggers/                     # Dicionário de Gatilhos de Negócio e Auditoria
 ├── 06_procedures/                   # Dicionário de Rotinas de Negócio
 ├── 07_functions/                    # Dicionário de Funções do Sistema
@@ -26,7 +27,12 @@ postgre/
 ├── 09_migrations/                   # Scripts consolidados e idempotentes para execução direta
 │   ├── V001__init_database.sql      # Criação estrutural (Tabelas, FKs, Indexes, Checks)
 │   ├── V002__business_rules.sql     # Inteligência (Functions, Procedures e Triggers de negócio)
-│   └── V003__audit_logs.sql         # Rastreabilidade (Tabelas, Funções e Gatilhos de log)
+│   ├── V003__audit_logs.sql         # Rastreabilidade (Tabelas, Funções e Gatilhos de log)
+│   ├── V004__views.sql              # Views operacionais (vw_*) + Data Mart / Star Schema (dim_*/fact_*)
+│   └── V005__etl_analytics.sql      # Views analíticas com CTEs + Window Functions
+│
+├── 10_query_optimization/           # Evidência de otimização de consultas (EXPLAIN ANALYZE)
+├── 11_etl_analytics/                # Views analíticas: CTEs, running total e ranking
 │
 └── inventra_erp_flow.html           # Diagrama de fluxo ERP
 ```
@@ -63,6 +69,8 @@ Você pode executar os arquivos diretamente na sua ferramenta SQL favorita (DBea
 psql -U usuario -d inventra_db -f 09_migrations/V001__init_database.sql
 psql -U usuario -d inventra_db -f 09_migrations/V002__business_rules.sql
 psql -U usuario -d inventra_db -f 09_migrations/V003__audit_logs.sql
+psql -U usuario -d inventra_db -f 09_migrations/V004__views.sql
+psql -U usuario -d inventra_db -f 09_migrations/V005__etl_analytics.sql
 ```
 
 ### 3. Rollback (Limpeza / Reversão)
@@ -87,11 +95,125 @@ O banco de dados possui **18 tabelas principais** e um ecossistema de **7 tabela
 
 ---
 
+## ⚙️ Functions e Procedures
+
+Functions de negócio (`07_functions/create_functions.sql`) — regra automática, disparada por trigger, não chamada diretamente:
+
+| Function | Trigger que chama | O que faz |
+|----------|--------------------|-----------|
+| `fn_validate_stock` | `trg_validate_stock` | Impede `current_quantity` negativo em `tb_stock_batch` |
+| `fn_update_batch_status` | `trg_update_batch_status` | Marca o lote como `WRITTEN_OFF` quando a quantidade chega a zero |
+| `fn_calculate_divergence` | `trg_calculate_divergence` | Calcula `divergence` (física − registrada) em `tb_inventory_count` |
+| `fn_requisition_approval` | `trg_requisition_approval` | Preenche `approved_at` quando o status muda pra `APPROVED` |
+| `fn_stock_alert` | `trg_stock_alert` | Cria alerta quando o estoque fica ≤ mínimo cadastrado |
+| `fn_expiration_alert` | `trg_expiration_alert` | Cria alerta quando um lote já passou da validade |
+
+Functions de log (`07_functions/create_log_functions.sql`) — uma por tabela auditada, grava o antes/depois em JSON na tabela `tb_log_*` correspondente: `fn_log_user`, `fn_log_product`, `fn_log_supplier`, `fn_log_stock_batch`, `fn_log_requisition`, `fn_log_inventory`, `fn_log_alert`.
+
+Procedures (`06_procedures/create_procedures.sql`) — rotinas de negócio chamadas explicitamente via `CALL`, não automáticas:
+
+| Procedure | O que faz |
+|-----------|-----------|
+| `sp_approve_requisition` | Aprova uma requisição que está em análise |
+| `sp_reject_requisition` | Rejeita uma requisição em análise, com motivo |
+| `sp_cancel_requisition` | Cancela requisição em análise ou já aprovada |
+| `sp_register_stock_entry` | Registra entrada de quantidade num lote |
+| `sp_write_off_stock` | Dá baixa de quantidade num lote (valida se há saldo suficiente) |
+| `sp_close_inventory` | Fecha um inventário que está aberto |
+
+---
+
+## 🔔 Triggers
+
+Triggers de negócio (`05_triggers/create_trg.sql`):
+
+| Trigger | Tabela | Quando dispara | Function |
+|---------|--------|-----------------|----------|
+| `trg_validate_stock` | `tb_stock_batch` | BEFORE INSERT/UPDATE de `current_quantity` | `fn_validate_stock` |
+| `trg_update_batch_status` | `tb_stock_batch` | BEFORE INSERT/UPDATE de `current_quantity`, `status` | `fn_update_batch_status` |
+| `trg_calculate_divergence` | `tb_inventory_count` | BEFORE INSERT/UPDATE de `registered_quantity`, `physical_quantity` | `fn_calculate_divergence` |
+| `trg_requisition_approval` | `tb_requisition` | BEFORE UPDATE de `status` | `fn_requisition_approval` |
+| `trg_stock_alert` | `tb_stock_batch` | AFTER INSERT/UPDATE de `current_quantity` | `fn_stock_alert` |
+| `trg_expiration_alert` | `tb_stock_batch` | AFTER INSERT/UPDATE de `expiration_date` | `fn_expiration_alert` |
+
+Triggers de auditoria (`05_triggers/create_log_trg.sql`) — `trg_log_user`, `trg_log_product`, `trg_log_supplier`, `trg_log_stock_batch`, `trg_log_requisition`, `trg_log_inventory`, `trg_log_alert`: todas disparam **AFTER INSERT OR UPDATE OR DELETE** na respectiva tabela, gravando o registro inteiro (antes e depois) na tabela `tb_log_*` correspondente, usando `NEW`/`OLD`/`TG_OP`/`CURRENT_USER`.
+
+---
+
+## 📈 Views e Data Mart
+
+**Views operacionais** (`03_views/create_views.sql`, prefixo `vw_*`) — dão suporte às telas do app e a consultas prontas pra IAI, sem cruzar tabela por tabela:
+
+| View | Pra que serve |
+|------|----------------|
+| `vw_stock_batch_detail` | Lote a lote, com dias até vencer e status (EXPIRED/CRITICAL/WARNING/OK) |
+| `vw_product_stock_position` | Quantidade total por produto/cozinha vs. mínimo/máximo |
+| `vw_daily_expiration_summary` | Vencimentos agrupados por dia (Dashboard) |
+| `vw_active_alerts` | Alertas não lidos, ordenados por severidade |
+| `vw_stock_value_by_category` | Estoque somado por categoria (Dashboard) |
+| `vw_requisition_summary` / `vw_requisition_pending` | Requisições com totais, e as pendentes |
+| `vw_stock_movement_log` | Entradas/saídas reconstruídas do log de auditoria |
+| `vw_inventory_count_divergence` | Diferença entre contagem registrada e física |
+| `vw_kitchen_daily_stock_movement` | Movimentação diária com total acumulado (gráfico de linha) |
+| `vw_product_requisition_ranking` | Produtos mais requisitados, por cozinha |
+| `vw_product_supplier_catalog` | Fornecedores por produto, ordenados por preço |
+| `vw_kitchen_dashboard_kpi` | KPIs resumidos por cozinha, numa linha só |
+| `vw_products_below_minimum` / `vw_batches_needing_attention` | Filtros prontos de "abaixo do mínimo" e "precisa de atenção" |
+| `vw_supplier_profile` | Resumo por fornecedor (nº de produtos, preço médio, prazo médio) |
+| `vw_monthly_waste_proxy_kpi` | Estimativa de desperdício — **proxy/hipótese**, não é fórmula aprovada: o banco ainda não registra o motivo de uma baixa de estoque (consumo normal vs. descarte) |
+
+**Data Mart / Star Schema** (`03_views/datamart/create_datamart_views.sql`, prefixo `dim_*`/`fact_*`) — atende o requisito de Modelagem Dimensional pra BI. É um **star schema virtual**: as dimensões e fatos são views sobre as tabelas normalizadas, não tabelas físicas duplicadas.
+
+| Tipo | View | Grão |
+|------|------|------|
+| Dimensão | `dim_product` | uma linha por produto |
+| Dimensão | `dim_kitchen` | uma linha por cozinha |
+| Dimensão | `dim_supplier` | uma linha por fornecedor |
+| Dimensão | `dim_date` | uma linha por dia (2023–2030) |
+| Fato | `fact_stock_movement` | uma linha por movimentação de estoque |
+| Fato | `fact_requisition_item` | uma linha por item de requisição |
+| Fato | `fact_inventory_count` | uma linha por contagem de inventário |
+
+Uma ferramenta de BI (Power BI, Metabase, etc.) conectada nessas 7 views consegue montar o relacionamento fato↔dimensão sozinha, pelas colunas de chave (`id_product`, `id_kitchen`, `date_key`).
+
+---
+
+## 🔍 Otimização de Consultas (EXPLAIN ANALYZE)
+
+Evidência completa (queries, plano antes/depois, script replayable, e um candidato testado e descartado) em [`10_query_optimization/EXPLAIN_ANALYZE.md`](postgre/10_query_optimization/EXPLAIN_ANALYZE.md).
+
+Medição feita no banco real do grupo, já com a massa de dados do MD-03 carregada.
+
+| Índice criado | Onde vive | Consulta que ele resolve | Antes → Depois |
+|---|---|---|---|
+| `idx_log_stock_batch_id_batch` (`id_batch`) | `02_ddl/logs/create_log_indexes.sql` | Histórico de um lote (`vw_stock_movement_log` e afins), antes só tinha a PK como índice | 8,58 ms → 2,86 ms (~3x) |
+| `idx_requisition_status_created_at` (`status`, `created_at DESC`) | `02_ddl/indexes/create_indexes.sql` | Lista de requisições em análise, mais recentes primeiro | 0,21 ms → 0,13 ms (~1,7x) |
+| `idx_productsupplier_product_price` (`id_product`, `reference_price`) | `02_ddl/indexes/create_indexes.sql` | Fornecedores de um produto ordenados por preço (`vw_product_supplier_catalog`) | 4,09 ms → 3,75 ms (~8%) |
+| `idx_batch_kitchen_status_expiration` (`id_kitchen`, `status`, `expiration_date`) | `02_ddl/indexes/create_indexes.sql` | Filtro do Dashboard "lotes precisando de atenção" (`vw_batches_needing_attention`), por cozinha | 7,66 ms → 1,98 ms (~3,9x) |
+
+Os quatro índices são permanentes e já estão nas migrations `V001__init_database.sql` e `V003__audit_logs.sql`, com rollback isolado e no `drop_everything.sql`.
+
+---
+
+## 🧮 Views Analíticas (CTEs + Window Functions)
+
+Três views novas em [`11_etl_analytics/create_etl_views.sql`](postgre/11_etl_analytics/create_etl_views.sql), com CTEs organizando os cálculos e Window Functions por cima.
+
+| View | Pra que serve |
+|------|----------------|
+| `vw_category_stock_balance` | Estoque atual vs. mínimo por categoria (2 CTEs), com ranking de risco (`RANK()`) da categoria mais apertada pra mais tranquila |
+| `vw_category_monthly_requisition_trend` | Demanda requisitada por categoria, mês a mês, com total acumulado (`SUM() OVER`) |
+| `vw_product_expiration_urgency` | Lotes ativos por produto/cozinha ordenados por validade, com acumulado de quantidade em risco (`SUM() OVER`) e ranking de urgência por cozinha (`RANK()`) |
+
+Permanentes na migration `V005__etl_analytics.sql`, com rollback isolado em `11_etl_analytics/rollback/drop_etl_views.sql` e no `drop_everything.sql`.
+
+---
+
 ## 🔧 Compreendendo a Arquitetura
 
 | Diretório | Propósito |
 |-----------|-----------|
-| **Dicionário (02 a 08)** | Fonte da verdade para consulta de desenvolvedores. Código estrito (`CREATE TABLE`). |
+| **Dicionário (02 a 08)** | Fonte da verdade para consulta de desenvolvedores. Código estrito (`CREATE TABLE`, `CREATE VIEW`). |
 | **Subpastas `rollback`** | Scripts isolados com comandos de destruição (ex: `DROP TABLE ... CASCADE`). |
 | **`09_migrations/`** | O que realmente roda no banco. Agrupa as instruções do dicionário utilizando validações (`IF NOT EXISTS`) para atualizações seguras. |
 
@@ -105,9 +227,7 @@ O banco de dados possui **18 tabelas principais** e um ecossistema de **7 tabela
 - [ ] Documentar dicionário de dados (Data Dictionary .md)
 - [x] Dividir a criação de logs, índices, functions, procedures e triggers em migrations próprias (`V002` a `V00N`)
 - [x] Adicionar script de seed/dataload inicial — `postgre/08_seeds/seed.ipynb`
-- [ ] Adicionar scripts de `views`
-- [ ] Criar testes de integridade e performance
-- [ ] Documentar dicionário de dados
+- [x] Adicionar scripts de `views`
 - [ ] Configurar ambiente de desenvolvimento/homologação
 - [ ] Integrar com aplicação principal
 

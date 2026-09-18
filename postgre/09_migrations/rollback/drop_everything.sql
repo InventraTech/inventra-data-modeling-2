@@ -1,5 +1,5 @@
 -- =====================================================
--- FULL TEARDOWN — reverses V001 + V002 + V003 in one pass
+-- FULL TEARDOWN — reverses V001 + V002 + V003 + V004 + V005
 -- =====================================================
 -- WARNING: destructive and irreversible. Drops every table
 -- (and all data in them), function, procedure, trigger,
@@ -18,6 +18,72 @@
 -- fact_*) built directly on the database by another team are not
 -- tracked in this repo, and CASCADE also removes those. Back up
 -- their definitions first if they need to be recreated afterward.
+
+-- ---------------------------------------------------
+-- ETL / ANALYTICS VIEWS
+-- ---------------------------------------------------
+
+DROP VIEW IF EXISTS vw_product_expiration_urgency;
+
+DROP VIEW IF EXISTS vw_category_monthly_requisition_trend;
+
+DROP VIEW IF EXISTS vw_category_stock_balance;
+
+-- ---------------------------------------------------
+-- DATA MART VIEWS (STAR SCHEMA)
+-- ---------------------------------------------------
+
+DROP VIEW IF EXISTS fact_inventory_count;
+
+DROP VIEW IF EXISTS fact_requisition_item;
+
+DROP VIEW IF EXISTS fact_stock_movement;
+
+DROP VIEW IF EXISTS dim_date;
+
+DROP VIEW IF EXISTS dim_supplier;
+
+DROP VIEW IF EXISTS dim_kitchen;
+
+DROP VIEW IF EXISTS dim_product;
+
+-- ---------------------------------------------------
+-- VIEWS
+-- ---------------------------------------------------
+
+DROP VIEW IF EXISTS vw_monthly_waste_proxy_kpi;
+
+DROP VIEW IF EXISTS vw_supplier_profile;
+
+DROP VIEW IF EXISTS vw_batches_needing_attention;
+
+DROP VIEW IF EXISTS vw_products_below_minimum;
+
+DROP VIEW IF EXISTS vw_requisition_pending;
+
+DROP VIEW IF EXISTS vw_stock_movement_log;
+
+DROP VIEW IF EXISTS vw_requisition_summary;
+
+DROP VIEW IF EXISTS vw_stock_value_by_category;
+
+DROP VIEW IF EXISTS vw_active_alerts;
+
+DROP VIEW IF EXISTS vw_daily_expiration_summary;
+
+DROP VIEW IF EXISTS vw_product_stock_position;
+
+DROP VIEW IF EXISTS vw_stock_batch_detail;
+
+DROP VIEW IF EXISTS vw_kitchen_dashboard_kpi;
+
+DROP VIEW IF EXISTS vw_product_supplier_catalog;
+
+DROP VIEW IF EXISTS vw_product_requisition_ranking;
+
+DROP VIEW IF EXISTS vw_kitchen_daily_stock_movement;
+
+DROP VIEW IF EXISTS vw_inventory_count_divergence;
 
 -- ---------------------------------------------------
 -- LOG TRIGGERS
@@ -254,6 +320,15 @@ DROP INDEX IF EXISTS idx_alert_batch;
 DROP INDEX IF EXISTS idx_alert_is_read;
 DROP INDEX IF EXISTS idx_alert_severity;
 DROP INDEX IF EXISTS idx_alert_created_at;
+DROP INDEX IF EXISTS idx_batch_kitchen_status_expiration;
+DROP INDEX IF EXISTS idx_requisition_status_created_at;
+DROP INDEX IF EXISTS idx_productsupplier_product_price;
+
+-- ---------------------------------------------------
+-- LOG TABLE INDEXES
+-- ---------------------------------------------------
+
+DROP INDEX IF EXISTS idx_log_stock_batch_id_batch;
 
 -- ---------------------------------------------------
 -- LOG TABLES

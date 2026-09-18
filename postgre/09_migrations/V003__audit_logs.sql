@@ -80,6 +80,13 @@ CREATE TABLE IF NOT EXISTS tb_log_alert (
 );
 
 -- ---------------------------------------------------
+-- LOG TABLE INDEXES CREATION
+-- ---------------------------------------------------
+
+CREATE INDEX IF NOT EXISTS idx_log_stock_batch_id_batch
+ON tb_log_stock_batch (id_batch);
+
+-- ---------------------------------------------------
 -- LOG FUNCTION CREATION
 -- ---------------------------------------------------
 

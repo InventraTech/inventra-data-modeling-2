@@ -1,5 +1,5 @@
 -- ---------------------------------------------------
--- ROLLBACK DE TRIGGERS
+-- ROLLBACK TRIGGERS
 -- ---------------------------------------------------
 
 DROP TRIGGER IF EXISTS trg_expiration_alert
