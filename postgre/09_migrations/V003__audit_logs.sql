@@ -14,6 +14,8 @@ CREATE TABLE IF NOT EXISTS tb_log_base (
     PRIMARY KEY (id_log)
 );
 
+ALTER SEQUENCE seq_log_id OWNED BY tb_log_base.id_log;
+
 CREATE TABLE IF NOT EXISTS tb_log_user (
     id_user UUID
 ) INHERITS (tb_log_base);
