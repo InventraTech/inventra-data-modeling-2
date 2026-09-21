@@ -140,6 +140,16 @@ Triggers de auditoria (`05_triggers/create_log_trg.sql`) — `trg_log_user`, `tr
 
 ---
 
+## 🧬 Herança de Tabela nas Tabelas de Log
+
+As 7 tabelas de log (`tb_log_user`, `tb_log_product`, `tb_log_supplier`, `tb_log_stock_batch`, `tb_log_requisition`, `tb_log_inventory`, `tb_log_alert`) usam **herança de tabela** (`INHERITS`) a partir de uma tabela base, `tb_log_base`, que concentra as colunas comuns de auditoria (`id_log`, `operation`, `db_user`, `operation_date`, `previous_data`, `new_data`). Cada filha soma só a coluna que identifica a entidade auditada (ex: `id_product` em `tb_log_product`).
+
+**Por que herança e não CTE recursiva:** as duas técnicas resolvem problemas diferentes. CTE recursiva serve pra navegar uma relação hierárquica *dentro da mesma tabela*, onde uma linha referencia outra linha da própria tabela (ex: categoria com subcategoria, organograma). O caso das tabelas de log não é hierárquico — são 7 entidades **irmãs**, sem relação de pai/filho entre si, que só compartilham o mesmo formato de colunas de auditoria. Esse é exatamente o problema que herança de tabela resolve: reaproveitar uma estrutura comum entre tabelas sem duplicar a definição das colunas em cada uma, mantendo a consulta consolidada possível via `SELECT * FROM tb_log_base` (que já retorna as linhas de todas as filhas automaticamente).
+
+Testado localmente: `INSERT`/`UPDATE`/`DELETE` numa tabela principal (ex: `tb_product`) dispara a trigger existente, que grava direto na filha correspondente (`tb_log_product`), e a linha aparece tanto na consulta pela filha quanto pela base (`tb_log_base`), sem exigir `UNION` manual.
+
+---
+
 ## 📈 Views e Data Mart
 
 **Views operacionais** (`03_views/create_views.sql`, prefixo `vw_*`) — dão suporte às telas do app e a consultas prontas pra IAI, sem cruzar tabela por tabela:
