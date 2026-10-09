@@ -12,30 +12,39 @@ Este repositório contém a **estrutura completa do banco de dados** do sistema 
 
 ## 🗂️ Estrutura do Projeto
 
-O projeto é dividido em **Dicionário de Dados** (Pastas 01 a 08) contendo os códigos estritos e isolados, e a **Esteira de Execução** (`09_migrations`), contendo os scripts consolidados e à prova de falhas.
+O projeto é dividido em **Dicionário de Dados** (`ddl`, `functions`, `procedures`, `triggers`, `views`) contendo os códigos estritos e isolados, e a **Esteira de Execução** (`migrations`), contendo os scripts consolidados e à prova de falhas.
 
 ```text
 postgre/
-├── 01_modeling/                      # Modelagem de dados (Conceitual e Lógico)
-├── 02_ddl/                          # Dicionário de Criação (Tabelas, Constraints, Indexes e Logs)
-├── 03_views/                        # Dicionário de Views de consulta/relatório (vw_*) + Data Mart (dim_*/fact_*)
-├── 05_triggers/                     # Dicionário de Gatilhos de Negócio e Auditoria
-├── 06_procedures/                   # Dicionário de Rotinas de Negócio
-├── 07_functions/                    # Dicionário de Funções do Sistema
-│   └── (Todas as pastas acima possuem uma subpasta `/rollback` com scripts de reversão)
+├── ddl/                             # Dicionário de criação (tables, constraints, indexes, logs)
+├── functions/                       # Dicionário de funções (negócio e log)
+├── procedures/                      # Dicionário de rotinas de negócio
+├── triggers/                        # Dicionário de gatilhos (negócio e auditoria)
+├── views/                           # Views de consulta (vw_*)
+│   ├── datamart/                    #   Data Mart / Star Schema (dim_*/fact_*)
+│   └── analytics/                   #   Views analíticas: CTEs, running total e ranking
+│   └── (cada pasta de dicionário possui uma subpasta `/rollback` com scripts de reversão)
 │
-├── 09_migrations/                   # Scripts consolidados e idempotentes para execução direta
+├── migrations/                      # Scripts consolidados e idempotentes para execução direta
 │   ├── V001__init_database.sql      # Criação estrutural (Tabelas, FKs, Indexes, Checks)
 │   ├── V002__business_rules.sql     # Inteligência (Functions, Procedures e Triggers de negócio)
 │   ├── V003__audit_logs.sql         # Rastreabilidade (Tabelas, Funções e Gatilhos de log)
 │   ├── V004__views.sql              # Views operacionais (vw_*) + Data Mart / Star Schema (dim_*/fact_*)
-│   └── V005__etl_analytics.sql      # Views analíticas com CTEs + Window Functions
+│   ├── V005__etl_analytics.sql      # Views analíticas com CTEs + Window Functions
+│   └── rollback/drop_everything.sql # Reversão completa
 │
-├── 10_query_optimization/           # Evidência de otimização de consultas (EXPLAIN ANALYZE)
-├── 11_etl_analytics/                # Views analíticas: CTEs, running total e ranking
-│
-└── inventra_erp_flow.html           # Diagrama de fluxo ERP
+├── seeds/                           # Carga fictícia (seed.ipynb + requirements.txt)
+├── tests/                           # check_migrations.sh: idempotência + rollback (roda no CI)
+└── docs/
+    ├── modeling/                    # Modelagem lógica (versões V1 a V3) e de auditoria
+    ├── query_optimization/          # Evidência de otimização (EXPLAIN ANALYZE)
+    └── inventra_erp_flow.html       # Diagrama de fluxo ERP
+
+.github/workflows/migrations.yml     # CI: aplica as migrations 2x, faz rollback e reaplica
+.env.example                         # Modelo das variáveis de conexão usadas pelo seed
 ```
+
+> A ordem de execução é definida pela pasta `migrations/` (V001 a V005). As pastas de dicionário não têm numeração porque não representam sequência.
 
 
 ## 🏗️ Tecnologias Utilizadas
@@ -52,12 +61,12 @@ postgre/
 ## 🚀 Como Executar
 
 
-A arquitetura do `09_migrations` foi desenhada para ser executada diretamente, sem gerar erros caso os objetos já existam no banco de dados.
+A arquitetura do `migrations` foi desenhada para ser executada diretamente, sem gerar erros caso os objetos já existam no banco de dados.
 
 ### 1. Clone o repositório
 
 ```bash
-git clone [https://github.com/InventraTech/inventra-database.git](https://github.com/InventraTech/inventra-database.git)
+git clone https://github.com/InventraTech/inventra-database.git
 cd inventra-database/postgre
 ```
 
@@ -66,14 +75,14 @@ cd inventra-database/postgre
 Você pode executar os arquivos diretamente na sua ferramenta SQL favorita (DBeaver, pgAdmin) ou via linha de comando:
 
 ```bash
-psql -U usuario -d inventra_db -f 09_migrations/V001__init_database.sql
-psql -U usuario -d inventra_db -f 09_migrations/V002__business_rules.sql
-psql -U usuario -d inventra_db -f 09_migrations/V003__audit_logs.sql
-psql -U usuario -d inventra_db -f 09_migrations/V004__views.sql
-psql -U usuario -d inventra_db -f 09_migrations/V005__etl_analytics.sql
+psql -v ON_ERROR_STOP=1 --single-transaction -U usuario -d inventra_db -f migrations/V001__init_database.sql
+psql -v ON_ERROR_STOP=1 --single-transaction -U usuario -d inventra_db -f migrations/V002__business_rules.sql
+psql -v ON_ERROR_STOP=1 --single-transaction -U usuario -d inventra_db -f migrations/V003__audit_logs.sql
+psql -v ON_ERROR_STOP=1 --single-transaction -U usuario -d inventra_db -f migrations/V004__views.sql
+psql -v ON_ERROR_STOP=1 --single-transaction -U usuario -d inventra_db -f migrations/V005__etl_analytics.sql
 ```
 
-> **Fonte da verdade:** este repositório é o dono do schema. Toda mudança de banco nasce aqui, na pasta de dicionário correspondente **e** em `09_migrations`. A API (`ms-inventra-api`) apenas copia `V001` a `V005` byte a byte para `src/main/resources/db/migration` e o Flyway aplica; nunca se edita migration direto na API.
+> **Fonte da verdade:** este repositório é o dono do schema. Toda mudança de banco nasce aqui, na pasta de dicionário correspondente **e** em `migrations`. A API (`ms-inventra-api`) apenas copia `V001` a `V005` byte a byte para `src/main/resources/db/migration` e o Flyway aplica; nunca se edita migration direto na API.
 >
 > Convenção: migrations são idempotentes e numeradas em sequência (`V006`, `V007`...). Uma migration já aplicada em algum banco não deve ser alterada: mudanças novas entram em uma nova versão.
 >
@@ -87,7 +96,7 @@ Os scripts de destruição estão isolados por segurança nas pastas de dicioná
 
 ```bash
 # Apagar tabelas em cascata:
-psql -U usuario -d inventra_db -f 02_ddl/tables/rollback/drop_tables.sql
+psql -U usuario -d inventra_db -f ddl/tables/rollback/drop_tables.sql
 ```
 
 ---
@@ -105,7 +114,7 @@ O banco de dados possui **18 tabelas principais** e um ecossistema de **7 tabela
 
 ## ⚙️ Functions e Procedures
 
-Functions de negócio (`07_functions/create_functions.sql`) — regra automática, disparada por trigger, não chamada diretamente:
+Functions de negócio (`functions/create_functions.sql`) — regra automática, disparada por trigger, não chamada diretamente:
 
 | Function | Trigger que chama | O que faz |
 |----------|--------------------|-----------|
@@ -116,9 +125,9 @@ Functions de negócio (`07_functions/create_functions.sql`) — regra automátic
 | `fn_stock_alert` | `trg_stock_alert` | Cria alerta quando o estoque fica ≤ mínimo cadastrado |
 | `fn_expiration_alert` | `trg_expiration_alert` | Cria alerta quando um lote já passou da validade |
 
-Functions de log (`07_functions/create_log_functions.sql`) — uma por tabela auditada, grava o antes/depois em JSON na tabela `tb_log_*` correspondente: `fn_log_user`, `fn_log_product`, `fn_log_supplier`, `fn_log_stock_batch`, `fn_log_requisition`, `fn_log_inventory`, `fn_log_alert`.
+Functions de log (`functions/create_log_functions.sql`) — uma por tabela auditada, grava o antes/depois em JSON na tabela `tb_log_*` correspondente: `fn_log_user`, `fn_log_product`, `fn_log_supplier`, `fn_log_stock_batch`, `fn_log_requisition`, `fn_log_inventory`, `fn_log_alert`.
 
-Procedures (`06_procedures/create_procedures.sql`) — rotinas de negócio chamadas explicitamente via `CALL`, não automáticas:
+Procedures (`procedures/create_procedures.sql`) — rotinas de negócio chamadas explicitamente via `CALL`, não automáticas:
 
 | Procedure | O que faz |
 |-----------|-----------|
@@ -133,7 +142,7 @@ Procedures (`06_procedures/create_procedures.sql`) — rotinas de negócio chama
 
 ## 🔔 Triggers
 
-Triggers de negócio (`05_triggers/create_trg.sql`):
+Triggers de negócio (`triggers/create_trg.sql`):
 
 | Trigger | Tabela | Quando dispara | Function |
 |---------|--------|-----------------|----------|
@@ -144,7 +153,7 @@ Triggers de negócio (`05_triggers/create_trg.sql`):
 | `trg_stock_alert` | `tb_stock_batch` | AFTER INSERT/UPDATE de `current_quantity` | `fn_stock_alert` |
 | `trg_expiration_alert` | `tb_stock_batch` | AFTER INSERT/UPDATE de `expiration_date` | `fn_expiration_alert` |
 
-Triggers de auditoria (`05_triggers/create_log_trg.sql`) — `trg_log_user`, `trg_log_product`, `trg_log_supplier`, `trg_log_stock_batch`, `trg_log_requisition`, `trg_log_inventory`, `trg_log_alert`: todas disparam **AFTER INSERT OR UPDATE OR DELETE** na respectiva tabela, gravando o registro inteiro (antes e depois) na tabela `tb_log_*` correspondente, usando `NEW`/`OLD`/`TG_OP`/`CURRENT_USER`.
+Triggers de auditoria (`triggers/create_log_trg.sql`) — `trg_log_user`, `trg_log_product`, `trg_log_supplier`, `trg_log_stock_batch`, `trg_log_requisition`, `trg_log_inventory`, `trg_log_alert`: todas disparam **AFTER INSERT OR UPDATE OR DELETE** na respectiva tabela, gravando o registro inteiro (antes e depois) na tabela `tb_log_*` correspondente, usando `NEW`/`OLD`/`TG_OP`/`CURRENT_USER`.
 
 ---
 
@@ -160,7 +169,7 @@ Testado localmente: `INSERT`/`UPDATE`/`DELETE` numa tabela principal (ex: `tb_pr
 
 ## 📈 Views e Data Mart
 
-**Views operacionais** (`03_views/create_views.sql`, prefixo `vw_*`) — dão suporte às telas do app e a consultas prontas pra IAI, sem cruzar tabela por tabela:
+**Views operacionais** (`views/create_views.sql`, prefixo `vw_*`) — dão suporte às telas do app e a consultas prontas pra IAI, sem cruzar tabela por tabela:
 
 | View | Pra que serve |
 |------|----------------|
@@ -180,7 +189,7 @@ Testado localmente: `INSERT`/`UPDATE`/`DELETE` numa tabela principal (ex: `tb_pr
 | `vw_supplier_profile` | Resumo por fornecedor (nº de produtos, preço médio, prazo médio) |
 | `vw_monthly_waste_proxy_kpi` | Estimativa de desperdício — **proxy/hipótese**, não é fórmula aprovada: o banco ainda não registra o motivo de uma baixa de estoque (consumo normal vs. descarte) |
 
-**Data Mart / Star Schema** (`03_views/datamart/create_datamart_views.sql`, prefixo `dim_*`/`fact_*`) — atende o requisito de Modelagem Dimensional pra BI. É um **star schema virtual**: as dimensões e fatos são views sobre as tabelas normalizadas, não tabelas físicas duplicadas.
+**Data Mart / Star Schema** (`views/datamart/create_datamart_views.sql`, prefixo `dim_*`/`fact_*`) — atende o requisito de Modelagem Dimensional pra BI. É um **star schema virtual**: as dimensões e fatos são views sobre as tabelas normalizadas, não tabelas físicas duplicadas.
 
 | Tipo | View | Grão |
 |------|------|------|
@@ -198,16 +207,16 @@ Uma ferramenta de BI (Power BI, Metabase, etc.) conectada nessas 7 views consegu
 
 ## 🔍 Otimização de Consultas (EXPLAIN ANALYZE)
 
-Evidência completa (queries, plano antes/depois, script replayable, e um candidato testado e descartado) em [`10_query_optimization/EXPLAIN_ANALYZE.md`](postgre/10_query_optimization/EXPLAIN_ANALYZE.md).
+Evidência completa (queries, plano antes/depois, script replayable, e um candidato testado e descartado) em [`docs/query_optimization/EXPLAIN_ANALYZE.md`](postgre/docs/query_optimization/EXPLAIN_ANALYZE.md).
 
 Medição feita no banco real do grupo, já com a massa de dados do MD-03 carregada.
 
 | Índice criado | Onde vive | Consulta que ele resolve | Antes → Depois |
 |---|---|---|---|
-| `idx_log_stock_batch_id_batch` (`id_batch`) | `02_ddl/logs/create_log_indexes.sql` | Histórico de um lote (`vw_stock_movement_log` e afins), antes só tinha a PK como índice | 8,58 ms → 2,86 ms (~3x) |
-| `idx_requisition_status_created_at` (`status`, `created_at DESC`) | `02_ddl/indexes/create_indexes.sql` | Lista de requisições em análise, mais recentes primeiro | 0,21 ms → 0,13 ms (~1,7x) |
-| `idx_productsupplier_product_price` (`id_product`, `reference_price`) | `02_ddl/indexes/create_indexes.sql` | Fornecedores de um produto ordenados por preço (`vw_product_supplier_catalog`) | 4,09 ms → 3,75 ms (~8%) |
-| `idx_batch_kitchen_status_expiration` (`id_kitchen`, `status`, `expiration_date`) | `02_ddl/indexes/create_indexes.sql` | Filtro do Dashboard "lotes precisando de atenção" (`vw_batches_needing_attention`), por cozinha | 7,66 ms → 1,98 ms (~3,9x) |
+| `idx_log_stock_batch_id_batch` (`id_batch`) | `ddl/logs/create_log_indexes.sql` | Histórico de um lote (`vw_stock_movement_log` e afins), antes só tinha a PK como índice | 8,58 ms → 2,86 ms (~3x) |
+| `idx_requisition_status_created_at` (`status`, `created_at DESC`) | `ddl/indexes/create_indexes.sql` | Lista de requisições em análise, mais recentes primeiro | 0,21 ms → 0,13 ms (~1,7x) |
+| `idx_productsupplier_product_price` (`id_product`, `reference_price`) | `ddl/indexes/create_indexes.sql` | Fornecedores de um produto ordenados por preço (`vw_product_supplier_catalog`) | 4,09 ms → 3,75 ms (~8%) |
+| `idx_batch_kitchen_status_expiration` (`id_kitchen`, `status`, `expiration_date`) | `ddl/indexes/create_indexes.sql` | Filtro do Dashboard "lotes precisando de atenção" (`vw_batches_needing_attention`), por cozinha | 7,66 ms → 1,98 ms (~3,9x) |
 
 Os quatro índices são permanentes e já estão nas migrations `V001__init_database.sql` e `V003__audit_logs.sql`, com rollback isolado e no `drop_everything.sql`.
 
@@ -215,7 +224,7 @@ Os quatro índices são permanentes e já estão nas migrations `V001__init_data
 
 ## 🧮 Views Analíticas (CTEs + Window Functions)
 
-Três views novas em [`11_etl_analytics/create_etl_views.sql`](postgre/11_etl_analytics/create_etl_views.sql), com CTEs organizando os cálculos e Window Functions por cima.
+Três views novas em [`views/analytics/create_etl_views.sql`](postgre/views/analytics/create_etl_views.sql), com CTEs organizando os cálculos e Window Functions por cima.
 
 | View | Pra que serve |
 |------|----------------|
@@ -223,7 +232,7 @@ Três views novas em [`11_etl_analytics/create_etl_views.sql`](postgre/11_etl_an
 | `vw_category_monthly_requisition_trend` | Demanda requisitada por categoria, mês a mês, com total acumulado (`SUM() OVER`) |
 | `vw_product_expiration_urgency` | Lotes ativos por produto/cozinha ordenados por validade, com acumulado de quantidade em risco (`SUM() OVER`) e ranking de urgência por cozinha (`RANK()`) |
 
-Permanentes na migration `V005__etl_analytics.sql`, com rollback isolado em `11_etl_analytics/rollback/drop_etl_views.sql` e no `drop_everything.sql`.
+Permanentes na migration `V005__etl_analytics.sql`, com rollback isolado em `views/analytics/rollback/drop_etl_views.sql` e no `drop_everything.sql`.
 
 ---
 
@@ -231,9 +240,9 @@ Permanentes na migration `V005__etl_analytics.sql`, com rollback isolado em `11_
 
 | Diretório | Propósito |
 |-----------|-----------|
-| **Dicionário (02 a 08)** | Fonte da verdade para consulta de desenvolvedores. Código estrito (`CREATE TABLE`, `CREATE VIEW`). |
+| **Dicionário (`ddl`, `functions`, `procedures`, `triggers`, `views`)** | Fonte da verdade para consulta de desenvolvedores. Código estrito (`CREATE TABLE`, `CREATE VIEW`). |
 | **Subpastas `rollback`** | Scripts isolados com comandos de destruição (ex: `DROP TABLE ... CASCADE`). |
-| **`09_migrations/`** | O que realmente roda no banco. Agrupa as instruções do dicionário utilizando validações (`IF NOT EXISTS`) para atualizações seguras. |
+| **`migrations/`** | O que realmente roda no banco. Agrupa as instruções do dicionário utilizando validações (`IF NOT EXISTS`) para atualizações seguras. |
 
 ---
 
@@ -241,10 +250,11 @@ Permanentes na migration `V005__etl_analytics.sql`, com rollback isolado em `11_
 
 - [x] Adicionar scripts de `functions`, `procedures` e `triggers`
 - [x] Configurar sistema base de logs e auditoria
+- [x] Teste automatizado de idempotência/rollback das migrations (`postgre/tests`, CI)
 - [ ] Criar testes de integridade e performance
 - [ ] Documentar dicionário de dados (Data Dictionary .md)
 - [x] Dividir a criação de logs, índices, functions, procedures e triggers em migrations próprias (`V002` a `V00N`)
-- [x] Adicionar script de seed/dataload inicial — `postgre/08_seeds/seed.ipynb`
+- [x] Adicionar script de seed/dataload inicial — `postgre/seeds/seed.ipynb`
 - [x] Adicionar scripts de `views`
 - [ ] Configurar ambiente de desenvolvimento/homologação
 - [ ] Integrar com aplicação principal

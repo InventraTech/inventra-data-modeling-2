@@ -321,7 +321,7 @@ WHERE id_requisition = 850;
 A hipótese era a mesma da Consulta 1: `tb_requisition_item` não teria índice
 em `id_requisition`, só na PK. **A hipótese estava errada** — o projeto já
 tinha `idx_requisitionitem_requisition` nessa mesma coluna desde o dicionário
-original (`02_ddl/indexes/create_indexes.sql`). O plano "antes" já usa esse
+original (`ddl/indexes/create_indexes.sql`). O plano "antes" já usa esse
 índice:
 
 ```
@@ -357,11 +357,11 @@ disco e deixaria escritas um pouco mais lentas à toa. **Ação:** o índice
 
 | Índice | Dicionário | Migration |
 |---|---|---|
-| `idx_log_stock_batch_id_batch` (`id_batch`) | `02_ddl/logs/create_log_indexes.sql` | `09_migrations/V003__audit_logs.sql` |
-| `idx_requisition_status_created_at` (`status`, `created_at DESC`) | `02_ddl/indexes/create_indexes.sql` | `09_migrations/V001__init_database.sql` |
-| `idx_productsupplier_product_price` (`id_product`, `reference_price`) | `02_ddl/indexes/create_indexes.sql` | `09_migrations/V001__init_database.sql` |
-| `idx_batch_kitchen_status_expiration` (`id_kitchen`, `status`, `expiration_date`) | `02_ddl/indexes/create_indexes.sql` | `09_migrations/V001__init_database.sql` |
+| `idx_log_stock_batch_id_batch` (`id_batch`) | `ddl/logs/create_log_indexes.sql` | `migrations/V003__audit_logs.sql` |
+| `idx_requisition_status_created_at` (`status`, `created_at DESC`) | `ddl/indexes/create_indexes.sql` | `migrations/V001__init_database.sql` |
+| `idx_productsupplier_product_price` (`id_product`, `reference_price`) | `ddl/indexes/create_indexes.sql` | `migrations/V001__init_database.sql` |
+| `idx_batch_kitchen_status_expiration` (`id_kitchen`, `status`, `expiration_date`) | `ddl/indexes/create_indexes.sql` | `migrations/V001__init_database.sql` |
 
-Rollback isolado em `02_ddl/indexes/rollback/drop_indexes.sql` e
-`02_ddl/logs/rollback/drop_log_indexes.sql`; todos os quatro também estão no
-`09_migrations/rollback/drop_everything.sql`.
+Rollback isolado em `ddl/indexes/rollback/drop_indexes.sql` e
+`ddl/logs/rollback/drop_log_indexes.sql`; todos os quatro também estão no
+`migrations/rollback/drop_everything.sql`.
