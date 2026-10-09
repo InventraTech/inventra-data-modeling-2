@@ -73,6 +73,14 @@ psql -U usuario -d inventra_db -f 09_migrations/V004__views.sql
 psql -U usuario -d inventra_db -f 09_migrations/V005__etl_analytics.sql
 ```
 
+> **Fonte da verdade:** este repositório é o dono do schema. Toda mudança de banco nasce aqui, na pasta de dicionário correspondente **e** em `09_migrations`. A API (`ms-inventra-api`) apenas copia `V001` a `V005` byte a byte para `src/main/resources/db/migration` e o Flyway aplica; nunca se edita migration direto na API.
+>
+> Convenção: migrations são idempotentes e numeradas em sequência (`V006`, `V007`...). Uma migration já aplicada em algum banco não deve ser alterada: mudanças novas entram em uma nova versão.
+>
+> As mensagens de `RAISE EXCEPTION` das functions e procedures estão em português de propósito: a API as repassa ao cliente no `detail` das respostas 409.
+>
+> `sp_expire_batches()` marca lotes vencidos como `EXPIRED` e gera os alertas correspondentes. Ela é chamada diariamente pelo `BatchExpirationJob` da API.
+
 ### 3. Rollback (Limpeza / Reversão)
 
 Os scripts de destruição estão isolados por segurança nas pastas de dicionário. Para reverter algo, execute o arquivo da respectiva pasta. Exemplo:

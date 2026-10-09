@@ -11,8 +11,7 @@ BEGIN
 
     IF NEW.current_quantity < 0 THEN
         RAISE EXCEPTION
-            'The batch current quantity cannot be negative. Batch: %',
-            NEW.id_batch;
+            'O saldo do lote não pode ficar negativo.';
     END IF;
 
     RETURN NEW;
@@ -80,6 +79,7 @@ AS
 $$
 DECLARE
     v_min_stock DECIMAL(12,3);
+    v_total_quantity DECIMAL(12,3);
     v_existing_alert INTEGER;
 BEGIN
 
@@ -93,7 +93,16 @@ BEGIN
         RETURN NEW;
     END IF;
 
-    IF NEW.current_quantity <= v_min_stock THEN
+    -- trigger AFTER: a linha alterada já aparece com o valor novo nessa soma; lote vencido não conta
+    SELECT COALESCE(SUM(current_quantity), 0)
+    INTO v_total_quantity
+    FROM tb_stock_batch
+    WHERE id_product = NEW.id_product
+      AND id_kitchen = NEW.id_kitchen
+      AND status = 'ACTIVE'
+      AND (expiration_date IS NULL OR expiration_date >= CURRENT_DATE);
+
+    IF v_total_quantity < v_min_stock THEN
 
         SELECT id_alert
         INTO v_existing_alert
@@ -122,7 +131,7 @@ BEGIN
                 NEW.id_batch,
                 NEW.id_product,
                 NEW.id_kitchen,
-                'Product below minimum stock.'
+                'Produto abaixo do estoque mínimo.'
             );
 
         END IF;
@@ -175,7 +184,7 @@ BEGIN
                 NEW.id_batch,
                 NEW.id_product,
                 NEW.id_kitchen,
-                'Batch expired. Check the product expiration date.'
+                'Lote vencido. Verifique a validade do produto.'
             );
 
         END IF;

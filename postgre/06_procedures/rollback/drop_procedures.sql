@@ -2,6 +2,8 @@
 -- ROLLBACK PROCEDURES
 -- ---------------------------------------------------
 
+DROP PROCEDURE IF EXISTS sp_expire_batches();
+
 DROP PROCEDURE IF EXISTS sp_close_inventory(INTEGER);
 
 DROP PROCEDURE IF EXISTS sp_write_off_stock(INTEGER, DECIMAL);
