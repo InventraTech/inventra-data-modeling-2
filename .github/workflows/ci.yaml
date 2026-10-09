@@ -1,0 +1,10 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  sql:
+    uses: InventraTech/.github/.github/workflows/ci-sql.yaml@ci/validacao-sql-modelagem
