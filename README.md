@@ -1,286 +1,170 @@
+<div align="center">
+
 # 📦 Inventra Database
 
-> **Repo utilizado para produção do banco de dados que sera utilizado no projeto interdisciplinar "Inventra".**
+**Schema PostgreSQL do Inventra: gestão de estoque para cozinhas industriais.**
 
----
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)
+[![Migrations](https://github.com/InventraTech/inventra-database/actions/workflows/migrations.yml/badge.svg)](https://github.com/InventraTech/inventra-database/actions/workflows/migrations.yml)
+![Migrations](https://img.shields.io/badge/migrations-V001--V005-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-## 📋 Sobre o Projeto
+</div>
 
-Este repositório contém a **estrutura completa do banco de dados** do sistema **Inventra** — um sistema de gestão de estoque e cozinhas industriais. O projeto adota uma arquitetura de **Dicionário Estrito vs. Esteira de Migrations**, garantindo scripts idempotentes (seguros para múltiplas execuções), versionamento inteligente, auditoria embutida e excelente documentação técnica.
+Banco de dados do projeto interdisciplinar **Inventra**. Este repositório é a **fonte da verdade do schema**: tabelas, regras de negócio em SQL, auditoria automática, camada de consulta e Data Mart para BI. A API (`ms-inventra-api`) consome as migrations daqui.
 
----
+## Sumário
 
-## 🗂️ Estrutura do Projeto
+- [Visão geral](#visão-geral)
+- [Arquitetura](#arquitetura)
+- [Quick start](#quick-start)
+- [Modelo de dados](#modelo-de-dados)
+- [Documentação](#documentação)
+- [Estrutura do repositório](#estrutura-do-repositório)
+- [Desenvolvimento](#desenvolvimento)
+- [Roadmap](#roadmap)
+- [Contribuidores](#contribuidores)
 
-O projeto é dividido em **Dicionário de Dados** (`ddl`, `functions`, `procedures`, `triggers`, `views`) contendo os códigos estritos e isolados, e a **Esteira de Execução** (`migrations`), contendo os scripts consolidados e à prova de falhas.
+## Visão geral
 
-```text
-postgre/
-├── ddl/                             # Dicionário de criação (tables, constraints, indexes, logs)
-├── functions/                       # Dicionário de funções (negócio e log)
-├── procedures/                      # Dicionário de rotinas de negócio
-├── triggers/                        # Dicionário de gatilhos (negócio e auditoria)
-├── views/                           # Views de consulta (vw_*)
-│   ├── datamart/                    #   Data Mart / Star Schema (dim_*/fact_*)
-│   └── analytics/                   #   Views analíticas: CTEs, running total e ranking
-│   └── (cada pasta de dicionário possui uma subpasta `/rollback` com scripts de reversão)
-│
-├── migrations/                      # Scripts consolidados e idempotentes para execução direta
-│   ├── V001__init_database.sql      # Criação estrutural (Tabelas, FKs, Indexes, Checks)
-│   ├── V002__business_rules.sql     # Inteligência (Functions, Procedures e Triggers de negócio)
-│   ├── V003__audit_logs.sql         # Rastreabilidade (Tabelas, Funções e Gatilhos de log)
-│   ├── V004__views.sql              # Views operacionais (vw_*) + Data Mart / Star Schema (dim_*/fact_*)
-│   ├── V005__etl_analytics.sql      # Views analíticas com CTEs + Window Functions
-│   └── rollback/drop_everything.sql # Reversão completa
-│
-├── seeds/                           # Carga fictícia (seed.ipynb + requirements.txt)
-├── tests/                           # check_migrations.sh: idempotência + rollback (roda no CI)
-└── docs/
-    ├── modeling/                    # Modelagem lógica (versões V1 a V3) e de auditoria
-    ├── query_optimization/          # Evidência de otimização (EXPLAIN ANALYZE)
-    └── inventra_erp_flow.html       # Diagrama de fluxo ERP
+| | |
+|---|---|
+| **Domínio** | Lotes de estoque, requisições, inventário, fornecedores e alertas de vencimento |
+| **Modelo** | 15 tabelas de negócio + 7 tabelas de log (herdam de `tb_log_base`) |
+| **Regras no banco** | 6 functions + 7 procedures + 6 triggers de negócio |
+| **Auditoria** | Trigger `AFTER INSERT/UPDATE/DELETE` grava antes/depois (JSON) em 7 tabelas `tb_log_*` |
+| **Consulta** | 15+ views operacionais, 3 views analíticas (CTE + Window Functions), star schema virtual (4 `dim_*`, 3 `fact_*`) |
+| **Entrega** | Migrations idempotentes `V001`–`V005`, com rollback e validação no CI |
 
-.github/workflows/migrations.yml     # CI: aplica as migrations 2x, faz rollback e reaplica
-.env.example                         # Modelo das variáveis de conexão usadas pelo seed
+## Arquitetura
+
+O projeto separa o **dicionário** (código de leitura, um arquivo por assunto) da **esteira de migrations** (o que de fato roda no banco, com guardas de idempotência).
+
+```mermaid
+flowchart LR
+    D["Dicionário<br/>ddl · functions · procedures · triggers · views"] -->|consolidado em| M["migrations<br/>V001 … V005"]
+    M -->|psql / CI| DB[("PostgreSQL")]
+    M -->|cópia byte a byte| API["ms-inventra-api<br/>Flyway"]
+    DB --> BI["Power BI / Metabase<br/>dim_* · fact_*"]
 ```
 
-> A ordem de execução é definida pela pasta `migrations/` (V001 a V005). As pastas de dicionário não têm numeração porque não representam sequência.
+| Migration | Conteúdo |
+|-----------|----------|
+| `V001__init_database.sql` | Tabelas, FKs, índices e checks |
+| `V002__business_rules.sql` | Functions, procedures e triggers de negócio |
+| `V003__audit_logs.sql` | Tabelas, índices, functions e triggers de log |
+| `V004__views.sql` | Views operacionais + Data Mart |
+| `V005__etl_analytics.sql` | Views analíticas (CTEs + Window Functions) |
 
+Detalhes, convenções e decisões de design em [`docs/ARCHITECTURE.md`](postgre/docs/ARCHITECTURE.md).
 
-## 🏗️ Tecnologias Utilizadas
+## Quick start
 
-| Tecnologia | Descrição |
-|------------|-----------|
-| **PostgreSQL** | SGBD principal do projeto |
-| **Scripts Idempotentes** | Abordagem manual e segura (`IF NOT EXISTS` / `OR REPLACE`) dispensando ferramentas externas obrigatórias |
-| **draw.io** | Modelagem conceitual/lógica |
-| **Git** | Controle de versão |
-
----
-
-## 🚀 Como Executar
-
-
-A arquitetura do `migrations` foi desenhada para ser executada diretamente, sem gerar erros caso os objetos já existam no banco de dados.
-
-### 1. Clone o repositório
+**Requisitos:** PostgreSQL 14+ e `psql` (testado no CI com PostgreSQL 16).
 
 ```bash
 git clone https://github.com/InventraTech/inventra-database.git
 cd inventra-database/postgre
+
+for f in migrations/V*.sql; do
+  psql -v ON_ERROR_STOP=1 --single-transaction -U usuario -d inventra_db -f "$f"
+done
 ```
 
-### 2. Execute as migrations na ordem (Criação/Atualização)
+As migrations são idempotentes: reexecutar em um banco que já as recebeu não gera erro.
 
-Você pode executar os arquivos diretamente na sua ferramenta SQL favorita (DBeaver, pgAdmin) ou via linha de comando:
+**Rollback completo:**
 
 ```bash
-psql -v ON_ERROR_STOP=1 --single-transaction -U usuario -d inventra_db -f migrations/V001__init_database.sql
-psql -v ON_ERROR_STOP=1 --single-transaction -U usuario -d inventra_db -f migrations/V002__business_rules.sql
-psql -v ON_ERROR_STOP=1 --single-transaction -U usuario -d inventra_db -f migrations/V003__audit_logs.sql
-psql -v ON_ERROR_STOP=1 --single-transaction -U usuario -d inventra_db -f migrations/V004__views.sql
-psql -v ON_ERROR_STOP=1 --single-transaction -U usuario -d inventra_db -f migrations/V005__etl_analytics.sql
+psql -v ON_ERROR_STOP=1 --single-transaction -U usuario -d inventra_db -f migrations/rollback/drop_everything.sql
 ```
 
-> **Fonte da verdade:** este repositório é o dono do schema. Toda mudança de banco nasce aqui, na pasta de dicionário correspondente **e** em `migrations`. A API (`ms-inventra-api`) apenas copia `V001` a `V005` byte a byte para `src/main/resources/db/migration` e o Flyway aplica; nunca se edita migration direto na API.
->
-> Convenção: migrations são idempotentes e numeradas em sequência (`V006`, `V007`...). Uma migration já aplicada em algum banco não deve ser alterada: mudanças novas entram em uma nova versão.
->
-> As mensagens de `RAISE EXCEPTION` das functions e procedures estão em português de propósito: a API as repassa ao cliente no `detail` das respostas 409.
->
-> `sp_expire_batches()` marca lotes vencidos como `EXPIRED` e gera os alertas correspondentes. Ela é chamada diariamente pelo `BatchExpirationJob` da API.
+Para reverter apenas uma camada, use o `rollback/` da respectiva pasta de dicionário (ex: `ddl/tables/rollback/drop_tables.sql`).
 
-### 3. Rollback (Limpeza / Reversão)
-
-Os scripts de destruição estão isolados por segurança nas pastas de dicionário. Para reverter algo, execute o arquivo da respectiva pasta. Exemplo:
+**Massa de dados fictícia (opcional):**
 
 ```bash
-# Apagar tabelas em cascata:
-psql -U usuario -d inventra_db -f ddl/tables/rollback/drop_tables.sql
+cp ../.env.example ../.env          # ajuste as credenciais
+pip install -r seeds/requirements.txt
+jupyter notebook seeds/seed.ipynb
 ```
 
----
+## Modelo de dados
 
-## 📊 Modelagem do Banco
+![Modelo lógico V3](postgre/docs/modeling/logical/V3/logical_model_v3.jpg)
 
-O banco de dados possui **18 tabelas principais** e um ecossistema de **7 tabelas de log** (Auditoria Automática), organizadas em:
+| Grupo | Tabelas |
+|-------|---------|
+| **Cadastros base** | `tb_user`, `tb_profile`, `tb_kitchen`, `tb_product`, `tb_category`, `tb_measurement_unit`, `tb_supplier` |
+| **Relacionamentos** | `tb_product_supplier`, `tb_product_kitchen_parameter` |
+| **Movimentações** | `tb_stock_batch`, `tb_requisition`, `tb_requisition_item`, `tb_inventory`, `tb_inventory_count` |
+| **Eventos** | `tb_alert` |
+| **Auditoria** | `tb_log_base` + `tb_log_user`, `tb_log_product`, `tb_log_supplier`, `tb_log_stock_batch`, `tb_log_requisition`, `tb_log_inventory`, `tb_log_alert` |
 
-- **Cadastros Base:** `tb_user`, `tb_profile`, `tb_kitchen`, `tb_product`, `tb_supplier`
-- **Movimentações:** `tb_stock_batch`, `tb_requisition`, `tb_inventory`
-- **Relacionamentos:** `tb_product_supplier`, `tb_product_kitchen_parameter`
-- **Eventos & Logs:** `tb_alert`, `tb_inventory_count`, e esquema de rastreabilidade (ex: `tb_log_user`)
+Outras versões do modelo (V1, V2 e auditoria) estão em [`docs/modeling`](postgre/docs/modeling).
 
----
+## Documentação
 
-## ⚙️ Functions e Procedures
+| Documento | Assunto |
+|-----------|---------|
+| [`ARCHITECTURE.md`](postgre/docs/ARCHITECTURE.md) | Dicionário vs. migrations, convenções, CI, herança das tabelas de log |
+| [`BUSINESS_RULES.md`](postgre/docs/BUSINESS_RULES.md) | Functions, procedures, triggers de negócio e de auditoria |
+| [`VIEWS_AND_DATAMART.md`](postgre/docs/VIEWS_AND_DATAMART.md) | Views operacionais, star schema e views analíticas |
+| [`EXPLAIN_ANALYZE.md`](postgre/docs/query_optimization/EXPLAIN_ANALYZE.md) | Otimização de consultas: planos antes/depois dos 4 índices criados |
+| [`inventra_erp_flow.html`](postgre/docs/inventra_erp_flow.html) | Diagrama de fluxo ERP |
 
-Functions de negócio (`functions/create_functions.sql`) — regra automática, disparada por trigger, não chamada diretamente:
+## Estrutura do repositório
 
-| Function | Trigger que chama | O que faz |
-|----------|--------------------|-----------|
-| `fn_validate_stock` | `trg_validate_stock` | Impede `current_quantity` negativo em `tb_stock_batch` |
-| `fn_update_batch_status` | `trg_update_batch_status` | Marca o lote como `WRITTEN_OFF` quando a quantidade chega a zero |
-| `fn_calculate_divergence` | `trg_calculate_divergence` | Calcula `divergence` (física − registrada) em `tb_inventory_count` |
-| `fn_requisition_approval` | `trg_requisition_approval` | Preenche `approved_at` quando o status muda pra `APPROVED` |
-| `fn_stock_alert` | `trg_stock_alert` | Cria alerta quando o estoque fica ≤ mínimo cadastrado |
-| `fn_expiration_alert` | `trg_expiration_alert` | Cria alerta quando um lote já passou da validade |
+```text
+postgre/
+├── ddl/             # tables, constraints, indexes e logs
+├── functions/       # funções de negócio e de log
+├── procedures/      # rotinas chamadas via CALL
+├── triggers/        # gatilhos de negócio e de auditoria
+├── views/           # vw_*  ·  datamart/ (dim_*, fact_*)  ·  analytics/
+│                    #   (cada pasta tem subpasta rollback/)
+├── migrations/      # V001–V005 + rollback/drop_everything.sql
+├── seeds/           # seed.ipynb + requirements.txt
+├── tests/           # check_migrations.sh (idempotência + rollback)
+└── docs/            # arquitetura, regras, views, modelagem, otimização
+.github/workflows/   # CI das migrations
+.env.example         # variáveis de conexão usadas pelo seed
+```
 
-Functions de log (`functions/create_log_functions.sql`) — uma por tabela auditada, grava o antes/depois em JSON na tabela `tb_log_*` correspondente: `fn_log_user`, `fn_log_product`, `fn_log_supplier`, `fn_log_stock_batch`, `fn_log_requisition`, `fn_log_inventory`, `fn_log_alert`.
+## Desenvolvimento
 
-Procedures (`procedures/create_procedures.sql`) — rotinas de negócio chamadas explicitamente via `CALL`, não automáticas:
+1. A mudança nasce na pasta de dicionário correspondente **e** em uma **nova** migration (`V006`, `V007`…). Migration já aplicada não se edita.
+2. Valide localmente com o mesmo script do CI:
 
-| Procedure | O que faz |
-|-----------|-----------|
-| `sp_approve_requisition` | Aprova uma requisição que está em análise |
-| `sp_reject_requisition` | Rejeita uma requisição em análise, com motivo |
-| `sp_cancel_requisition` | Cancela requisição em análise ou já aprovada |
-| `sp_register_stock_entry` | Registra entrada de quantidade num lote |
-| `sp_write_off_stock` | Dá baixa de quantidade num lote (valida se há saldo suficiente) |
-| `sp_close_inventory` | Fecha um inventário que está aberto |
+   ```bash
+   PGHOST=localhost PGUSER=postgres PGPASSWORD=postgres PGDATABASE=inventra_db \
+     bash postgre/tests/check_migrations.sh
+   ```
 
----
+   Ele aplica as migrations, reaplica (idempotência), faz rollback completo e reaplica do zero.
+3. O CI roda esse mesmo script em cada push/PR que toque `postgre/`.
+4. A API copia `V001`+ byte a byte para o Flyway; nunca edite migration direto lá.
 
-## 🔔 Triggers
+> `RAISE EXCEPTION` das functions e procedures fica em português de propósito: a API repassa a mensagem ao cliente nas respostas 409.
 
-Triggers de negócio (`triggers/create_trg.sql`):
+## Roadmap
 
-| Trigger | Tabela | Quando dispara | Function |
-|---------|--------|-----------------|----------|
-| `trg_validate_stock` | `tb_stock_batch` | BEFORE INSERT/UPDATE de `current_quantity` | `fn_validate_stock` |
-| `trg_update_batch_status` | `tb_stock_batch` | BEFORE INSERT/UPDATE de `current_quantity`, `status` | `fn_update_batch_status` |
-| `trg_calculate_divergence` | `tb_inventory_count` | BEFORE INSERT/UPDATE de `registered_quantity`, `physical_quantity` | `fn_calculate_divergence` |
-| `trg_requisition_approval` | `tb_requisition` | BEFORE UPDATE de `status` | `fn_requisition_approval` |
-| `trg_stock_alert` | `tb_stock_batch` | AFTER INSERT/UPDATE de `current_quantity` | `fn_stock_alert` |
-| `trg_expiration_alert` | `tb_stock_batch` | AFTER INSERT/UPDATE de `expiration_date` | `fn_expiration_alert` |
+- [x] Functions, procedures e triggers de negócio
+- [x] Auditoria com herança de tabelas de log
+- [x] Views operacionais, Data Mart e views analíticas
+- [x] Seed inicial (`seeds/seed.ipynb`)
+- [x] Teste automatizado de idempotência/rollback no CI
+- [ ] Testes de integridade e performance
+- [ ] Dicionário de dados (Data Dictionary `.md`)
+- [ ] Ambiente de homologação
 
-Triggers de auditoria (`triggers/create_log_trg.sql`) — `trg_log_user`, `trg_log_product`, `trg_log_supplier`, `trg_log_stock_batch`, `trg_log_requisition`, `trg_log_inventory`, `trg_log_alert`: todas disparam **AFTER INSERT OR UPDATE OR DELETE** na respectiva tabela, gravando o registro inteiro (antes e depois) na tabela `tb_log_*` correspondente, usando `NEW`/`OLD`/`TG_OP`/`CURRENT_USER`.
-
----
-
-## 🧬 Herança de Tabela nas Tabelas de Log
-
-As 7 tabelas de log (`tb_log_user`, `tb_log_product`, `tb_log_supplier`, `tb_log_stock_batch`, `tb_log_requisition`, `tb_log_inventory`, `tb_log_alert`) usam **herança de tabela** (`INHERITS`) a partir de uma tabela base, `tb_log_base`, que concentra as colunas comuns de auditoria (`id_log`, `operation`, `db_user`, `operation_date`, `previous_data`, `new_data`). Cada filha soma só a coluna que identifica a entidade auditada (ex: `id_product` em `tb_log_product`).
-
-**Por que herança e não CTE recursiva:** as duas técnicas resolvem problemas diferentes. CTE recursiva serve pra navegar uma relação hierárquica *dentro da mesma tabela*, onde uma linha referencia outra linha da própria tabela (ex: categoria com subcategoria, organograma). O caso das tabelas de log não é hierárquico — são 7 entidades **irmãs**, sem relação de pai/filho entre si, que só compartilham o mesmo formato de colunas de auditoria. Esse é exatamente o problema que herança de tabela resolve: reaproveitar uma estrutura comum entre tabelas sem duplicar a definição das colunas em cada uma, mantendo a consulta consolidada possível via `SELECT * FROM tb_log_base` (que já retorna as linhas de todas as filhas automaticamente).
-
-Testado localmente: `INSERT`/`UPDATE`/`DELETE` numa tabela principal (ex: `tb_product`) dispara a trigger existente, que grava direto na filha correspondente (`tb_log_product`), e a linha aparece tanto na consulta pela filha quanto pela base (`tb_log_base`), sem exigir `UNION` manual.
-
----
-
-## 📈 Views e Data Mart
-
-**Views operacionais** (`views/create_views.sql`, prefixo `vw_*`) — dão suporte às telas do app e a consultas prontas pra IAI, sem cruzar tabela por tabela:
-
-| View | Pra que serve |
-|------|----------------|
-| `vw_stock_batch_detail` | Lote a lote, com dias até vencer e status (EXPIRED/CRITICAL/WARNING/OK) |
-| `vw_product_stock_position` | Quantidade total por produto/cozinha vs. mínimo/máximo |
-| `vw_daily_expiration_summary` | Vencimentos agrupados por dia (Dashboard) |
-| `vw_active_alerts` | Alertas não lidos, ordenados por severidade |
-| `vw_stock_value_by_category` | Estoque somado por categoria (Dashboard) |
-| `vw_requisition_summary` / `vw_requisition_pending` | Requisições com totais, e as pendentes |
-| `vw_stock_movement_log` | Entradas/saídas reconstruídas do log de auditoria |
-| `vw_inventory_count_divergence` | Diferença entre contagem registrada e física |
-| `vw_kitchen_daily_stock_movement` | Movimentação diária com total acumulado (gráfico de linha) |
-| `vw_product_requisition_ranking` | Produtos mais requisitados, por cozinha |
-| `vw_product_supplier_catalog` | Fornecedores por produto, ordenados por preço |
-| `vw_kitchen_dashboard_kpi` | KPIs resumidos por cozinha, numa linha só |
-| `vw_products_below_minimum` / `vw_batches_needing_attention` | Filtros prontos de "abaixo do mínimo" e "precisa de atenção" |
-| `vw_supplier_profile` | Resumo por fornecedor (nº de produtos, preço médio, prazo médio) |
-| `vw_monthly_waste_proxy_kpi` | Estimativa de desperdício — **proxy/hipótese**, não é fórmula aprovada: o banco ainda não registra o motivo de uma baixa de estoque (consumo normal vs. descarte) |
-
-**Data Mart / Star Schema** (`views/datamart/create_datamart_views.sql`, prefixo `dim_*`/`fact_*`) — atende o requisito de Modelagem Dimensional pra BI. É um **star schema virtual**: as dimensões e fatos são views sobre as tabelas normalizadas, não tabelas físicas duplicadas.
-
-| Tipo | View | Grão |
-|------|------|------|
-| Dimensão | `dim_product` | uma linha por produto |
-| Dimensão | `dim_kitchen` | uma linha por cozinha |
-| Dimensão | `dim_supplier` | uma linha por fornecedor |
-| Dimensão | `dim_date` | uma linha por dia (2023–2030) |
-| Fato | `fact_stock_movement` | uma linha por movimentação de estoque |
-| Fato | `fact_requisition_item` | uma linha por item de requisição |
-| Fato | `fact_inventory_count` | uma linha por contagem de inventário |
-
-Uma ferramenta de BI (Power BI, Metabase, etc.) conectada nessas 7 views consegue montar o relacionamento fato↔dimensão sozinha, pelas colunas de chave (`id_product`, `id_kitchen`, `date_key`).
-
----
-
-## 🔍 Otimização de Consultas (EXPLAIN ANALYZE)
-
-Evidência completa (queries, plano antes/depois, script replayable, e um candidato testado e descartado) em [`docs/query_optimization/EXPLAIN_ANALYZE.md`](postgre/docs/query_optimization/EXPLAIN_ANALYZE.md).
-
-Medição feita no banco real do grupo, já com a massa de dados do MD-03 carregada.
-
-| Índice criado | Onde vive | Consulta que ele resolve | Antes → Depois |
-|---|---|---|---|
-| `idx_log_stock_batch_id_batch` (`id_batch`) | `ddl/logs/create_log_indexes.sql` | Histórico de um lote (`vw_stock_movement_log` e afins), antes só tinha a PK como índice | 8,58 ms → 2,86 ms (~3x) |
-| `idx_requisition_status_created_at` (`status`, `created_at DESC`) | `ddl/indexes/create_indexes.sql` | Lista de requisições em análise, mais recentes primeiro | 0,21 ms → 0,13 ms (~1,7x) |
-| `idx_productsupplier_product_price` (`id_product`, `reference_price`) | `ddl/indexes/create_indexes.sql` | Fornecedores de um produto ordenados por preço (`vw_product_supplier_catalog`) | 4,09 ms → 3,75 ms (~8%) |
-| `idx_batch_kitchen_status_expiration` (`id_kitchen`, `status`, `expiration_date`) | `ddl/indexes/create_indexes.sql` | Filtro do Dashboard "lotes precisando de atenção" (`vw_batches_needing_attention`), por cozinha | 7,66 ms → 1,98 ms (~3,9x) |
-
-Os quatro índices são permanentes e já estão nas migrations `V001__init_database.sql` e `V003__audit_logs.sql`, com rollback isolado e no `drop_everything.sql`.
-
----
-
-## 🧮 Views Analíticas (CTEs + Window Functions)
-
-Três views novas em [`views/analytics/create_etl_views.sql`](postgre/views/analytics/create_etl_views.sql), com CTEs organizando os cálculos e Window Functions por cima.
-
-| View | Pra que serve |
-|------|----------------|
-| `vw_category_stock_balance` | Estoque atual vs. mínimo por categoria (2 CTEs), com ranking de risco (`RANK()`) da categoria mais apertada pra mais tranquila |
-| `vw_category_monthly_requisition_trend` | Demanda requisitada por categoria, mês a mês, com total acumulado (`SUM() OVER`) |
-| `vw_product_expiration_urgency` | Lotes ativos por produto/cozinha ordenados por validade, com acumulado de quantidade em risco (`SUM() OVER`) e ranking de urgência por cozinha (`RANK()`) |
-
-Permanentes na migration `V005__etl_analytics.sql`, com rollback isolado em `views/analytics/rollback/drop_etl_views.sql` e no `drop_everything.sql`.
-
----
-
-## 🔧 Compreendendo a Arquitetura
-
-| Diretório | Propósito |
-|-----------|-----------|
-| **Dicionário (`ddl`, `functions`, `procedures`, `triggers`, `views`)** | Fonte da verdade para consulta de desenvolvedores. Código estrito (`CREATE TABLE`, `CREATE VIEW`). |
-| **Subpastas `rollback`** | Scripts isolados com comandos de destruição (ex: `DROP TABLE ... CASCADE`). |
-| **`migrations/`** | O que realmente roda no banco. Agrupa as instruções do dicionário utilizando validações (`IF NOT EXISTS`) para atualizações seguras. |
-
----
-
-## 🗺️ Próximos Passos
-
-- [x] Adicionar scripts de `functions`, `procedures` e `triggers`
-- [x] Configurar sistema base de logs e auditoria
-- [x] Teste automatizado de idempotência/rollback das migrations (`postgre/tests`, CI)
-- [ ] Criar testes de integridade e performance
-- [ ] Documentar dicionário de dados (Data Dictionary .md)
-- [x] Dividir a criação de logs, índices, functions, procedures e triggers em migrations próprias (`V002` a `V00N`)
-- [x] Adicionar script de seed/dataload inicial — `postgre/seeds/seed.ipynb`
-- [x] Adicionar scripts de `views`
-- [ ] Configurar ambiente de desenvolvimento/homologação
-- [ ] Integrar com aplicação principal
-
----
-
-## 👥 Contribuidores
+## Contribuidores
 
 | Nome | Papel |
 |------|-------|
 | **@dvarakaki** | Desenvolvedor de Banco de Dados |
 | **@joohnyxxz** | Desenvolvedor de Banco de Dados |
 
----
+## Licença
 
-## 📄 Licença
-
-Este projeto está sob a licença **MIT**. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
----
-
-## 📞 Contato
-
-- **GitHub:** [InventraTech](https://github.com/InventraTech)
-- **Projeto:** Sistema Inventra - Gestão de Estoque e Cozinhas
-
----
-
-**Status:** 🟢 Em desenvolvimento ativo
+[MIT](LICENSE) · Organização: [InventraTech](https://github.com/InventraTech)
