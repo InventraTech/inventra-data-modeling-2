@@ -84,32 +84,60 @@ $$;
 
 CREATE PROCEDURE sp_cancel_requisition(
     p_id_requisition INTEGER,
-    p_reason VARCHAR(255)
+    p_reason VARCHAR(255),
+    p_id_user UUID DEFAULT NULL
 )
 LANGUAGE plpgsql
 AS
 $$
+DECLARE
+    v_status VARCHAR(20);
+    v_write_off RECORD;
+    v_balance DECIMAL(12,3);
 BEGIN
 
-    IF NOT EXISTS (
-        SELECT 1
-        FROM tb_requisition
-        WHERE id_requisition = p_id_requisition
-    ) THEN
+    SELECT status
+    INTO v_status
+    FROM tb_requisition
+    WHERE id_requisition = p_id_requisition
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
         RAISE EXCEPTION
             'Requisição % não encontrada.',
             p_id_requisition;
     END IF;
 
-    IF NOT EXISTS (
-        SELECT 1
-        FROM tb_requisition
-        WHERE id_requisition = p_id_requisition
-          AND status IN ('UNDER_REVIEW', 'APPROVED')
-    ) THEN
+    IF v_status NOT IN ('DRAFT', 'UNDER_REVIEW', 'APPROVED') THEN
         RAISE EXCEPTION
             'Requisição % não pode ser cancelada no status atual.',
             p_id_requisition;
+    END IF;
+
+    -- estorno: devolve aos lotes o que a aprovação baixou (movimentações WRITE_OFF da requisição)
+    IF v_status = 'APPROVED' THEN
+
+        FOR v_write_off IN
+            SELECT id_batch, SUM(quantity) AS quantity
+            FROM tb_stock_movement
+            WHERE id_requisition = p_id_requisition
+              AND type = 'WRITE_OFF'
+            GROUP BY id_batch
+            ORDER BY id_batch
+        LOOP
+
+            UPDATE tb_stock_batch
+            SET
+                current_quantity = current_quantity + v_write_off.quantity,
+                status = CASE WHEN status = 'WRITTEN_OFF' THEN 'ACTIVE' ELSE status END
+            WHERE id_batch = v_write_off.id_batch
+            RETURNING current_quantity INTO v_balance;
+
+            INSERT INTO tb_stock_movement (id_batch, id_user, id_requisition, type, quantity, balance_after)
+            VALUES (v_write_off.id_batch, p_id_user, p_id_requisition, 'ADJUSTMENT', v_write_off.quantity, v_balance);
+
+        END LOOP;
+
     END IF;
 
     UPDATE tb_requisition
@@ -123,13 +151,15 @@ $$;
 
 CREATE PROCEDURE sp_register_stock_entry(
     p_id_batch INTEGER,
-    p_quantity DECIMAL(12,3)
+    p_quantity DECIMAL(12,3),
+    p_id_user UUID DEFAULT NULL
 )
 LANGUAGE plpgsql
 AS
 $$
 DECLARE
     v_status VARCHAR(20);
+    v_balance DECIMAL(12,3);
 BEGIN
 
     IF p_quantity <= 0 THEN
@@ -140,7 +170,8 @@ BEGIN
     SELECT status
     INTO v_status
     FROM tb_stock_batch
-    WHERE id_batch = p_id_batch;
+    WHERE id_batch = p_id_batch
+    FOR UPDATE;
 
     IF NOT FOUND THEN
         RAISE EXCEPTION
@@ -157,14 +188,21 @@ BEGIN
     SET
         current_quantity = current_quantity + p_quantity,
         status = 'ACTIVE'
-    WHERE id_batch = p_id_batch;
+    WHERE id_batch = p_id_batch
+    RETURNING current_quantity INTO v_balance;
+
+    INSERT INTO tb_stock_movement (id_batch, id_user, type, quantity, balance_after)
+    VALUES (p_id_batch, p_id_user, 'ENTRY', p_quantity, v_balance);
 
 END;
 $$;
 
 CREATE PROCEDURE sp_write_off_stock(
     p_id_batch INTEGER,
-    p_quantity DECIMAL(12,3)
+    p_quantity DECIMAL(12,3),
+    p_id_user UUID DEFAULT NULL,
+    p_reason VARCHAR(20) DEFAULT 'USAGE',
+    p_id_requisition INTEGER DEFAULT NULL
 )
 LANGUAGE plpgsql
 AS
@@ -172,11 +210,19 @@ $$
 DECLARE
     v_status VARCHAR(20);
     v_current_quantity DECIMAL(12,3);
+    v_reason VARCHAR(20) := COALESCE(p_reason, 'USAGE');
+    v_balance DECIMAL(12,3);
 BEGIN
 
     IF p_quantity <= 0 THEN
         RAISE EXCEPTION
             'A quantidade de baixa deve ser maior que zero.';
+    END IF;
+
+    IF v_reason NOT IN ('USAGE', 'LOSS', 'EXPIRED', 'REQUISITION') THEN
+        RAISE EXCEPTION
+            'Motivo de baixa inválido: %.',
+            v_reason;
     END IF;
 
     SELECT status, current_quantity
@@ -205,7 +251,11 @@ BEGIN
     UPDATE tb_stock_batch
     SET
         current_quantity = current_quantity - p_quantity
-    WHERE id_batch = p_id_batch;
+    WHERE id_batch = p_id_batch
+    RETURNING current_quantity INTO v_balance;
+
+    INSERT INTO tb_stock_movement (id_batch, id_user, id_requisition, type, reason, quantity, balance_after)
+    VALUES (p_id_batch, p_id_user, p_id_requisition, 'WRITE_OFF', v_reason, p_quantity, v_balance);
 
 END;
 $$;
@@ -274,6 +324,10 @@ BEGIN
         WHERE a.id_batch = e.id_batch
           AND a.type = 'EXPIRATION'
           AND a.is_read = false
+          AND NOT EXISTS (
+              SELECT 1 FROM tb_alert_read ar
+              WHERE ar.id_alert = a.id_alert
+          )
     );
 
     INSERT INTO tb_alert (type, severity, id_product, id_kitchen, message)
@@ -295,9 +349,60 @@ BEGIN
           AND a.id_kitchen = p.id_kitchen
           AND a.type = 'STOCK'
           AND a.is_read = false
+          AND NOT EXISTS (
+              SELECT 1 FROM tb_alert_read ar
+              WHERE ar.id_alert = a.id_alert
+          )
     );
 
     DROP TABLE tmp_expired_batches;
+
+END;
+$$;
+
+CREATE PROCEDURE sp_alert_expiring_batches(
+    p_days INTEGER DEFAULT 3
+)
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+
+    IF p_days IS NULL OR p_days < 0 THEN
+        RAISE EXCEPTION
+            'A quantidade de dias para o aviso de validade não pode ser negativa.';
+    END IF;
+
+    INSERT INTO tb_alert (type, severity, id_batch, id_product, id_kitchen, message)
+    SELECT
+        'EXPIRING',
+        CASE
+            WHEN sb.expiration_date <= CURRENT_DATE + 1 THEN 'HIGH'
+            ELSE 'MEDIUM'
+        END,
+        sb.id_batch,
+        sb.id_product,
+        sb.id_kitchen,
+        'Lote ' || sb.batch_number ||
+        CASE
+            WHEN sb.expiration_date = CURRENT_DATE THEN ' vence hoje'
+            WHEN sb.expiration_date = CURRENT_DATE + 1 THEN ' vence amanhã'
+            ELSE ' vence em ' || (sb.expiration_date - CURRENT_DATE) || ' dias'
+        END ||
+        ' (' || TO_CHAR(sb.expiration_date, 'DD/MM') || ').'
+    FROM tb_stock_batch sb
+    WHERE sb.status = 'ACTIVE'
+      AND sb.expiration_date BETWEEN CURRENT_DATE AND CURRENT_DATE + p_days
+      AND NOT EXISTS (
+        SELECT 1 FROM tb_alert a
+        WHERE a.id_batch = sb.id_batch
+          AND a.type = 'EXPIRING'
+          AND a.is_read = false
+          AND NOT EXISTS (
+              SELECT 1 FROM tb_alert_read ar
+              WHERE ar.id_alert = a.id_alert
+          )
+    );
 
 END;
 $$;

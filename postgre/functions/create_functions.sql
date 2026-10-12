@@ -104,13 +104,17 @@ BEGIN
 
     IF v_total_quantity < v_min_stock THEN
 
-        SELECT id_alert
+        SELECT a.id_alert
         INTO v_existing_alert
-        FROM tb_alert
-        WHERE id_product = NEW.id_product
-          AND id_kitchen = NEW.id_kitchen
-          AND type = 'STOCK'
-          AND is_read = false
+        FROM tb_alert a
+        WHERE a.id_product = NEW.id_product
+          AND a.id_kitchen = NEW.id_kitchen
+          AND a.type = 'STOCK'
+          AND a.is_read = false
+          AND NOT EXISTS (
+              SELECT 1 FROM tb_alert_read ar
+              WHERE ar.id_alert = a.id_alert
+          )
         LIMIT 1;
 
         IF v_existing_alert IS NULL THEN
@@ -158,12 +162,16 @@ BEGIN
 
     IF NEW.expiration_date < CURRENT_DATE THEN
 
-        SELECT id_alert
+        SELECT a.id_alert
         INTO v_existing_alert
-        FROM tb_alert
-        WHERE id_batch = NEW.id_batch
-          AND type = 'EXPIRATION'
-          AND is_read = false
+        FROM tb_alert a
+        WHERE a.id_batch = NEW.id_batch
+          AND a.type = 'EXPIRATION'
+          AND a.is_read = false
+          AND NOT EXISTS (
+              SELECT 1 FROM tb_alert_read ar
+              WHERE ar.id_alert = a.id_alert
+          )
         LIMIT 1;
 
         IF v_existing_alert IS NULL THEN

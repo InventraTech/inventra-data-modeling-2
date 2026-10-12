@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Valida a esteira de migrations: aplica V001..V005 duas vezes (idempotência),
+# Valida a esteira de migrations: aplica todas as migrations (V*.sql) duas vezes (idempotência),
 # reverte tudo com drop_everything.sql e reaplica do zero.
 # Uso: PGHOST=... PGUSER=... PGPASSWORD=... PGDATABASE=... ./check_migrations.sh
 set -euo pipefail

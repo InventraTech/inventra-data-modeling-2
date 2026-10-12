@@ -102,7 +102,8 @@ SELECT
     ri.estimated_price,
     (ri.quantity * COALESCE(ri.estimated_price, 0)) AS estimated_value
 FROM tb_requisition_item ri
-JOIN tb_requisition r ON r.id_requisition = ri.id_requisition;
+JOIN tb_requisition r ON r.id_requisition = ri.id_requisition
+WHERE r.status <> 'DRAFT';
 
 CREATE VIEW fact_inventory_count AS
 SELECT
