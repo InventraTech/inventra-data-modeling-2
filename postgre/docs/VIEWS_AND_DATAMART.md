@@ -1,6 +1,6 @@
 # Views, Data Mart e Analytics
 
-Camada de consulta do banco, criada em `migrations/V004__views.sql` e `migrations/V005__etl_analytics.sql`.
+Camada de consulta do banco, criada em `migrations/V004__views.sql` e `migrations/V005__etl_analytics.sql`. As migrations `V008` e `V009` ajustam o filtro de algumas views, sem mudar as colunas.
 
 ## Views operacionais (`vw_*`)
 
@@ -11,13 +11,13 @@ Arquivo: `views/create_views.sql`. Dão suporte às telas do app e a consultas p
 | `vw_stock_batch_detail` | Lote a lote, com dias até vencer e status (EXPIRED/CRITICAL/WARNING/OK) |
 | `vw_product_stock_position` | Quantidade total por produto/cozinha vs. mínimo/máximo |
 | `vw_daily_expiration_summary` | Vencimentos agrupados por dia (Dashboard) |
-| `vw_active_alerts` | Alertas não lidos, ordenados por severidade |
+| `vw_active_alerts` | Alertas que ninguém leu ainda, ordenados por severidade |
 | `vw_stock_value_by_category` | Estoque somado por categoria (Dashboard) |
-| `vw_requisition_summary` / `vw_requisition_pending` | Requisições com totais, e as pendentes |
+| `vw_requisition_summary` / `vw_requisition_pending` | Requisições com totais (sem rascunhos), e as pendentes |
 | `vw_stock_movement_log` | Entradas/saídas reconstruídas do log de auditoria |
 | `vw_inventory_count_divergence` | Diferença entre contagem registrada e física |
 | `vw_kitchen_daily_stock_movement` | Movimentação diária com total acumulado (gráfico de linha) |
-| `vw_product_requisition_ranking` | Produtos mais requisitados, por cozinha |
+| `vw_product_requisition_ranking` | Produtos mais requisitados, por cozinha (sem rascunhos) |
 | `vw_product_supplier_catalog` | Fornecedores por produto, ordenados por preço |
 | `vw_kitchen_dashboard_kpi` | KPIs resumidos por cozinha, numa linha só |
 | `vw_products_below_minimum` / `vw_batches_needing_attention` | Filtros prontos de "abaixo do mínimo" e "precisa de atenção" |

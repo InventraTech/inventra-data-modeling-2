@@ -118,3 +118,27 @@ ON tb_requisition (status, created_at DESC);
 
 CREATE INDEX idx_productsupplier_product_price
 ON tb_product_supplier (id_product, reference_price);
+
+CREATE INDEX idx_kitchen_location
+ON tb_kitchen (latitude, longitude);
+
+CREATE INDEX idx_alert_user
+ON tb_alert (id_user);
+
+CREATE INDEX idx_alert_ref_key
+ON tb_alert (ref_key);
+
+CREATE INDEX idx_alertread_user
+ON tb_alert_read (id_user);
+
+CREATE INDEX idx_movement_batch_created_at
+ON tb_stock_movement (id_batch, created_at DESC);
+
+CREATE INDEX idx_movement_user
+ON tb_stock_movement (id_user);
+
+CREATE INDEX idx_movement_requisition
+ON tb_stock_movement (id_requisition);
+
+CREATE INDEX idx_movement_created_at
+ON tb_stock_movement (created_at);

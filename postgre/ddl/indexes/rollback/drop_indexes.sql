@@ -79,3 +79,19 @@ DROP INDEX IF EXISTS idx_batch_kitchen_status_expiration;
 DROP INDEX IF EXISTS idx_requisition_status_created_at;
 
 DROP INDEX IF EXISTS idx_productsupplier_product_price;
+
+DROP INDEX IF EXISTS idx_kitchen_location;
+
+DROP INDEX IF EXISTS idx_alert_user;
+
+DROP INDEX IF EXISTS idx_alert_ref_key;
+
+DROP INDEX IF EXISTS idx_alertread_user;
+
+DROP INDEX IF EXISTS idx_movement_batch_created_at;
+
+DROP INDEX IF EXISTS idx_movement_user;
+
+DROP INDEX IF EXISTS idx_movement_requisition;
+
+DROP INDEX IF EXISTS idx_movement_created_at;

@@ -1,5 +1,5 @@
 -- =====================================================
--- FULL TEARDOWN — reverses V001 + V002 + V003 + V004 + V005
+-- FULL TEARDOWN — reverses V001 through V009
 -- =====================================================
 -- WARNING: destructive and irreversible. Drops every table
 -- (and all data in them), function, procedure, trigger,
@@ -180,15 +180,23 @@ DROP FUNCTION IF EXISTS fn_validate_stock();
 -- PROCEDURES
 -- ---------------------------------------------------
 
+DROP PROCEDURE IF EXISTS sp_alert_expiring_batches(INTEGER);
+
 DROP PROCEDURE IF EXISTS sp_expire_batches();
 
 DROP PROCEDURE IF EXISTS sp_close_inventory(INTEGER);
 
 DROP PROCEDURE IF EXISTS sp_write_off_stock(INTEGER, DECIMAL);
 
+DROP PROCEDURE IF EXISTS sp_write_off_stock(INTEGER, DECIMAL, UUID, VARCHAR, INTEGER);
+
 DROP PROCEDURE IF EXISTS sp_register_stock_entry(INTEGER, DECIMAL);
 
+DROP PROCEDURE IF EXISTS sp_register_stock_entry(INTEGER, DECIMAL, UUID);
+
 DROP PROCEDURE IF EXISTS sp_cancel_requisition(INTEGER, VARCHAR);
+
+DROP PROCEDURE IF EXISTS sp_cancel_requisition(INTEGER, VARCHAR, UUID);
 
 DROP PROCEDURE IF EXISTS sp_reject_requisition(INTEGER, UUID, VARCHAR);
 
@@ -270,6 +278,34 @@ DROP CONSTRAINT IF EXISTS fk_alert_product;
 ALTER TABLE tb_alert
 DROP CONSTRAINT IF EXISTS fk_alert_batch;
 
+ALTER TABLE IF EXISTS tb_alert
+DROP CONSTRAINT IF EXISTS fk_alert_user;
+
+ALTER TABLE IF EXISTS tb_alert
+DROP CONSTRAINT IF EXISTS fk_alert_target_profile;
+
+ALTER TABLE IF EXISTS tb_alert_read
+DROP CONSTRAINT IF EXISTS fk_alertread_alert;
+
+ALTER TABLE IF EXISTS tb_alert_read
+DROP CONSTRAINT IF EXISTS fk_alertread_user;
+
+ALTER TABLE IF EXISTS tb_stock_movement
+DROP CONSTRAINT IF EXISTS fk_movement_batch;
+
+ALTER TABLE IF EXISTS tb_stock_movement
+DROP CONSTRAINT IF EXISTS fk_movement_user;
+
+ALTER TABLE IF EXISTS tb_stock_movement
+DROP CONSTRAINT IF EXISTS fk_movement_requisition;
+
+-- ---------------------------------------------------
+-- UNIQUE CONSTRAINTS
+-- ---------------------------------------------------
+
+ALTER TABLE tb_user
+DROP CONSTRAINT IF EXISTS uq_user_firebase_uid;
+
 -- ---------------------------------------------------
 -- CHECK CONSTRAINTS
 -- ---------------------------------------------------
@@ -291,6 +327,24 @@ DROP CONSTRAINT IF EXISTS ck_inventory_status;
 
 ALTER TABLE tb_alert
 DROP CONSTRAINT IF EXISTS ck_alert_severity;
+
+ALTER TABLE IF EXISTS tb_kitchen
+DROP CONSTRAINT IF EXISTS ck_kitchen_state;
+
+ALTER TABLE IF EXISTS tb_kitchen
+DROP CONSTRAINT IF EXISTS ck_kitchen_latitude;
+
+ALTER TABLE IF EXISTS tb_kitchen
+DROP CONSTRAINT IF EXISTS ck_kitchen_longitude;
+
+ALTER TABLE IF EXISTS tb_stock_movement
+DROP CONSTRAINT IF EXISTS ck_movement_type;
+
+ALTER TABLE IF EXISTS tb_stock_movement
+DROP CONSTRAINT IF EXISTS ck_movement_reason;
+
+ALTER TABLE IF EXISTS tb_stock_movement
+DROP CONSTRAINT IF EXISTS ck_movement_quantity;
 
 -- ---------------------------------------------------
 -- INDEXES
@@ -335,6 +389,14 @@ DROP INDEX IF EXISTS idx_alert_created_at;
 DROP INDEX IF EXISTS idx_batch_kitchen_status_expiration;
 DROP INDEX IF EXISTS idx_requisition_status_created_at;
 DROP INDEX IF EXISTS idx_productsupplier_product_price;
+DROP INDEX IF EXISTS idx_kitchen_location;
+DROP INDEX IF EXISTS idx_alert_user;
+DROP INDEX IF EXISTS idx_alert_ref_key;
+DROP INDEX IF EXISTS idx_alertread_user;
+DROP INDEX IF EXISTS idx_movement_batch_created_at;
+DROP INDEX IF EXISTS idx_movement_user;
+DROP INDEX IF EXISTS idx_movement_requisition;
+DROP INDEX IF EXISTS idx_movement_created_at;
 
 -- ---------------------------------------------------
 -- LOG TABLE INDEXES
@@ -360,6 +422,8 @@ DROP SEQUENCE IF EXISTS seq_log_id;
 -- TABLES
 -- ---------------------------------------------------
 
+DROP TABLE IF EXISTS tb_alert_read CASCADE;
+DROP TABLE IF EXISTS tb_stock_movement CASCADE;
 DROP TABLE IF EXISTS tb_user CASCADE;
 DROP TABLE IF EXISTS tb_profile CASCADE;
 DROP TABLE IF EXISTS tb_kitchen CASCADE;

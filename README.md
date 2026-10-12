@@ -6,7 +6,7 @@
 
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)
 [![Migrations](https://github.com/InventraTech/inventra-database/actions/workflows/migrations.yml/badge.svg)](https://github.com/InventraTech/inventra-database/actions/workflows/migrations.yml)
-![Migrations](https://img.shields.io/badge/migrations-V001--V005-blue)
+![Migrations](https://img.shields.io/badge/migrations-V001--V009-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 </div>
@@ -34,7 +34,7 @@ Banco de dados do projeto interdisciplinar **Inventra**. Este repositório é a 
 | **Regras no banco** | 6 functions + 7 procedures + 6 triggers de negócio |
 | **Auditoria** | Trigger `AFTER INSERT/UPDATE/DELETE` grava antes/depois (JSON) em 7 tabelas `tb_log_*` |
 | **Consulta** | 15+ views operacionais, 3 views analíticas (CTE + Window Functions), star schema virtual (4 `dim_*`, 3 `fact_*`) |
-| **Entrega** | Migrations idempotentes `V001`–`V005`, com rollback e validação no CI |
+| **Entrega** | Migrations idempotentes `V001`–`V009`, com rollback e validação no CI |
 
 ## Arquitetura
 
@@ -42,7 +42,7 @@ O projeto separa o **dicionário** (código de leitura, um arquivo por assunto) 
 
 ```mermaid
 flowchart LR
-    D["Dicionário<br/>ddl · functions · procedures · triggers · views"] -->|consolidado em| M["migrations<br/>V001 … V005"]
+    D["Dicionário<br/>ddl · functions · procedures · triggers · views"] -->|consolidado em| M["migrations<br/>V001 … V009"]
     M -->|psql / CI| DB[("PostgreSQL")]
     M -->|cópia byte a byte| API["ms-inventra-api<br/>Flyway"]
     DB --> BI["Power BI / Metabase<br/>dim_* · fact_*"]
@@ -55,6 +55,10 @@ flowchart LR
 | `V003__audit_logs.sql` | Tabelas, índices, functions e triggers de log |
 | `V004__views.sql` | Views operacionais + Data Mart |
 | `V005__etl_analytics.sql` | Views analíticas (CTEs + Window Functions) |
+| `V006__google_login_and_kitchen_location.sql` | Login Google (`firebase_uid`, senha opcional) e localização da cozinha |
+| `V007__stock_movements.sql` | Histórico de movimentações (`tb_stock_movement`) gravado pelas procedures de entrada e baixa |
+| `V008__alert_recipients_and_reads.sql` | Destinatário do alerta, leitura por pessoa (`tb_alert_read`) e aviso antes de vencer |
+| `V009__requisition_draft.sql` | Status `DRAFT` e estorno do estoque ao cancelar requisição aprovada |
 
 Detalhes, convenções e decisões de design em [`docs/ARCHITECTURE.md`](postgre/docs/ARCHITECTURE.md).
 
@@ -97,8 +101,8 @@ jupyter notebook seeds/seed.ipynb
 |-------|---------|
 | **Cadastros base** | `tb_user`, `tb_profile`, `tb_kitchen`, `tb_product`, `tb_category`, `tb_measurement_unit`, `tb_supplier` |
 | **Relacionamentos** | `tb_product_supplier`, `tb_product_kitchen_parameter` |
-| **Movimentações** | `tb_stock_batch`, `tb_requisition`, `tb_requisition_item`, `tb_inventory`, `tb_inventory_count` |
-| **Eventos** | `tb_alert` |
+| **Movimentações** | `tb_stock_batch`, `tb_requisition`, `tb_requisition_item`, `tb_inventory`, `tb_inventory_count`, `tb_stock_movement` |
+| **Eventos** | `tb_alert`, `tb_alert_read` |
 | **Auditoria** | `tb_log_base` + `tb_log_user`, `tb_log_product`, `tb_log_supplier`, `tb_log_stock_batch`, `tb_log_requisition`, `tb_log_inventory`, `tb_log_alert` |
 
 Outras versões do modelo (V1, V2 e auditoria) estão em [`docs/modeling`](postgre/docs/modeling).
@@ -123,7 +127,7 @@ postgre/
 ├── triggers/        # gatilhos de negócio e de auditoria
 ├── views/           # vw_*  ·  datamart/ (dim_*, fact_*)  ·  analytics/
 │                    #   (cada pasta tem subpasta rollback/)
-├── migrations/      # V001–V005 + rollback/drop_everything.sql
+├── migrations/      # V001–V009 + rollback/drop_everything.sql
 ├── seeds/           # seed.ipynb + requirements.txt
 ├── tests/           # check_migrations.sh (idempotência + rollback)
 └── docs/            # arquitetura, regras, views, modelagem, otimização

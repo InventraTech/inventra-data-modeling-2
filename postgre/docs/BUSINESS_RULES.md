@@ -1,6 +1,6 @@
 # Regras de Negócio no Banco
 
-Functions, procedures e triggers que implementam as regras do Inventra direto no PostgreSQL. Definidos em `migrations/V002__business_rules.sql` (negócio) e `migrations/V003__audit_logs.sql` (auditoria).
+Functions, procedures e triggers que implementam as regras do Inventra direto no PostgreSQL. Definidos em `migrations/V002__business_rules.sql` (negócio) e `migrations/V003__audit_logs.sql` (auditoria), com as alterações de `V007` (movimentações), `V008` (alertas) e `V009` (requisições).
 
 ## Functions de negócio
 
@@ -12,8 +12,10 @@ Arquivo: `functions/create_functions.sql`. São regras automáticas, disparadas 
 | `fn_update_batch_status` | `trg_update_batch_status` | Marca o lote como `WRITTEN_OFF` quando a quantidade chega a zero |
 | `fn_calculate_divergence` | `trg_calculate_divergence` | Calcula `divergence` (física − registrada) em `tb_inventory_count` |
 | `fn_requisition_approval` | `trg_requisition_approval` | Preenche `approved_at` quando o status muda para `APPROVED` |
-| `fn_stock_alert` | `trg_stock_alert` | Cria alerta `STOCK` (`HIGH`) quando a soma dos lotes ativos e não vencidos fica **abaixo** do mínimo cadastrado; não duplica se já há um alerta `STOCK` não lido |
-| `fn_expiration_alert` | `trg_expiration_alert` | Cria alerta quando um lote já passou da validade |
+| `fn_stock_alert` | `trg_stock_alert` | Cria alerta `STOCK` (`HIGH`) quando a soma dos lotes ativos e não vencidos fica **abaixo** do mínimo cadastrado; não duplica se já há um alerta `STOCK` aberto |
+| `fn_expiration_alert` | `trg_expiration_alert` | Cria alerta quando um lote já passou da validade; não duplica se já há um alerta `EXPIRATION` aberto |
+
+**Alerta aberto** é o que ninguém leu ainda: `is_read = false` (leitura antiga, do alerta inteiro) e nenhuma linha em `tb_alert_read` (leitura por pessoa).
 
 ## Procedures
 
@@ -23,11 +25,26 @@ Arquivo: `procedures/create_procedures.sql`. Rotinas de negócio chamadas explic
 |-----------|-----------|
 | `sp_approve_requisition` | Aprova uma requisição que está em análise |
 | `sp_reject_requisition` | Rejeita uma requisição em análise, com motivo |
-| `sp_cancel_requisition` | Cancela requisição em análise ou já aprovada |
-| `sp_register_stock_entry` | Registra entrada de quantidade num lote |
-| `sp_write_off_stock` | Dá baixa de quantidade num lote (valida se há saldo suficiente) |
+| `sp_cancel_requisition` | Cancela requisição em rascunho, em análise ou já aprovada. Na aprovada, **estorna** o estoque: devolve aos lotes o que as movimentações `WRITE_OFF` da requisição baixaram e grava um `ADJUSTMENT` por lote |
+| `sp_register_stock_entry` | Registra entrada de quantidade num lote e grava a movimentação `ENTRY` |
+| `sp_write_off_stock` | Dá baixa de quantidade num lote (valida se há saldo suficiente) e grava a movimentação `WRITE_OFF` com o motivo (`USAGE` por padrão) |
 | `sp_close_inventory` | Fecha um inventário que está aberto |
 | `sp_expire_batches` | Marca lotes vencidos como `EXPIRED` e gera os alertas (chamada diariamente pela API) |
+| `sp_alert_expiring_batches` | Gera alerta `EXPIRING` para lotes ativos que vencem em até `p_days` dias (padrão 3): `HIGH` se vence hoje ou amanhã, `MEDIUM` nos demais; não duplica enquanto o alerta do lote estiver aberto |
+
+Os parâmetros acrescentados (`p_id_user`, `p_reason`, `p_id_requisition`) têm `DEFAULT`, então as chamadas antigas continuam válidas.
+
+## Movimentações de estoque
+
+`tb_stock_movement` guarda quem mexeu no lote, quando, quanto e por quê.
+
+| `type` | `quantity` | `reason` | Quem grava |
+|--------|------------|----------|------------|
+| `ENTRY` | quantidade que entrou (> 0) | sempre nulo | `sp_register_stock_entry`; a criação do lote é gravada pela API |
+| `WRITE_OFF` | quantidade baixada (> 0) | `USAGE`, `LOSS`, `EXPIRED` ou `REQUISITION` | `sp_write_off_stock` |
+| `ADJUSTMENT` | diferença, com sinal (≠ 0) | sempre nulo | API (ajuste de saldo) e `sp_cancel_requisition` (estorno) |
+
+`balance_after` é o saldo do lote logo depois da movimentação. `id_requisition` liga a baixa (e o estorno) à requisição que a causou.
 
 ## Triggers de negócio
 

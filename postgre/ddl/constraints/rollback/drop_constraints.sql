@@ -74,6 +74,34 @@ DROP CONSTRAINT IF EXISTS fk_alert_product;
 ALTER TABLE tb_alert
 DROP CONSTRAINT IF EXISTS fk_alert_batch;
 
+ALTER TABLE tb_alert
+DROP CONSTRAINT IF EXISTS fk_alert_user;
+
+ALTER TABLE tb_alert
+DROP CONSTRAINT IF EXISTS fk_alert_target_profile;
+
+ALTER TABLE tb_alert_read
+DROP CONSTRAINT IF EXISTS fk_alertread_alert;
+
+ALTER TABLE tb_alert_read
+DROP CONSTRAINT IF EXISTS fk_alertread_user;
+
+ALTER TABLE tb_stock_movement
+DROP CONSTRAINT IF EXISTS fk_movement_batch;
+
+ALTER TABLE tb_stock_movement
+DROP CONSTRAINT IF EXISTS fk_movement_user;
+
+ALTER TABLE tb_stock_movement
+DROP CONSTRAINT IF EXISTS fk_movement_requisition;
+
+-- ---------------------------------------------------
+-- ROLLBACK UNIQUE CONSTRAINTS
+-- ---------------------------------------------------
+
+ALTER TABLE tb_user
+DROP CONSTRAINT IF EXISTS uq_user_firebase_uid;
+
 -- ---------------------------------------------------
 -- ROLLBACK DE CONSTRAINTS DE CHECK 
 -- ---------------------------------------------------
@@ -95,3 +123,21 @@ DROP CONSTRAINT IF EXISTS ck_inventory_status;
 
 ALTER TABLE tb_alert
 DROP CONSTRAINT IF EXISTS ck_alert_severity;
+
+ALTER TABLE tb_kitchen
+DROP CONSTRAINT IF EXISTS ck_kitchen_state;
+
+ALTER TABLE tb_kitchen
+DROP CONSTRAINT IF EXISTS ck_kitchen_latitude;
+
+ALTER TABLE tb_kitchen
+DROP CONSTRAINT IF EXISTS ck_kitchen_longitude;
+
+ALTER TABLE tb_stock_movement
+DROP CONSTRAINT IF EXISTS ck_movement_type;
+
+ALTER TABLE tb_stock_movement
+DROP CONSTRAINT IF EXISTS ck_movement_reason;
+
+ALTER TABLE tb_stock_movement
+DROP CONSTRAINT IF EXISTS ck_movement_quantity;

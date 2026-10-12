@@ -108,7 +108,11 @@ FROM tb_alert a
 JOIN tb_kitchen k ON k.id_kitchen = a.id_kitchen
 LEFT JOIN tb_product p ON p.id_product = a.id_product
 LEFT JOIN tb_stock_batch sb ON sb.id_batch = a.id_batch
-WHERE a.is_read = false;
+WHERE a.is_read = false
+  AND NOT EXISTS (
+      SELECT 1 FROM tb_alert_read ar
+      WHERE ar.id_alert = a.id_alert
+  );
 
 CREATE VIEW vw_stock_value_by_category AS
 SELECT
@@ -149,6 +153,7 @@ JOIN tb_kitchen k ON k.id_kitchen = r.id_kitchen
 JOIN tb_user ru ON ru.id_user = r.id_requester_user
 LEFT JOIN tb_user au ON au.id_user = r.id_approver_user
 LEFT JOIN tb_requisition_item ri ON ri.id_requisition = r.id_requisition
+WHERE r.status <> 'DRAFT'
 GROUP BY r.id_requisition, r.requisition_type, r.origin, r.status, r.reason,
          r.id_kitchen, k.name, r.id_requester_user, ru.name, ru.email,
          r.id_approver_user, au.name, r.created_at, r.approved_at;
@@ -285,6 +290,7 @@ FROM tb_requisition_item ri
 JOIN tb_requisition r ON r.id_requisition = ri.id_requisition
 JOIN tb_product p ON p.id_product = ri.id_product
 JOIN tb_kitchen k ON k.id_kitchen = r.id_kitchen
+WHERE r.status <> 'DRAFT'
 GROUP BY r.id_kitchen, k.name, ri.id_product, p.name;
 
 CREATE VIEW vw_product_supplier_catalog AS
@@ -335,10 +341,14 @@ LEFT JOIN (
     GROUP BY id_kitchen
 ) stock ON stock.id_kitchen = k.id_kitchen
 LEFT JOIN (
-    SELECT id_kitchen, COUNT(*) AS active_alert_count
-    FROM tb_alert
-    WHERE is_read = false
-    GROUP BY id_kitchen
+    SELECT a.id_kitchen, COUNT(*) AS active_alert_count
+    FROM tb_alert a
+    WHERE a.is_read = false
+      AND NOT EXISTS (
+          SELECT 1 FROM tb_alert_read ar
+          WHERE ar.id_alert = a.id_alert
+      )
+    GROUP BY a.id_kitchen
 ) alerts ON alerts.id_kitchen = k.id_kitchen
 LEFT JOIN (
     SELECT id_kitchen, COUNT(*) AS pending_requisition_count

@@ -122,6 +122,49 @@ ADD CONSTRAINT fk_alert_batch
 FOREIGN KEY (id_batch) REFERENCES tb_stock_batch (id_batch)
 ON UPDATE NO ACTION ON DELETE NO ACTION;
 
+ALTER TABLE tb_alert
+ADD CONSTRAINT fk_alert_user
+FOREIGN KEY (id_user) REFERENCES tb_user (id_user)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+ALTER TABLE tb_alert
+ADD CONSTRAINT fk_alert_target_profile
+FOREIGN KEY (id_target_profile) REFERENCES tb_profile (id_profile)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+ALTER TABLE tb_alert_read
+ADD CONSTRAINT fk_alertread_alert
+FOREIGN KEY (id_alert) REFERENCES tb_alert (id_alert)
+ON UPDATE NO ACTION ON DELETE CASCADE;
+
+ALTER TABLE tb_alert_read
+ADD CONSTRAINT fk_alertread_user
+FOREIGN KEY (id_user) REFERENCES tb_user (id_user)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+ALTER TABLE tb_stock_movement
+ADD CONSTRAINT fk_movement_batch
+FOREIGN KEY (id_batch) REFERENCES tb_stock_batch (id_batch)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+ALTER TABLE tb_stock_movement
+ADD CONSTRAINT fk_movement_user
+FOREIGN KEY (id_user) REFERENCES tb_user (id_user)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+ALTER TABLE tb_stock_movement
+ADD CONSTRAINT fk_movement_requisition
+FOREIGN KEY (id_requisition) REFERENCES tb_requisition (id_requisition)
+ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+-- ---------------------------------------------------
+-- UNIQUE CONSTRAINTS
+-- ---------------------------------------------------
+
+ALTER TABLE tb_user
+ADD CONSTRAINT uq_user_firebase_uid
+UNIQUE (firebase_uid);
+
 -- ---------------------------------------------------
 -- CHECK CONSTRAINTS
 -- ---------------------------------------------------
@@ -136,7 +179,7 @@ CHECK (status IN ('ACTIVE', 'WRITTEN_OFF', 'EXPIRED', 'CANCELLED'));
 
 ALTER TABLE tb_requisition
 ADD CONSTRAINT ck_requisition_status 
-CHECK (status IN ('UNDER_REVIEW', 'APPROVED', 'REJECTED', 'CANCELLED'));
+CHECK (status IN ('DRAFT', 'UNDER_REVIEW', 'APPROVED', 'REJECTED', 'CANCELLED'));
 
 ALTER TABLE tb_requisition
 ADD CONSTRAINT ck_requisition_type 
@@ -149,3 +192,33 @@ CHECK (status IN ('OPEN', 'CLOSED', 'CANCELLED'));
 ALTER TABLE tb_alert
 ADD CONSTRAINT ck_alert_severity 
 CHECK (severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL'));
+
+ALTER TABLE tb_kitchen
+ADD CONSTRAINT ck_kitchen_state
+CHECK (state ~ '^[A-Z]{2}$');
+
+ALTER TABLE tb_kitchen
+ADD CONSTRAINT ck_kitchen_latitude
+CHECK (latitude BETWEEN -90 AND 90);
+
+ALTER TABLE tb_kitchen
+ADD CONSTRAINT ck_kitchen_longitude
+CHECK (longitude BETWEEN -180 AND 180);
+
+ALTER TABLE tb_stock_movement
+ADD CONSTRAINT ck_movement_type
+CHECK (type IN ('ENTRY', 'WRITE_OFF', 'ADJUSTMENT'));
+
+ALTER TABLE tb_stock_movement
+ADD CONSTRAINT ck_movement_reason
+CHECK (
+	(type = 'WRITE_OFF' AND reason IN ('USAGE', 'LOSS', 'EXPIRED', 'REQUISITION'))
+	OR (type <> 'WRITE_OFF' AND reason IS NULL)
+);
+
+ALTER TABLE tb_stock_movement
+ADD CONSTRAINT ck_movement_quantity
+CHECK (
+	(type = 'ADJUSTMENT' AND quantity <> 0)
+	OR (type <> 'ADJUSTMENT' AND quantity > 0)
+);
