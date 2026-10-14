@@ -1,5 +1,5 @@
 -- =====================================================
--- FULL TEARDOWN — reverses V001 through V009
+-- FULL TEARDOWN — reverses V001 through V010
 -- =====================================================
 -- WARNING: destructive and irreversible. Drops every table
 -- (and all data in them), function, procedure, trigger,
@@ -18,6 +18,22 @@
 -- fact_*) built directly on the database by another team are not
 -- tracked in this repo, and CASCADE also removes those. Back up
 -- their definitions first if they need to be recreated afterward.
+
+-- ---------------------------------------------------
+-- DATA CATALOG
+-- ---------------------------------------------------
+
+DROP VIEW IF EXISTS vw_data_catalog_table;
+
+DROP VIEW IF EXISTS vw_data_catalog;
+
+DROP PROCEDURE IF EXISTS sp_sync_data_catalog(BOOLEAN);
+
+DROP TABLE IF EXISTS tb_catalog_column;
+
+DROP TABLE IF EXISTS tb_catalog_table;
+
+DROP TABLE IF EXISTS tb_catalog_access_level;
 
 -- ---------------------------------------------------
 -- ETL / ANALYTICS VIEWS

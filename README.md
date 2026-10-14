@@ -6,7 +6,7 @@
 
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)
 [![Migrations](https://github.com/InventraTech/inventra-database/actions/workflows/migrations.yml/badge.svg)](https://github.com/InventraTech/inventra-database/actions/workflows/migrations.yml)
-![Migrations](https://img.shields.io/badge/migrations-V001--V009-blue)
+![Migrations](https://img.shields.io/badge/migrations-V001--V010-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 </div>
@@ -34,7 +34,8 @@ Banco de dados do projeto interdisciplinar **Inventra**. Este repositório é a 
 | **Regras no banco** | 6 functions + 7 procedures + 6 triggers de negócio |
 | **Auditoria** | Trigger `AFTER INSERT/UPDATE/DELETE` grava antes/depois (JSON) em 7 tabelas `tb_log_*` |
 | **Consulta** | 15+ views operacionais, 3 views analíticas (CTE + Window Functions), star schema virtual (4 `dim_*`, 3 `fact_*`) |
-| **Entrega** | Migrations idempotentes `V001`–`V009`, com rollback e validação no CI |
+| **Governança** | Catálogo de dados: descrição, regra de negócio e nível de acesso de cada tabela e coluna |
+| **Entrega** | Migrations idempotentes `V001`–`V010`, com rollback e validação no CI |
 
 ## Arquitetura
 
@@ -42,7 +43,7 @@ O projeto separa o **dicionário** (código de leitura, um arquivo por assunto) 
 
 ```mermaid
 flowchart LR
-    D["Dicionário<br/>ddl · functions · procedures · triggers · views"] -->|consolidado em| M["migrations<br/>V001 … V009"]
+    D["Dicionário<br/>ddl · functions · procedures · triggers · views"] -->|consolidado em| M["migrations<br/>V001 … V010"]
     M -->|psql / CI| DB[("PostgreSQL")]
     M -->|cópia byte a byte| API["ms-inventra-api<br/>Flyway"]
     DB --> BI["Power BI / Metabase<br/>dim_* · fact_*"]
@@ -59,6 +60,7 @@ flowchart LR
 | `V007__stock_movements.sql` | Histórico de movimentações (`tb_stock_movement`) gravado pelas procedures de entrada e baixa |
 | `V008__alert_recipients_and_reads.sql` | Destinatário do alerta, leitura por pessoa (`tb_alert_read`) e aviso antes de vencer |
 | `V009__requisition_draft.sql` | Status `DRAFT` e estorno do estoque ao cancelar requisição aprovada |
+| `V010__data_catalog.sql` | Catálogo de dados (`tb_catalog_*`), sincronização com o schema e views `vw_data_catalog*` |
 
 Detalhes, convenções e decisões de design em [`docs/ARCHITECTURE.md`](postgre/docs/ARCHITECTURE.md).
 
@@ -104,6 +106,7 @@ jupyter notebook seeds/seed.ipynb
 | **Movimentações** | `tb_stock_batch`, `tb_requisition`, `tb_requisition_item`, `tb_inventory`, `tb_inventory_count`, `tb_stock_movement` |
 | **Eventos** | `tb_alert`, `tb_alert_read` |
 | **Auditoria** | `tb_log_base` + `tb_log_user`, `tb_log_product`, `tb_log_supplier`, `tb_log_stock_batch`, `tb_log_requisition`, `tb_log_inventory`, `tb_log_alert` |
+| **Governança** | `tb_catalog_access_level`, `tb_catalog_table`, `tb_catalog_column` |
 
 Outras versões do modelo (V1, V2 e auditoria) estão em [`docs/modeling`](postgre/docs/modeling).
 
@@ -114,6 +117,7 @@ Outras versões do modelo (V1, V2 e auditoria) estão em [`docs/modeling`](postg
 | [`ARCHITECTURE.md`](postgre/docs/ARCHITECTURE.md) | Dicionário vs. migrations, convenções, CI, herança das tabelas de log |
 | [`BUSINESS_RULES.md`](postgre/docs/BUSINESS_RULES.md) | Functions, procedures, triggers de negócio e de auditoria |
 | [`VIEWS_AND_DATAMART.md`](postgre/docs/VIEWS_AND_DATAMART.md) | Views operacionais, star schema e views analíticas |
+| [`DATA_CATALOG.md`](postgre/docs/DATA_CATALOG.md) | Catálogo de dados: níveis de acesso, views de consulta e sincronização |
 | [`EXPLAIN_ANALYZE.md`](postgre/docs/query_optimization/EXPLAIN_ANALYZE.md) | Otimização de consultas: planos antes/depois dos 4 índices criados |
 | [`inventra_erp_flow.html`](postgre/docs/inventra_erp_flow.html) | Diagrama de fluxo ERP |
 
@@ -121,13 +125,13 @@ Outras versões do modelo (V1, V2 e auditoria) estão em [`docs/modeling`](postg
 
 ```text
 postgre/
-├── ddl/             # tables, constraints, indexes e logs
+├── ddl/             # tables, constraints, indexes, logs e catalog
 ├── functions/       # funções de negócio e de log
-├── procedures/      # rotinas chamadas via CALL
+├── procedures/      # rotinas chamadas via CALL (negócio e catálogo)
 ├── triggers/        # gatilhos de negócio e de auditoria
-├── views/           # vw_*  ·  datamart/ (dim_*, fact_*)  ·  analytics/
+├── views/           # vw_*  ·  datamart/ (dim_*, fact_*)  ·  analytics/  ·  catalog/
 │                    #   (cada pasta tem subpasta rollback/)
-├── migrations/      # V001–V009 + rollback/drop_everything.sql
+├── migrations/      # V001–V010 + rollback/drop_everything.sql
 ├── seeds/           # seed.ipynb + requirements.txt
 ├── tests/           # check_migrations.sh (idempotência + rollback)
 └── docs/            # arquitetura, regras, views, modelagem, otimização
@@ -159,7 +163,7 @@ postgre/
 - [x] Seed inicial (`seeds/seed.ipynb`)
 - [x] Teste automatizado de idempotência/rollback no CI
 - [ ] Testes de integridade e performance
-- [ ] Dicionário de dados (Data Dictionary `.md`)
+- [x] Catálogo de dados no banco (`tb_catalog_*` + `vw_data_catalog`)
 - [ ] Ambiente de homologação
 
 ## Contribuidores
