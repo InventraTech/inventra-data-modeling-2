@@ -1,14 +1,14 @@
 -- =====================================================
--- FULL TEARDOWN — reverses V001 through V012
+-- FULL TEARDOWN — reverses V001 through V013
 -- =====================================================
 -- WARNING: destructive and irreversible. Drops every table
 -- (and all data in them), view, function, procedure, trigger,
 -- constraint and index created by this project, including the
--- data catalog and backup history. Take a backup first
--- (postgre/backup/backup.sh). Seed data lives in the tables,
--- so it goes with them.
+-- data catalog, backup history and access history (DAU). Take
+-- a backup first (postgre/backup/backup.sh). Seed data lives in
+-- the tables, so it goes with them.
 --
--- Order matters: newest layers first (backup, catalog, views),
+-- Order matters: newest layers first (monitoring, backup, catalog, views),
 -- triggers before the functions they call, functions/procedures
 -- before the tables they reference, constraints and indexes
 -- before the tables that own them, log tables last among tables
@@ -20,6 +20,21 @@
 -- on the database outside this repo (e.g. ad-hoc BI views) that
 -- depends on them is removed too. Back up those definitions
 -- first if they need to be recreated afterward.
+
+-- ---------------------------------------------------
+-- MONITORING (DAU)
+-- ---------------------------------------------------
+
+DROP VIEW IF EXISTS vw_dau_by_kitchen;
+
+DROP VIEW IF EXISTS vw_dau;
+
+DROP TRIGGER IF EXISTS trg_register_daily_access
+ON tb_user;
+
+DROP FUNCTION IF EXISTS fn_register_daily_access();
+
+DROP TABLE IF EXISTS tb_user_daily_access;
 
 -- ---------------------------------------------------
 -- BACKUP AND RECOVERY

@@ -146,7 +146,7 @@ FROM (VALUES
 	('tb_user', 'id_kitchen', 'Cozinha à qual o usuário pertence.', 'Nulo enquanto o usuário não for vinculado a uma cozinha.', NULL, false),
 	('tb_user', 'id_profile', 'Perfil de acesso do usuário.', 'Obrigatório.', NULL, false),
 	('tb_user', 'active', 'Indica se a conta está ativa.', 'Desativação lógica: o registro não é apagado.', NULL, false),
-	('tb_user', 'last_login', 'Data e hora do último login.', NULL, NULL, true),
+	('tb_user', 'last_login', 'Data e hora do último login.', 'Gravada pela API a cada login; cada avanço registra o acesso do dia em tb_user_daily_access (trg_register_daily_access).', NULL, true),
 	('tb_user', 'created_at', 'Data e hora de criação da conta.', NULL, NULL, false),
 	-- tb_profile
 	('tb_profile', 'id_profile', 'Identificador do perfil.', NULL, NULL, false),
@@ -363,6 +363,43 @@ FROM (VALUES
 	('error_message', 'Motivo da falha.', 'Obrigatório quando FAILED e nulo quando SUCCESS (ck_backuphistory_error).')
 ) AS v(column_name, description, business_rule)
 JOIN tb_catalog_table t ON t.table_name = 'tb_backup_history'
+ON CONFLICT (id_catalog_table, column_name) DO UPDATE
+SET description = EXCLUDED.description,
+    business_rule = EXCLUDED.business_rule,
+    id_access_level = EXCLUDED.id_access_level,
+    is_personal_data = EXCLUDED.is_personal_data,
+    updated_at = CURRENT_TIMESTAMP;
+
+-- ---------------------------------------------------
+-- DAILY ACCESS METADATA (V013)
+-- ---------------------------------------------------
+
+INSERT INTO tb_catalog_table (table_name, domain, description, business_rules, id_access_level, data_owner)
+SELECT
+	'tb_user_daily_access', 'EVENT',
+	'Acessos de cada usuário por dia, base do DAU (Daily Active Users).',
+	'Uma linha por usuário por dia (PK composta). Gravada só pela trigger trg_register_daily_access quando a API atualiza tb_user.last_login; novo acesso no mesmo dia soma em access_count. Consultada por vw_dau e vw_dau_by_kitchen.',
+	al.id_access_level, 'Administração do sistema'
+FROM tb_catalog_access_level al
+WHERE al.code = 'RESTRICTED'
+ON CONFLICT (table_name) DO UPDATE
+SET domain = EXCLUDED.domain,
+    description = EXCLUDED.description,
+    business_rules = EXCLUDED.business_rules,
+    id_access_level = EXCLUDED.id_access_level,
+    data_owner = EXCLUDED.data_owner,
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO tb_catalog_column (id_catalog_table, column_name, description, business_rule, id_access_level, is_personal_data)
+SELECT t.id_catalog_table, v.column_name, v.description, v.business_rule, NULL, v.is_personal_data
+FROM (VALUES
+	('id_user', 'Usuário que acessou.', 'Parte da PK composta; cascata ao apagar o usuário.', false),
+	('access_date', 'Dia do acesso.', 'Parte da PK composta.', false),
+	('first_access_time', 'Hora do primeiro acesso do usuário no dia.', 'Nunca depois do último (ck_useraccess_period).', true),
+	('last_access_time', 'Hora do último acesso do usuário no dia.', 'Hora do last_login mais recente do dia.', true),
+	('access_count', 'Quantos logins o usuário fez no dia.', 'Maior que zero (ck_useraccess_count).', false)
+) AS v(column_name, description, business_rule, is_personal_data)
+JOIN tb_catalog_table t ON t.table_name = 'tb_user_daily_access'
 ON CONFLICT (id_catalog_table, column_name) DO UPDATE
 SET description = EXCLUDED.description,
     business_rule = EXCLUDED.business_rule,
