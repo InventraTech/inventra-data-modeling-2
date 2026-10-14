@@ -10,7 +10,8 @@ Arquivo: `functions/create_functions.sql`. São regras automáticas, disparadas 
 |----------|--------------------|-----------|
 | `fn_validate_stock` | `trg_validate_stock` | Impede `current_quantity` negativo em `tb_stock_batch` |
 | `fn_update_batch_status` | `trg_update_batch_status` | Marca o lote como `WRITTEN_OFF` quando a quantidade chega a zero |
-| `fn_calculate_divergence` | `trg_calculate_divergence` | Calcula `divergence` (física − registrada) em `tb_inventory_count` |
+| `fn_calculate_divergence` | `trg_calculate_divergence` | Calcula `divergence` (física − registrada) em `tb_inventory_count`; valor escrito à mão é sobrescrito |
+| `fn_alert_batch_consistency` | `trg_alert_batch_consistency` | Em alerta com lote, preenche produto e cozinha com os do lote e recusa valores diferentes |
 | `fn_requisition_approval` | `trg_requisition_approval` | Preenche `approved_at` quando o status muda para `APPROVED` |
 | `fn_stock_alert` | `trg_stock_alert` | Cria alerta `STOCK` (`HIGH`) quando a soma dos lotes ativos e não vencidos fica **abaixo** do mínimo cadastrado; não duplica se já há um alerta `STOCK` aberto |
 | `fn_expiration_alert` | `trg_expiration_alert` | Cria alerta quando um lote já passou da validade; não duplica se já há um alerta `EXPIRATION` aberto |
@@ -67,7 +68,8 @@ Arquivo: `triggers/create_trg.sql`.
 |---------|--------|-----------------|----------|
 | `trg_validate_stock` | `tb_stock_batch` | BEFORE INSERT/UPDATE de `current_quantity` | `fn_validate_stock` |
 | `trg_update_batch_status` | `tb_stock_batch` | BEFORE INSERT/UPDATE de `current_quantity`, `status` | `fn_update_batch_status` |
-| `trg_calculate_divergence` | `tb_inventory_count` | BEFORE INSERT/UPDATE de `registered_quantity`, `physical_quantity` | `fn_calculate_divergence` |
+| `trg_calculate_divergence` | `tb_inventory_count` | BEFORE INSERT/UPDATE (qualquer coluna, desde a `V012`) | `fn_calculate_divergence` |
+| `trg_alert_batch_consistency` | `tb_alert` | BEFORE INSERT/UPDATE de `id_batch`, `id_product`, `id_kitchen` | `fn_alert_batch_consistency` |
 | `trg_requisition_approval` | `tb_requisition` | BEFORE UPDATE de `status` | `fn_requisition_approval` |
 | `trg_stock_alert` | `tb_stock_batch` | AFTER INSERT/UPDATE de `current_quantity` | `fn_stock_alert` |
 | `trg_expiration_alert` | `tb_stock_batch` | AFTER INSERT/UPDATE de `expiration_date` | `fn_expiration_alert` |

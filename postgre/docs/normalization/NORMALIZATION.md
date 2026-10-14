@@ -1,6 +1,6 @@
 # Normalização do Modelo
 
-Demonstração de que o banco do Inventra está normalizado até a **3ª Forma Normal (3FN)**. Também atende à Forma Normal de Boyce-Codd (FNBC) e não precisa de decomposição para a 4FN nem para a 5FN. Cobre o schema de `V001` a `V011`.
+Demonstração de que o banco do Inventra está normalizado até a **3ª Forma Normal (3FN)**. Também atende à Forma Normal de Boyce-Codd (FNBC) e não precisa de decomposição para a 4FN nem para a 5FN. Cobre o schema de `V001` a `V012`.
 
 ## 1. Resumo
 
@@ -8,7 +8,7 @@ Demonstração de que o banco do Inventra está normalizado até a **3ª Forma N
 |--------------|----------|-------------------|
 | 1FN | ✅ Atende (exceto as tabelas de log, que guardam o retrato da linha em JSON de propósito) | [Seção 4.1](#41-primeira-forma-normal-1fn) |
 | 2FN | ✅ Atende: as 3 tabelas de chave composta não têm dependência parcial | [Seção 4.2](#42-segunda-forma-normal-2fn) |
-| 3FN | ✅ Atende, com 5 **redundâncias controladas** documentadas e verificáveis | [Seções 4.3](#43-terceira-forma-normal-3fn) e [5](#5-redundâncias-controladas) |
+| 3FN | ✅ Atende, com 5 **redundâncias controladas** documentadas, protegidas pelo próprio banco e verificáveis | [Seções 4.3](#43-terceira-forma-normal-3fn) e [5](#5-redundâncias-controladas) |
 | FNBC | ✅ Atende: todo determinante é chave candidata | [Seção 4.4](#44-forma-normal-de-boyce-codd-fnbc) |
 | 4FN e 5FN | ✅ Atende: não há fatos multivalorados independentes nem associação ternária decomponível | [Seção 4.5](#45-quarta-e-quinta-formas-normais-4fn-e-5fn) |
 
@@ -155,15 +155,15 @@ São colunas que poderiam ser calculadas a partir de outras e foram guardadas po
 
 - **Redundância:** `tb_inventory_count.divergence = physical_quantity - registered_quantity` é uma DF entre atributos não-chave (dependência transitiva).
 - **Por que existe:** os relatórios de inventário filtram e ordenam por divergência, e a coluna evita recalcular em toda consulta.
-- **Quem mantém:** `trg_calculate_divergence` recalcula a cada `INSERT` e a cada `UPDATE` de `registered_quantity` ou `physical_quantity`.
-- **Risco:** a trigger não dispara num `UPDATE` que altere **só** `divergence`, então uma escrita manual nessa coluna passaria sem recálculo. A consulta R1 do arquivo de verificação detecta o caso.
-- **Melhoria recomendada:** trocar por coluna gerada (`GENERATED ALWAYS AS (physical_quantity - registered_quantity) STORED`). O PostgreSQL passa a manter o valor sozinho e recusa qualquer escrita manual, o que elimina o risco.
+- **Quem mantém:** `trg_calculate_divergence` recalcula em **todo** `INSERT` e `UPDATE` da linha. Um valor escrito à mão em `divergence` é sobrescrito pelo cálculo.
+- **Histórico:** até a `V011`, a trigger só disparava quando `registered_quantity` ou `physical_quantity` mudavam, e um `UPDATE` só de `divergence` passava sem recálculo. A `V012` passou a disparar em qualquer `UPDATE` e recalculou as linhas existentes.
+- **Alternativa avaliada:** coluna gerada (`GENERATED ALWAYS AS (physical_quantity - registered_quantity) STORED`). Não foi adotada porque a API (`InventoryService.registerCount`) envia `divergence` no `INSERT`, e a coluna gerada recusaria esse valor; seria preciso mudar a entidade JPA junto. A trigger dá a mesma garantia sem mexer na API.
 
 ### R2. Saldo do lote (`current_quantity`)
 
 - **Redundância:** desde a `V007`, o saldo pode ser reconstruído a partir de `initial_quantity` e das linhas de `tb_stock_movement`.
 - **Por que existe:** é o dado mais consultado do sistema (estoque atual, alertas, baixas). Somar o histórico a cada leitura seria caro, e as regras de saldo não negativo e de status dependem dele.
-- **Quem mantém:** `sp_register_stock_entry`, `sp_write_off_stock` e `sp_cancel_requisition` atualizam o saldo **e** gravam a movimentação na mesma transação. `trg_validate_stock` impede saldo negativo.
+- **Quem mantém:** `sp_register_stock_entry`, `sp_write_off_stock` e `sp_cancel_requisition` atualizam o saldo **e** gravam a movimentação na mesma transação. O ajuste de saldo da API (inclusive no fechamento de inventário) grava a movimentação `ADJUSTMENT` correspondente. `trg_validate_stock` impede saldo negativo.
 
 ### R3. Saldo após a movimentação (`balance_after`)
 
@@ -175,9 +175,12 @@ São colunas que poderiam ser calculadas a partir de outras e foram guardadas po
 
 - **Redundância:** quando `tb_alert.id_batch` está preenchido, `id_batch → id_product, id_kitchen` (dependência transitiva).
 - **Por que existe:** o alerta `STOCK` (estoque mínimo) não tem lote; só tem produto e cozinha. Manter as duas colunas em todos os alertas permite que a API e as views filtrem alertas por cozinha e produto do mesmo jeito, sem tratar os tipos separadamente.
-- **Quem mantém:** `fn_stock_alert`, `fn_expiration_alert`, `sp_expire_batches` e `sp_alert_expiring_batches` copiam produto e cozinha **do próprio lote**.
-- **Risco:** um `INSERT` feito pela API que informe um lote e outro produto quebraria a consistência, e nenhuma constraint impede isso hoje. A consulta R4 do arquivo de verificação detecta o caso.
-- **Melhoria possível:** uma trigger `BEFORE INSERT/UPDATE` que copie produto e cozinha do lote quando `id_batch` estiver preenchido.
+- **Quem mantém:** `trg_alert_batch_consistency` (desde a `V012`), em todo `INSERT` e em `UPDATE` de `id_batch`, `id_product` ou `id_kitchen`. Quando há lote:
+  - produto ou cozinha **vazios** são preenchidos com os do lote;
+  - produto ou cozinha **diferentes** dos do lote são recusados com erro.
+
+  As functions e procedures de alerta já copiavam do lote. A API recusa lote de outra cozinha ou de outro produto, mas aceitava um alerta com lote e **sem** produto, que agora é completado pela trigger.
+- **Histórico:** antes da `V012`, nenhuma constraint garantia a regra. A `V012` corrigiu os alertas existentes a partir do lote; as correções ficam registradas em `tb_log_alert`.
 
 ### R5. Dois modelos de leitura de alerta
 
@@ -258,7 +261,7 @@ psql -f postgre/docs/normalization/normalization_checks.sql
 
 | Consulta | Esperado |
 |----------|----------|
-| R1 a R4 e status | `inconsistentes = 0` |
+| R1 a R4 e status | `inconsistentes = 0` (desde a `V012`, R1 e R4 são garantidas por trigger) |
 | R5 | Informativo: alertas lidos só pelo modelo antigo |
 | cidade → UF, marca → categoria | Linhas retornadas **provam** que a dependência não existe, então não há tabela a extrair. Zero linhas não provam o contrário: só mostram que os dados atuais não a contradizem |
 

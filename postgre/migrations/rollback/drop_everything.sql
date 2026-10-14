@@ -1,5 +1,5 @@
 -- =====================================================
--- FULL TEARDOWN — reverses V001 through V011
+-- FULL TEARDOWN — reverses V001 through V012
 -- =====================================================
 -- WARNING: destructive and irreversible. Drops every table
 -- (and all data in them), view, function, procedure, trigger,
@@ -146,6 +146,9 @@ ON tb_alert;
 -- BUSINESS TRIGGERS
 -- ---------------------------------------------------
 
+DROP TRIGGER IF EXISTS trg_alert_batch_consistency
+ON tb_alert;
+
 DROP TRIGGER IF EXISTS trg_expiration_alert
 ON tb_stock_batch;
 
@@ -185,6 +188,8 @@ DROP FUNCTION IF EXISTS fn_log_alert();
 -- ---------------------------------------------------
 -- BUSINESS FUNCTIONS
 -- ---------------------------------------------------
+
+DROP FUNCTION IF EXISTS fn_alert_batch_consistency();
 
 DROP FUNCTION IF EXISTS fn_expiration_alert();
 

@@ -203,3 +203,42 @@ BEGIN
 
 END;
 $$;
+
+-- Alerta com lote: produto e cozinha são os do lote. Vazio é preenchido; diferente é recusado.
+CREATE FUNCTION fn_alert_batch_consistency()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS
+$$
+DECLARE
+    v_id_product INTEGER;
+    v_id_kitchen INTEGER;
+BEGIN
+
+    IF NEW.id_batch IS NULL THEN
+        RETURN NEW;
+    END IF;
+
+    SELECT id_product, id_kitchen
+    INTO v_id_product, v_id_kitchen
+    FROM tb_stock_batch
+    WHERE id_batch = NEW.id_batch;
+
+    -- lote inexistente: a FK fk_alert_batch recusa com a mensagem dela
+    IF NOT FOUND THEN
+        RETURN NEW;
+    END IF;
+
+    NEW.id_product := COALESCE(NEW.id_product, v_id_product);
+    NEW.id_kitchen := COALESCE(NEW.id_kitchen, v_id_kitchen);
+
+    IF NEW.id_product <> v_id_product OR NEW.id_kitchen <> v_id_kitchen THEN
+        RAISE EXCEPTION
+            'O alerta do lote % precisa ser do produto % e da cozinha %.',
+            NEW.id_batch, v_id_product, v_id_kitchen;
+    END IF;
+
+    RETURN NEW;
+
+END;
+$$;

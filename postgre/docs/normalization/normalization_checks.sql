@@ -3,6 +3,7 @@
 -- =====================================================
 -- O modelo está em 3FN, com 5 redundâncias controladas (NORMALIZATION.md, seção 5).
 -- Cada consulta abaixo procura linhas em que a redundância perdeu a consistência.
+-- R1 e R4 são garantidas por trigger desde a V012; as consultas continuam como prova.
 -- Resultado esperado: 0 em todas as linhas de "inconsistentes".
 -- Só leitura: pode rodar direto no banco do Aiven (psql ou pgAdmin).
 

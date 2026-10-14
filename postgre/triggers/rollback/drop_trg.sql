@@ -2,6 +2,9 @@
 -- ROLLBACK TRIGGERS
 -- ---------------------------------------------------
 
+DROP TRIGGER IF EXISTS trg_alert_batch_consistency
+ON tb_alert;
+
 DROP TRIGGER IF EXISTS trg_expiration_alert
 ON tb_stock_batch;
 
