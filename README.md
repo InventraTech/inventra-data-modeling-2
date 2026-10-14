@@ -5,7 +5,7 @@
 **Schema PostgreSQL do Inventra: gestão de estoque para cozinhas industriais.**
 
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)
-[![Migrations](https://github.com/InventraTech/inventra-data-modeling-2/actions/workflows/migrations.yml/badge.svg)](https://github.com/InventraTech/inventra-data-modeling-2/actions/workflows/migrations.yml)
+[![Migrations](https://github.com/InventraTech/inventra-database-2/actions/workflows/migrations.yml/badge.svg)](https://github.com/InventraTech/inventra-database-2/actions/workflows/migrations.yml)
 ![Migrations](https://img.shields.io/badge/migrations-V001--V012-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -72,8 +72,8 @@ Detalhes, convenções e decisões de design em [`docs/ARCHITECTURE.md`](postgre
 **Requisitos:** PostgreSQL 14+ e `psql` (testado no CI com PostgreSQL 16).
 
 ```bash
-git clone https://github.com/InventraTech/inventra-data-modeling-2.git
-cd inventra-data-modeling-2/postgre
+git clone https://github.com/InventraTech/inventra-database-2.git
+cd inventra-database-2/postgre
 
 for f in migrations/V*.sql; do
   psql -v ON_ERROR_STOP=1 --single-transaction -U usuario -d inventra_db -f "$f"
