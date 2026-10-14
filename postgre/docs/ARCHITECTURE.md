@@ -59,6 +59,10 @@ As pastas de dicionário não têm numeração porque não representam sequênci
 
 Depois, `tests/check_backup_restore.sh` desfaz operações pela auditoria, gera um backup com `backup/backup.sh`, restaura num banco novo com `backup/restore.sh` e compara a contagem de linhas de cada tabela. Detalhes em [`BACKUP_AND_RECOVERY.md`](BACKUP_AND_RECOVERY.md).
 
+Por fim, `tests/check_dictionary_sync.sh` garante que o dicionário e as migrations não divergem. Ele monta um banco só com `migrations/V*.sql` e outro só com os arquivos do dicionário, e compara os dois com `tests/schema_fingerprint.sql`. A comparação cobre colunas, constraints, índices, views, rotinas, triggers, herança e o conteúdo do catálogo de dados, e não depende da ordem física das colunas. A lista `DICTIONARY` do script é a **ordem oficial de execução do dicionário**; arquivo novo que ficar fora dela faz o teste falhar.
+
+O workflow `ci.yaml` chama, além disso, o CI de SQL da organização (`InventraTech/.github`, branch `main`): lint com `sqlfluff`, rollback correspondente para todo `create_*.sql`, sequência das migrations, imutabilidade das migrations já publicadas e ausência de objetos órfãos após o rollback.
+
 ## Herança de tabela nas tabelas de log
 
 As 7 tabelas de log (`tb_log_user`, `tb_log_product`, `tb_log_supplier`, `tb_log_stock_batch`, `tb_log_requisition`, `tb_log_inventory`, `tb_log_alert`) usam **herança de tabela** (`INHERITS`) a partir de `tb_log_base`, que concentra as colunas comuns de auditoria (`id_log`, `operation`, `db_user`, `operation_date`, `previous_data`, `new_data`). Cada filha soma só a coluna que identifica a entidade auditada (ex: `id_product` em `tb_log_product`).

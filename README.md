@@ -5,7 +5,7 @@
 **Schema PostgreSQL do Inventra: gestão de estoque para cozinhas industriais.**
 
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)
-[![Migrations](https://github.com/InventraTech/inventra-database/actions/workflows/migrations.yml/badge.svg)](https://github.com/InventraTech/inventra-database/actions/workflows/migrations.yml)
+[![Migrations](https://github.com/InventraTech/inventra-data-modeling-2/actions/workflows/migrations.yml/badge.svg)](https://github.com/InventraTech/inventra-data-modeling-2/actions/workflows/migrations.yml)
 ![Migrations](https://img.shields.io/badge/migrations-V001--V011-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
@@ -71,8 +71,8 @@ Detalhes, convenções e decisões de design em [`docs/ARCHITECTURE.md`](postgre
 **Requisitos:** PostgreSQL 14+ e `psql` (testado no CI com PostgreSQL 16).
 
 ```bash
-git clone https://github.com/InventraTech/inventra-database.git
-cd inventra-database/postgre
+git clone https://github.com/InventraTech/inventra-data-modeling-2.git
+cd inventra-data-modeling-2/postgre
 
 for f in migrations/V*.sql; do
   psql -v ON_ERROR_STOP=1 --single-transaction -U usuario -d inventra_db -f "$f"
@@ -137,24 +137,30 @@ postgre/
 ├── migrations/      # V001–V011 + rollback/drop_everything.sql
 ├── backup/          # backup.sh e restore.sh (pg_dump); dumps/ fica fora do git
 ├── seeds/           # seed.ipynb + requirements.txt
-├── tests/           # migrations (idempotência + rollback) e backup/restore
+├── tests/           # migrations (idempotência + rollback), backup/restore e dicionário × migrations
 └── docs/            # arquitetura, regras, views, modelagem, otimização
 .github/workflows/   # CI das migrations
-.env.example         # variáveis de conexão usadas pelo seed
+.env.example         # variáveis de conexão usadas pelo seed e pelos scripts de backup
 ```
 
 ## Desenvolvimento
 
-1. A mudança nasce na pasta de dicionário correspondente **e** em uma **nova** migration (`V006`, `V007`…). Migration já aplicada não se edita.
-2. Valide localmente com o mesmo script do CI:
+1. A mudança nasce na pasta de dicionário correspondente **e** em uma **nova** migration, com o próximo número da sequência (hoje, `V012`). Migration já aplicada não se edita. Arquivo novo no dicionário entra também na lista `DICTIONARY` de `postgre/tests/check_dictionary_sync.sh`, que define a ordem de execução do dicionário.
+2. Valide localmente com os mesmos scripts do CI, nesta ordem (todos usam as mesmas variáveis):
 
    ```bash
-   PGHOST=localhost PGUSER=postgres PGPASSWORD=postgres PGDATABASE=inventra_db \
-     bash postgre/tests/check_migrations.sh
+   export PGHOST=localhost PGUSER=postgres PGPASSWORD=postgres PGDATABASE=inventra_db
+   bash postgre/tests/check_migrations.sh
+   bash postgre/tests/check_backup_restore.sh
+   bash postgre/tests/check_dictionary_sync.sh
    ```
 
-   Ele aplica as migrations, reaplica (idempotência), faz rollback completo e reaplica do zero. Em seguida, `postgre/tests/check_backup_restore.sh` (mesmas variáveis) testa backup, restore e recuperação pela auditoria.
-3. O CI roda esses dois scripts em cada push/PR que toque `postgre/`.
+   | Script | O que garante |
+   |--------|---------------|
+   | `check_migrations.sh` | Aplica as migrations, reaplica (idempotência), faz rollback completo e reaplica do zero |
+   | `check_backup_restore.sh` | Recuperação pela auditoria, backup, restore em banco novo e contagens iguais |
+   | `check_dictionary_sync.sh` | O dicionário gera exatamente o mesmo schema e catálogo que as migrations |
+3. O CI roda esses três scripts em cada push/PR que toque `postgre/`.
 4. A API copia `V001`+ byte a byte para o Flyway; nunca edite migration direto lá.
 
 > `RAISE EXCEPTION` das functions e procedures fica em português de propósito: a API repassa a mensagem ao cliente nas respostas 409.

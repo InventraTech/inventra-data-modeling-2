@@ -28,3 +28,4 @@ jobs:
       - uses: actions/checkout@v4
       - run: bash postgre/tests/check_migrations.sh
       - run: bash postgre/tests/check_backup_restore.sh
+      - run: bash postgre/tests/check_dictionary_sync.sh
