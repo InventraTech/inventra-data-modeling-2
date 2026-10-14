@@ -30,7 +30,7 @@ Banco de dados do projeto interdisciplinar **Inventra**. Este repositório é a 
 | | |
 |---|---|
 | **Domínio** | Lotes de estoque, requisições, inventário, fornecedores e alertas de vencimento |
-| **Modelo** | 15 tabelas de negócio + 7 tabelas de log (herdam de `tb_log_base`) |
+| **Modelo** | 17 tabelas de negócio + 8 de log (`tb_log_base` e 7 filhas por herança) + 4 de governança; 3FN demonstrada tabela a tabela |
 | **Regras no banco** | 6 functions + 7 procedures + 6 triggers de negócio |
 | **Auditoria** | Trigger `AFTER INSERT/UPDATE/DELETE` grava antes/depois (JSON) em 7 tabelas `tb_log_*` |
 | **Consulta** | 15+ views operacionais, 3 views analíticas (CTE + Window Functions), star schema virtual (4 `dim_*`, 3 `fact_*`) |
@@ -110,12 +110,13 @@ jupyter notebook seeds/seed.ipynb
 | **Auditoria** | `tb_log_base` + `tb_log_user`, `tb_log_product`, `tb_log_supplier`, `tb_log_stock_batch`, `tb_log_requisition`, `tb_log_inventory`, `tb_log_alert` |
 | **Governança** | `tb_catalog_access_level`, `tb_catalog_table`, `tb_catalog_column`, `tb_backup_history` |
 
-Outras versões do modelo (V1, V2 e auditoria) estão em [`docs/modeling`](postgre/docs/modeling).
+Outras versões do modelo (V1, V2 e auditoria) estão em [`docs/modeling`](postgre/docs/modeling). A normalização, as dependências funcionais e as cardinalidades de cada relacionamento estão em [`NORMALIZATION.md`](postgre/docs/normalization/NORMALIZATION.md).
 
 ## Documentação
 
 | Documento | Assunto |
 |-----------|---------|
+| [`NORMALIZATION.md`](postgre/docs/normalization/NORMALIZATION.md) | Demonstração da 3FN (e FNBC, 4FN, 5FN), redundâncias controladas, PKs, FKs e cardinalidades |
 | [`ARCHITECTURE.md`](postgre/docs/ARCHITECTURE.md) | Dicionário vs. migrations, convenções, CI, herança das tabelas de log |
 | [`BUSINESS_RULES.md`](postgre/docs/BUSINESS_RULES.md) | Functions, procedures, triggers de negócio e de auditoria |
 | [`VIEWS_AND_DATAMART.md`](postgre/docs/VIEWS_AND_DATAMART.md) | Views operacionais, star schema e views analíticas |
