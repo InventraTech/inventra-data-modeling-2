@@ -1,5 +1,5 @@
 -- =====================================================
--- FULL TEARDOWN — reverses V001 through V010
+-- FULL TEARDOWN — reverses V001 through V011
 -- =====================================================
 -- WARNING: destructive and irreversible. Drops every table
 -- (and all data in them), function, procedure, trigger,
@@ -18,6 +18,20 @@
 -- fact_*) built directly on the database by another team are not
 -- tracked in this repo, and CASCADE also removes those. Back up
 -- their definitions first if they need to be recreated afterward.
+
+-- ---------------------------------------------------
+-- BACKUP AND RECOVERY
+-- ---------------------------------------------------
+
+DROP VIEW IF EXISTS vw_backup_status;
+
+DROP PROCEDURE IF EXISTS sp_restore_from_audit(INTEGER);
+
+DROP PROCEDURE IF EXISTS sp_register_backup(VARCHAR, VARCHAR, VARCHAR, TIMESTAMPTZ, TIMESTAMPTZ, BIGINT, VARCHAR, VARCHAR, VARCHAR);
+
+DROP FUNCTION IF EXISTS fn_table_row_counts();
+
+DROP TABLE IF EXISTS tb_backup_history;
 
 -- ---------------------------------------------------
 -- DATA CATALOG
