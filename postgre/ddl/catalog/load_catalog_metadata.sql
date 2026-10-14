@@ -326,3 +326,46 @@ SET description = EXCLUDED.description,
     id_access_level = EXCLUDED.id_access_level,
     is_personal_data = EXCLUDED.is_personal_data,
     updated_at = CURRENT_TIMESTAMP;
+
+-- ---------------------------------------------------
+-- BACKUP HISTORY METADATA (V011)
+-- ---------------------------------------------------
+
+INSERT INTO tb_catalog_table (table_name, domain, description, business_rules, id_access_level, data_owner)
+SELECT
+	'tb_backup_history', 'GOVERNANCE',
+	'Histórico das execuções de backup e restore.',
+	'Gravada por postgre/backup/backup.sh e restore.sh via sp_register_backup. Falha sempre tem mensagem de erro. vw_backup_status indica OVERDUE após 26 h sem backup.',
+	al.id_access_level, 'DBA'
+FROM tb_catalog_access_level al
+WHERE al.code = 'INTERNAL'
+ON CONFLICT (table_name) DO UPDATE
+SET domain = EXCLUDED.domain,
+    description = EXCLUDED.description,
+    business_rules = EXCLUDED.business_rules,
+    id_access_level = EXCLUDED.id_access_level,
+    data_owner = EXCLUDED.data_owner,
+    updated_at = CURRENT_TIMESTAMP;
+
+INSERT INTO tb_catalog_column (id_catalog_table, column_name, description, business_rule, id_access_level, is_personal_data)
+SELECT t.id_catalog_table, v.column_name, v.description, v.business_rule, NULL, false
+FROM (VALUES
+	('id_backup', 'Identificador da execução.', NULL),
+	('operation', 'Tipo da execução.', 'BACKUP ou RESTORE (ck_backuphistory_operation).'),
+	('status', 'Resultado da execução.', 'SUCCESS ou FAILED (ck_backuphistory_status).'),
+	('database_name', 'Banco copiado (BACKUP) ou restaurado (RESTORE).', NULL),
+	('file_name', 'Nome do arquivo .dump.', NULL),
+	('file_size_bytes', 'Tamanho do arquivo em bytes.', NULL),
+	('checksum_sha256', 'Hash SHA-256 do arquivo, conferido antes de restaurar.', '64 caracteres hexadecimais (ck_backuphistory_checksum).'),
+	('started_at', 'Início da execução (relógio da máquina que rodou o script).', NULL),
+	('finished_at', 'Fim da execução.', 'Nunca antes do início (ck_backuphistory_period).'),
+	('executed_by', 'Usuário do banco que registrou a execução.', 'CURRENT_USER.'),
+	('error_message', 'Motivo da falha.', 'Obrigatório quando FAILED e nulo quando SUCCESS (ck_backuphistory_error).')
+) AS v(column_name, description, business_rule)
+JOIN tb_catalog_table t ON t.table_name = 'tb_backup_history'
+ON CONFLICT (id_catalog_table, column_name) DO UPDATE
+SET description = EXCLUDED.description,
+    business_rule = EXCLUDED.business_rule,
+    id_access_level = EXCLUDED.id_access_level,
+    is_personal_data = EXCLUDED.is_personal_data,
+    updated_at = CURRENT_TIMESTAMP;

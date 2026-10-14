@@ -1,23 +1,39 @@
 -- =====================================================
--- FULL TEARDOWN — reverses V001 through V010
+-- FULL TEARDOWN — reverses V001 through V011
 -- =====================================================
 -- WARNING: destructive and irreversible. Drops every table
--- (and all data in them), function, procedure, trigger,
--- constraint and index created by this project. There is no
--- seed/DML migration yet (see README "Próximos Passos"), so
--- there is nothing to reverse on that front.
+-- (and all data in them), view, function, procedure, trigger,
+-- constraint and index created by this project, including the
+-- data catalog and backup history. Take a backup first
+-- (postgre/backup/backup.sh). Seed data lives in the tables,
+-- so it goes with them.
 --
--- Order matters: triggers before the functions they call,
--- functions/procedures before the tables they reference,
--- constraints and indexes before the tables that own them,
--- log tables last among tables since nothing depends on them.
--- Every statement is IF EXISTS, so this is safe to run even
--- on a partially-created or already-empty database.
+-- Order matters: newest layers first (backup, catalog, views),
+-- triggers before the functions they call, functions/procedures
+-- before the tables they reference, constraints and indexes
+-- before the tables that own them, log tables last among tables
+-- since nothing depends on them. Every statement is IF EXISTS,
+-- so this is safe to run even on a partially-created or
+-- already-empty database.
 --
--- Log and base tables use CASCADE: BI views/tables (vw_*, dim_*,
--- fact_*) built directly on the database by another team are not
--- tracked in this repo, and CASCADE also removes those. Back up
--- their definitions first if they need to be recreated afterward.
+-- Log and base tables use CASCADE: any object created directly
+-- on the database outside this repo (e.g. ad-hoc BI views) that
+-- depends on them is removed too. Back up those definitions
+-- first if they need to be recreated afterward.
+
+-- ---------------------------------------------------
+-- BACKUP AND RECOVERY
+-- ---------------------------------------------------
+
+DROP VIEW IF EXISTS vw_backup_status;
+
+DROP PROCEDURE IF EXISTS sp_restore_from_audit(INTEGER);
+
+DROP PROCEDURE IF EXISTS sp_register_backup(VARCHAR, VARCHAR, VARCHAR, TIMESTAMPTZ, TIMESTAMPTZ, BIGINT, VARCHAR, VARCHAR, VARCHAR);
+
+DROP FUNCTION IF EXISTS fn_table_row_counts();
+
+DROP TABLE IF EXISTS tb_backup_history;
 
 -- ---------------------------------------------------
 -- DATA CATALOG
@@ -34,16 +50,6 @@ DROP TABLE IF EXISTS tb_catalog_column;
 DROP TABLE IF EXISTS tb_catalog_table;
 
 DROP TABLE IF EXISTS tb_catalog_access_level;
-
--- ---------------------------------------------------
--- ETL / ANALYTICS VIEWS
--- ---------------------------------------------------
-
-DROP VIEW IF EXISTS vw_product_expiration_urgency;
-
-DROP VIEW IF EXISTS vw_category_monthly_requisition_trend;
-
-DROP VIEW IF EXISTS vw_category_stock_balance;
 
 -- ---------------------------------------------------
 -- ETL / ANALYTICS VIEWS

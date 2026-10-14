@@ -124,7 +124,7 @@ CALL sp_sync_data_catalog();       -- só inclui o que falta
 CALL sp_sync_data_catalog(true);   -- inclui e remove o que saiu do schema
 ```
 
-A `V010` chama a procedure no final. Com a carga atual, ela inclui 0 tabelas e encontra 0 colunas sem descrição, o que prova que o catálogo cobre o schema inteiro: 28 tabelas e 159 colunas.
+A `V010` chama a procedure no final, e as migrations seguintes também (a `V011` acrescenta `tb_backup_history`). Com a carga atual, ela inclui 0 tabelas e encontra 0 colunas sem descrição, o que prova que o catálogo cobre o schema inteiro: 29 tabelas e 170 colunas.
 
 Só entram tabelas com prefixo `tb_`, para ficarem de fora tabelas de ferramenta, como a `flyway_schema_history` que o Flyway cria no banco da API.
 

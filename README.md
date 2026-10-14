@@ -5,8 +5,8 @@
 **Schema PostgreSQL do Inventra: gestão de estoque para cozinhas industriais.**
 
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)
-[![Migrations](https://github.com/InventraTech/inventra-database/actions/workflows/migrations.yml/badge.svg)](https://github.com/InventraTech/inventra-database/actions/workflows/migrations.yml)
-![Migrations](https://img.shields.io/badge/migrations-V001--V010-blue)
+[![Migrations](https://github.com/InventraTech/inventra-data-modeling-2/actions/workflows/migrations.yml/badge.svg)](https://github.com/InventraTech/inventra-data-modeling-2/actions/workflows/migrations.yml)
+![Migrations](https://img.shields.io/badge/migrations-V001--V011-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 </div>
@@ -35,7 +35,8 @@ Banco de dados do projeto interdisciplinar **Inventra**. Este repositório é a 
 | **Auditoria** | Trigger `AFTER INSERT/UPDATE/DELETE` grava antes/depois (JSON) em 7 tabelas `tb_log_*` |
 | **Consulta** | 15+ views operacionais, 3 views analíticas (CTE + Window Functions), star schema virtual (4 `dim_*`, 3 `fact_*`) |
 | **Governança** | Catálogo de dados: descrição, regra de negócio e nível de acesso de cada tabela e coluna |
-| **Entrega** | Migrations idempotentes `V001`–`V010`, com rollback e validação no CI |
+| **Backup** | Backup gerenciado (Aiven) + `pg_dump` com restore testado no CI + recuperação de linha pela auditoria |
+| **Entrega** | Migrations idempotentes `V001`–`V011`, com rollback e validação no CI |
 
 ## Arquitetura
 
@@ -43,7 +44,7 @@ O projeto separa o **dicionário** (código de leitura, um arquivo por assunto) 
 
 ```mermaid
 flowchart LR
-    D["Dicionário<br/>ddl · functions · procedures · triggers · views"] -->|consolidado em| M["migrations<br/>V001 … V010"]
+    D["Dicionário<br/>ddl · functions · procedures · triggers · views"] -->|consolidado em| M["migrations<br/>V001 … V011"]
     M -->|psql / CI| DB[("PostgreSQL")]
     M -->|cópia byte a byte| API["ms-inventra-api<br/>Flyway"]
     DB --> BI["Power BI / Metabase<br/>dim_* · fact_*"]
@@ -61,6 +62,7 @@ flowchart LR
 | `V008__alert_recipients_and_reads.sql` | Destinatário do alerta, leitura por pessoa (`tb_alert_read`) e aviso antes de vencer |
 | `V009__requisition_draft.sql` | Status `DRAFT` e estorno do estoque ao cancelar requisição aprovada |
 | `V010__data_catalog.sql` | Catálogo de dados (`tb_catalog_*`), sincronização com o schema e views `vw_data_catalog*` |
+| `V011__backup_and_recovery.sql` | Histórico de backup (`tb_backup_history`), recuperação pela auditoria e `vw_backup_status` |
 
 Detalhes, convenções e decisões de design em [`docs/ARCHITECTURE.md`](postgre/docs/ARCHITECTURE.md).
 
@@ -69,8 +71,8 @@ Detalhes, convenções e decisões de design em [`docs/ARCHITECTURE.md`](postgre
 **Requisitos:** PostgreSQL 14+ e `psql` (testado no CI com PostgreSQL 16).
 
 ```bash
-git clone https://github.com/InventraTech/inventra-database.git
-cd inventra-database/postgre
+git clone https://github.com/InventraTech/inventra-data-modeling-2.git
+cd inventra-data-modeling-2/postgre
 
 for f in migrations/V*.sql; do
   psql -v ON_ERROR_STOP=1 --single-transaction -U usuario -d inventra_db -f "$f"
@@ -106,7 +108,7 @@ jupyter notebook seeds/seed.ipynb
 | **Movimentações** | `tb_stock_batch`, `tb_requisition`, `tb_requisition_item`, `tb_inventory`, `tb_inventory_count`, `tb_stock_movement` |
 | **Eventos** | `tb_alert`, `tb_alert_read` |
 | **Auditoria** | `tb_log_base` + `tb_log_user`, `tb_log_product`, `tb_log_supplier`, `tb_log_stock_batch`, `tb_log_requisition`, `tb_log_inventory`, `tb_log_alert` |
-| **Governança** | `tb_catalog_access_level`, `tb_catalog_table`, `tb_catalog_column` |
+| **Governança** | `tb_catalog_access_level`, `tb_catalog_table`, `tb_catalog_column`, `tb_backup_history` |
 
 Outras versões do modelo (V1, V2 e auditoria) estão em [`docs/modeling`](postgre/docs/modeling).
 
@@ -118,6 +120,7 @@ Outras versões do modelo (V1, V2 e auditoria) estão em [`docs/modeling`](postg
 | [`BUSINESS_RULES.md`](postgre/docs/BUSINESS_RULES.md) | Functions, procedures, triggers de negócio e de auditoria |
 | [`VIEWS_AND_DATAMART.md`](postgre/docs/VIEWS_AND_DATAMART.md) | Views operacionais, star schema e views analíticas |
 | [`DATA_CATALOG.md`](postgre/docs/DATA_CATALOG.md) | Catálogo de dados: níveis de acesso, views de consulta e sincronização |
+| [`BACKUP_AND_RECOVERY.md`](postgre/docs/BACKUP_AND_RECOVERY.md) | Política de backup, runbook de recuperação por tipo de falha, monitoramento |
 | [`EXPLAIN_ANALYZE.md`](postgre/docs/query_optimization/EXPLAIN_ANALYZE.md) | Otimização de consultas: planos antes/depois dos 4 índices criados |
 | [`inventra_erp_flow.html`](postgre/docs/inventra_erp_flow.html) | Diagrama de fluxo ERP |
 
@@ -125,32 +128,39 @@ Outras versões do modelo (V1, V2 e auditoria) estão em [`docs/modeling`](postg
 
 ```text
 postgre/
-├── ddl/             # tables, constraints, indexes, logs e catalog
-├── functions/       # funções de negócio e de log
-├── procedures/      # rotinas chamadas via CALL (negócio e catálogo)
+├── ddl/             # tables, constraints, indexes, logs, catalog e backup
+├── functions/       # funções de negócio, de log e de recuperação
+├── procedures/      # rotinas chamadas via CALL (negócio, catálogo e recuperação)
 ├── triggers/        # gatilhos de negócio e de auditoria
-├── views/           # vw_*  ·  datamart/ (dim_*, fact_*)  ·  analytics/  ·  catalog/
+├── views/           # vw_*  ·  datamart/ (dim_*, fact_*)  ·  analytics/  ·  catalog/  ·  backup/
 │                    #   (cada pasta tem subpasta rollback/)
-├── migrations/      # V001–V010 + rollback/drop_everything.sql
+├── migrations/      # V001–V011 + rollback/drop_everything.sql
+├── backup/          # backup.sh e restore.sh (pg_dump); dumps/ fica fora do git
 ├── seeds/           # seed.ipynb + requirements.txt
-├── tests/           # check_migrations.sh (idempotência + rollback)
+├── tests/           # migrations (idempotência + rollback), backup/restore e dicionário × migrations
 └── docs/            # arquitetura, regras, views, modelagem, otimização
 .github/workflows/   # CI das migrations
-.env.example         # variáveis de conexão usadas pelo seed
+.env.example         # variáveis de conexão usadas pelo seed e pelos scripts de backup
 ```
 
 ## Desenvolvimento
 
-1. A mudança nasce na pasta de dicionário correspondente **e** em uma **nova** migration (`V006`, `V007`…). Migration já aplicada não se edita.
-2. Valide localmente com o mesmo script do CI:
+1. A mudança nasce na pasta de dicionário correspondente **e** em uma **nova** migration, com o próximo número da sequência (hoje, `V012`). Migration já aplicada não se edita. Arquivo novo no dicionário entra também na lista `DICTIONARY` de `postgre/tests/check_dictionary_sync.sh`, que define a ordem de execução do dicionário.
+2. Valide localmente com os mesmos scripts do CI, nesta ordem (todos usam as mesmas variáveis):
 
    ```bash
-   PGHOST=localhost PGUSER=postgres PGPASSWORD=postgres PGDATABASE=inventra_db \
-     bash postgre/tests/check_migrations.sh
+   export PGHOST=localhost PGUSER=postgres PGPASSWORD=postgres PGDATABASE=inventra_db
+   bash postgre/tests/check_migrations.sh
+   bash postgre/tests/check_backup_restore.sh
+   bash postgre/tests/check_dictionary_sync.sh
    ```
 
-   Ele aplica as migrations, reaplica (idempotência), faz rollback completo e reaplica do zero.
-3. O CI roda esse mesmo script em cada push/PR que toque `postgre/`.
+   | Script | O que garante |
+   |--------|---------------|
+   | `check_migrations.sh` | Aplica as migrations, reaplica (idempotência), faz rollback completo e reaplica do zero |
+   | `check_backup_restore.sh` | Recuperação pela auditoria, backup, restore em banco novo e contagens iguais |
+   | `check_dictionary_sync.sh` | O dicionário gera exatamente o mesmo schema e catálogo que as migrations |
+3. O CI roda esses três scripts em cada push/PR que toque `postgre/`.
 4. A API copia `V001`+ byte a byte para o Flyway; nunca edite migration direto lá.
 
 > `RAISE EXCEPTION` das functions e procedures fica em português de propósito: a API repassa a mensagem ao cliente nas respostas 409.
@@ -164,6 +174,7 @@ postgre/
 - [x] Teste automatizado de idempotência/rollback no CI
 - [ ] Testes de integridade e performance
 - [x] Catálogo de dados no banco (`tb_catalog_*` + `vw_data_catalog`)
+- [x] Backup e recuperação documentados e testados no CI
 - [ ] Ambiente de homologação
 
 ## Contribuidores

@@ -34,6 +34,19 @@ Arquivo: `procedures/create_procedures.sql`. Rotinas de negócio chamadas explic
 
 Os parâmetros acrescentados (`p_id_user`, `p_reason`, `p_id_requisition`) têm `DEFAULT`, então as chamadas antigas continuam válidas.
 
+## Governança e recuperação
+
+Procedures e function de suporte, fora do fluxo de negócio. Criadas em `V010` (catálogo) e `V011` (backup).
+
+| Objeto | Arquivo | O que faz |
+|--------|---------|-----------|
+| `sp_sync_data_catalog(p_prune)` | `procedures/create_catalog_procedures.sql` | Inclui no catálogo de dados, sem descrição, toda tabela ou coluna nova; com `p_prune = true`, remove o que saiu do schema. Veja [`DATA_CATALOG.md`](DATA_CATALOG.md) |
+| `sp_restore_from_audit(p_id_log)` | `procedures/create_recovery_procedures.sql` | Desfaz um `INSERT`, `UPDATE` ou `DELETE` usando a linha de `tb_log_*`; a própria recuperação também é auditada |
+| `sp_register_backup(...)` | `procedures/create_recovery_procedures.sql` | Grava uma execução de backup ou restore em `tb_backup_history` (chamada pelos scripts de `backup/`) |
+| `fn_table_row_counts()` | `functions/create_recovery_functions.sql` | Contagem exata de linhas por tabela, para comparar o banco de origem com o restaurado |
+
+Procedimentos completos em [`BACKUP_AND_RECOVERY.md`](BACKUP_AND_RECOVERY.md).
+
 ## Movimentações de estoque
 
 `tb_stock_movement` guarda quem mexeu no lote, quando, quanto e por quê.

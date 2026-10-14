@@ -1,0 +1,2 @@
+# scripts bash precisam de LF mesmo no checkout do Windows (CRLF quebra "set -o pipefail")
+*.sh text eol=lf

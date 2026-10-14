@@ -2,6 +2,11 @@
 .env.*
 !.env.example
 
+# backups contêm dados pessoais: nunca versionar
+postgre/backup/dumps/
+*.dump
+*.dump.sha256
+
 __pycache__/
 *.pyc
 .venv/

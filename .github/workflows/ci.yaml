@@ -7,4 +7,9 @@ on:
 
 jobs:
   sql:
-    uses: InventraTech/.github/.github/workflows/ci-sql.yaml@ci/validacao-sql-modelagem
+    # main da org: uma branch de feature some depois do merge e derruba o CI.
+    # Os defaults do workflow ainda apontam para a estrutura antiga (postgre/09_migrations).
+    uses: InventraTech/.github/.github/workflows/ci-sql.yaml@main
+    with:
+      migrations-dir: postgre/migrations
+      rollback-script: postgre/migrations/rollback/drop_everything.sql
