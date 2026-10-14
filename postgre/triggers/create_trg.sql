@@ -14,8 +14,9 @@ ON tb_stock_batch
 FOR EACH ROW
 EXECUTE FUNCTION fn_update_batch_status();
 
+-- qualquer UPDATE: um valor escrito à mão em divergence também é recalculado
 CREATE TRIGGER trg_calculate_divergence
-BEFORE INSERT OR UPDATE OF registered_quantity, physical_quantity
+BEFORE INSERT OR UPDATE
 ON tb_inventory_count
 FOR EACH ROW
 EXECUTE FUNCTION fn_calculate_divergence();
@@ -37,3 +38,10 @@ AFTER INSERT OR UPDATE OF expiration_date
 ON tb_stock_batch
 FOR EACH ROW
 EXECUTE FUNCTION fn_expiration_alert();
+
+-- só nas colunas da regra: marcar como lido (is_read) não paga o custo da consulta
+CREATE TRIGGER trg_alert_batch_consistency
+BEFORE INSERT OR UPDATE OF id_batch, id_product, id_kitchen
+ON tb_alert
+FOR EACH ROW
+EXECUTE FUNCTION fn_alert_batch_consistency();

@@ -1,6 +1,8 @@
 -- ---------------------------------------------------
 -- ROLLBACK FUNCTIONS
 -- ---------------------------------------------------
+DROP FUNCTION IF EXISTS fn_alert_batch_consistency();
+
 DROP FUNCTION IF EXISTS fn_expiration_alert();
 
 DROP FUNCTION IF EXISTS fn_stock_alert();
