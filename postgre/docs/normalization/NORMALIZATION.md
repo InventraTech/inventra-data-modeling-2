@@ -1,13 +1,13 @@
 # Normalização do Modelo
 
-Demonstração de que o banco do Inventra está normalizado até a **3ª Forma Normal (3FN)**. Também atende à Forma Normal de Boyce-Codd (FNBC) e não precisa de decomposição para a 4FN nem para a 5FN. Cobre o schema de `V001` a `V012`.
+Demonstração de que o banco do Inventra está normalizado até a **3ª Forma Normal (3FN)**. Também atende à Forma Normal de Boyce-Codd (FNBC) e não precisa de decomposição para a 4FN nem para a 5FN. Cobre o schema de `V001` a `V013`.
 
 ## 1. Resumo
 
 | Forma normal | Situação | Onde está a prova |
 |--------------|----------|-------------------|
 | 1FN | ✅ Atende (exceto as tabelas de log, que guardam o retrato da linha em JSON de propósito) | [Seção 4.1](#41-primeira-forma-normal-1fn) |
-| 2FN | ✅ Atende: as 3 tabelas de chave composta não têm dependência parcial | [Seção 4.2](#42-segunda-forma-normal-2fn) |
+| 2FN | ✅ Atende: as 4 tabelas de chave composta não têm dependência parcial | [Seção 4.2](#42-segunda-forma-normal-2fn) |
 | 3FN | ✅ Atende, com 5 **redundâncias controladas** documentadas, protegidas pelo próprio banco e verificáveis | [Seções 4.3](#43-terceira-forma-normal-3fn) e [5](#5-redundâncias-controladas) |
 | FNBC | ✅ Atende: todo determinante é chave candidata | [Seção 4.4](#44-forma-normal-de-boyce-codd-fnbc) |
 | 4FN e 5FN | ✅ Atende: não há fatos multivalorados independentes nem associação ternária decomponível | [Seção 4.5](#45-quarta-e-quinta-formas-normais-4fn-e-5fn) |
@@ -66,6 +66,7 @@ Em todas as tabelas abaixo, a única DF é **chave → demais colunas**, exceto 
 | `tb_inventory_count` | `id_count` | `id_count → id_inventory, id_batch, registered_quantity, physical_quantity, divergence` e `(physical_quantity, registered_quantity) → divergence` | `divergence`: [R1](#r1-divergência-do-inventário-divergence) |
 | `tb_stock_movement` | `id_movement` | `id_movement → id_batch, id_user, id_requisition, type, reason, quantity, balance_after, created_at` | `balance_after`: [R3](#r3-saldo-após-a-movimentação-balance_after) |
 | `tb_alert` | `id_alert` | `id_alert → type, severity, id_batch, id_product, id_kitchen, id_user, id_target_profile, ref_key, message, is_read, created_at` e, quando há lote, `id_batch → id_product, id_kitchen` | [R4](#r4-produto-e-cozinha-no-alerta-com-lote) e [R5](#r5-dois-modelos-de-leitura-de-alerta) |
+| `tb_user_daily_access` | `(id_user, access_date)` | `(id_user, access_date) → first_access_time, last_access_time, access_count` | Guarda só a **hora** do primeiro e do último acesso: com `TIMESTAMP`, valeria `first_access_at → access_date`, um determinante que não é chave (fora da FNBC) |
 
 ### Governança
 
@@ -97,13 +98,14 @@ No catálogo, foram evitadas duas redundâncias que seriam tentadoras:
 
 ### 4.2 Segunda forma normal (2FN)
 
-A 2FN só pode ser violada em tabela com **chave composta**. São três, e em nenhuma um atributo depende só de parte da chave:
+A 2FN só pode ser violada em tabela com **chave composta**. São quatro, e em nenhuma um atributo depende só de parte da chave:
 
 | Tabela | Atributo | Depende de | Por que não de parte da chave |
 |--------|----------|------------|--------------------------------|
 | `tb_product_supplier` | `supplier_code`, `reference_price`, `lead_time_days` | `(id_product, id_supplier)` | O preço e o prazo são da **combinação**: o mesmo produto tem preço diferente em cada fornecedor, e o mesmo fornecedor, em cada produto. O nome do produto e a razão social do fornecedor, que dependeriam de só uma parte, ficam em `tb_product` e `tb_supplier` |
 | `tb_product_kitchen_parameter` | `min_stock`, `max_stock`, `average_daily_consumption` | `(id_product, id_kitchen)` | O estoque mínimo de arroz numa cozinha é diferente do de outra cozinha |
 | `tb_alert_read` | `read_at` | `(id_alert, id_user)` | É o momento em que **aquela pessoa** leu **aquele alerta** |
+| `tb_user_daily_access` | `first_access_time`, `last_access_time`, `access_count` | `(id_user, access_date)` | São os acessos **daquela pessoa** **naquele dia**; o nome e a cozinha do usuário ficam em `tb_user` |
 
 As demais tabelas têm chave simples (`id_*`), então estão automaticamente em 2FN.
 
@@ -244,6 +246,7 @@ Todos os relacionamentos usam `FOREIGN KEY` declarada no banco. "Obrigatório" s
 | `tb_user` | `tb_alert` (destinatário) | 1:N | `tb_alert.id_user` | Opcional (nulo = cozinha inteira) |
 | `tb_profile` | `tb_alert` (perfil destinatário) | 1:N | `tb_alert.id_target_profile` | Opcional |
 | `tb_alert` ↔ `tb_user` | via `tb_alert_read` | **N:N** | `id_alert`, `id_user` | Obrigatória; apagar o alerta apaga as leituras (`ON DELETE CASCADE`) |
+| `tb_user` | `tb_user_daily_access` | 1:N | `tb_user_daily_access.id_user` | Obrigatória; apagar o usuário apaga o histórico (`ON DELETE CASCADE`) |
 | `tb_catalog_access_level` | `tb_catalog_table` | 1:N | `tb_catalog_table.id_access_level` | Obrigatória |
 | `tb_catalog_table` | `tb_catalog_column` | 1:N | `tb_catalog_column.id_catalog_table` | Obrigatória (`ON DELETE CASCADE`) |
 | `tb_catalog_access_level` | `tb_catalog_column` | 1:N | `tb_catalog_column.id_access_level` | Opcional (nulo = herda o da tabela) |

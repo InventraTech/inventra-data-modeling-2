@@ -30,6 +30,10 @@ DICTIONARY=(
   functions/create_recovery_functions.sql
   procedures/create_recovery_procedures.sql
   views/backup/create_backup_views.sql
+  ddl/monitoring/create_monitoring_tables.sql
+  functions/create_monitoring_functions.sql
+  triggers/create_monitoring_trg.sql
+  views/monitoring/create_monitoring_views.sql
   ddl/catalog/load_catalog_metadata.sql
 )
 

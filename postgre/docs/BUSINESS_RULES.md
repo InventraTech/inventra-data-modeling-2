@@ -37,7 +37,7 @@ Os parâmetros acrescentados (`p_id_user`, `p_reason`, `p_id_requisition`) têm 
 
 ## Governança e recuperação
 
-Procedures e function de suporte, fora do fluxo de negócio. Criadas em `V010` (catálogo) e `V011` (backup).
+Procedures e functions de suporte, fora do fluxo de negócio. Criadas em `V010` (catálogo), `V011` (backup) e `V013` (monitoramento).
 
 | Objeto | Arquivo | O que faz |
 |--------|---------|-----------|
@@ -45,6 +45,7 @@ Procedures e function de suporte, fora do fluxo de negócio. Criadas em `V010` (
 | `sp_restore_from_audit(p_id_log)` | `procedures/create_recovery_procedures.sql` | Desfaz um `INSERT`, `UPDATE` ou `DELETE` usando a linha de `tb_log_*`; a própria recuperação também é auditada |
 | `sp_register_backup(...)` | `procedures/create_recovery_procedures.sql` | Grava uma execução de backup ou restore em `tb_backup_history` (chamada pelos scripts de `backup/`) |
 | `fn_table_row_counts()` | `functions/create_recovery_functions.sql` | Contagem exata de linhas por tabela, para comparar o banco de origem com o restaurado |
+| `fn_register_daily_access()` | `functions/create_monitoring_functions.sql` | Chamada por `trg_register_daily_access` (`AFTER UPDATE OF last_login` em `tb_user`): registra o acesso do dia em `tb_user_daily_access`, base do DAU. Veja [`MONITORING.md`](MONITORING.md) |
 
 Procedimentos completos em [`BACKUP_AND_RECOVERY.md`](BACKUP_AND_RECOVERY.md).
 

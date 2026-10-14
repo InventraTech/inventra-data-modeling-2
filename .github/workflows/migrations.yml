@@ -28,5 +28,6 @@ jobs:
       - uses: actions/checkout@v4
       - run: bash postgre/tests/check_migrations.sh
       - run: psql -X -q -v ON_ERROR_STOP=1 -f postgre/tests/check_normalization_integrity.sql
+      - run: psql -X -q -v ON_ERROR_STOP=1 -f postgre/tests/check_daily_access.sql
       - run: bash postgre/tests/check_backup_restore.sh
       - run: bash postgre/tests/check_dictionary_sync.sh
