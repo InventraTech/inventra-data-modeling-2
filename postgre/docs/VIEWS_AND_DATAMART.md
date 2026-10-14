@@ -66,4 +66,6 @@ Arquivo: `views/analytics/create_etl_views.sql`. CTEs organizam os cálculos e W
 | `vw_category_monthly_requisition_trend` | Demanda requisitada por categoria, mês a mês, com total acumulado (`SUM() OVER`) |
 | `vw_product_expiration_urgency` | Lotes ativos por produto/cozinha ordenados por validade, com acumulado de quantidade em risco (`SUM() OVER`) e ranking de urgência por cozinha (`RANK()`) |
 
-Rollbacks isolados em `views/rollback/`, `views/datamart/rollback/` e `views/analytics/rollback/`, além do `drop_everything.sql`.
+As views de DAU (`vw_dau`, `vw_dau_by_kitchen`), também com CTEs e Window Functions (`LAG`, `LEAD`, média móvel, soma acumulada e `RANK()`), estão em `views/monitoring/` e documentadas em [`MONITORING.md`](MONITORING.md).
+
+Rollbacks isolados em `views/rollback/`, `views/datamart/rollback/`, `views/analytics/rollback/` e `views/monitoring/rollback/`, além do `drop_everything.sql`.
