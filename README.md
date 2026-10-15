@@ -22,8 +22,11 @@ Bancos de dados do projeto interdisciplinar **Inventra**. Este repositório é a
 - **Redis:** o catálogo de chaves e os comandos de cada operação da API.
 - **Neo4j:** o levantamento de uso e a estrutura prevista.
 
+Para navegar por tudo isso, abra o **[Database Workspace](database-workspace.html)**.
+
 ## Sumário
 
+- [Database Workspace](#database-workspace)
 - [Bancos](#bancos)
 - [Arquitetura](#arquitetura)
 - [PostgreSQL](#postgresql)
@@ -35,6 +38,25 @@ Bancos de dados do projeto interdisciplinar **Inventra**. Este repositório é a
 - [Desenvolvimento](#desenvolvimento)
 - [Roadmap](#roadmap)
 - [Contribuidores](#contribuidores)
+
+## Database Workspace
+
+[`database-workspace.html`](database-workspace.html) é a documentação navegável de todos os bancos, num único arquivo que abre direto no navegador (sem servidor nem instalação). No `main` ele é publicado no GitHub Pages por [`pages.yml`](.github/workflows/pages.yml):
+
+- **PostgreSQL:** cada tabela com colunas, tipos, chaves, descrição, regra de negócio, nível de acesso e dado pessoal (LGPD) do catálogo; relacionamentos, índices, triggers, quem usa e o DDL. Diagrama ER interativo, dicionário de dados exportável em CSV, views, functions, procedures, triggers, índices, constraints e as migrations em ordem.
+- **MongoDB, Redis e Neo4j:** contrato das coleções com documento de exemplo, keyspace com os comandos de cada operação e o levantamento do grafo.
+- **Repositório:** todos os scripts com realce de sintaxe e links para os objetos, os documentos `.md` renderizados e o histórico de commits.
+- **Busca global** (`Ctrl K` ou `/`) por tabela, coluna, objeto, chave, arquivo e trecho de código; tema claro e escuro.
+
+Os dados vêm do schema real: o script lê o catálogo de um PostgreSQL com as migrations aplicadas e os arquivos versionados. Depois de mudar o banco, regenere:
+
+```bash
+export PGHOST=localhost PGUSER=postgres PGPASSWORD=postgres PGDATABASE=inventra_db
+for f in postgre/migrations/V*.sql; do psql -v ON_ERROR_STOP=1 --single-transaction -q -f "$f"; done
+python scripts/workspace/build.py
+```
+
+O `build.py` só reescreve o bloco de dados do HTML; a interface é o próprio arquivo. A introspecção está em [`scripts/workspace/introspect.sql`](scripts/workspace/introspect.sql).
 
 ## Bancos
 
@@ -247,6 +269,7 @@ Para inspecionar, use `SCAN` com padrão (`redis-cli --scan --pattern 'kar:kitch
 
 | Banco | Documento | Assunto |
 |-------|-----------|---------|
+| Todos | [`database-workspace.html`](database-workspace.html) | Documentação navegável e pesquisável de todos os bancos (veja [Database Workspace](#database-workspace)) |
 | PostgreSQL | [`ARCHITECTURE.md`](postgre/docs/ARCHITECTURE.md) | Dicionário vs. migrations, convenções, CI, herança das tabelas de log |
 | PostgreSQL | [`NORMALIZATION.md`](postgre/docs/normalization/NORMALIZATION.md) | Demonstração da 3FN (e FNBC, 4FN, 5FN), redundâncias controladas, PKs, FKs e cardinalidades |
 | PostgreSQL | [`BUSINESS_RULES.md`](postgre/docs/BUSINESS_RULES.md) | Functions, procedures, triggers de negócio e de auditoria |
@@ -255,7 +278,6 @@ Para inspecionar, use `SCAN` com padrão (`redis-cli --scan --pattern 'kar:kitch
 | PostgreSQL | [`BACKUP_AND_RECOVERY.md`](postgre/docs/BACKUP_AND_RECOVERY.md) | Política de backup, runbook de recuperação por tipo de falha, monitoramento |
 | PostgreSQL | [`MONITORING.md`](postgre/docs/MONITORING.md) | DAU: registro automático de acessos, views e otimização do MAU |
 | PostgreSQL | [`EXPLAIN_ANALYZE.md`](postgre/docs/query_optimization/EXPLAIN_ANALYZE.md) | Otimização de consultas: planos antes/depois dos 4 índices criados |
-| PostgreSQL | [`inventra_erp_flow.html`](postgre/docs/inventra_erp_flow.html) | Diagrama de fluxo ERP |
 | MongoDB | [`MONGO_MODEL.md`](mongo/docs/MONGO_MODEL.md) | Coleções, contrato `$jsonSchema`, índices, validação, retenção e esteira |
 | Redis | [`KEYSPACE.md`](redis/docs/KEYSPACE.md) | Cada chave (tipo, campos, TTL, dono), comandos por operação e operação do serviço |
 | Neo4j | [`README.md`](neo4j/README.md) | Levantamento (não usado) e estrutura prevista |
@@ -287,6 +309,8 @@ redis/
 ├── config/          # redis.conf de referência (noeviction, AOF)
 └── docs/            # KEYSPACE.md
 neo4j/               # README com o levantamento; ainda sem uso
+scripts/workspace/   # build.py + introspect.sql: geram os dados do database-workspace.html
+database-workspace.html  # documentação navegável de todos os bancos
 .github/workflows/   # CI: migrations (PostgreSQL) e mongo
 .env.example         # variáveis de conexão usadas pelos seeds, backups e testes
 ```
