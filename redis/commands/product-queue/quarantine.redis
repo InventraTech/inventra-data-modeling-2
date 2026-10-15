@@ -1,0 +1,23 @@
+# Quarentena: payload ausente ou JSON inválido vai direto para a DLQ, sem nova tentativa.
+# Na API isto é atômico (quarantine.lua).
+#   <token>    concessão do consumer
+#   <eventId>  pedido
+#   <code>     PAYLOAD_MISSING ou INVALID_PAYLOAD
+
+# 1. Se a concessão não for deste token, para aqui
+GET inventra:product-registration:consumer-lock
+
+# 2. Se o pedido não estiver mais pendente, para aqui
+ZSCORE inventra:product-registration:pending <eventId>
+
+# 3. Payload original (pode estar vazio ou corrompido)
+GET inventra:product-registration:job:<eventId>
+
+# 4. Entrada da DLQ com até 4 KiB do payload original, mesma retenção de update.redis
+LPUSH inventra:product-registration:errors '{"eventId":"<eventId>","status":"FAILED","errorCode":"<code>","originalPayload":"<primeiros 4096 bytes>"}'
+LTRIM inventra:product-registration:errors 0 999
+EXPIRE inventra:product-registration:errors 604800
+
+# 5. Payload expira em 7 dias e o pedido sai de pending
+EXPIRE inventra:product-registration:job:<eventId> 604800
+ZREM inventra:product-registration:pending <eventId>

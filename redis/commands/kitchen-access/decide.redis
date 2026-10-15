@@ -1,0 +1,16 @@
+# Supervisor aprova ou recusa um pedido de acesso.
+# Na API isto é atômico (DECIDE_SCRIPT, em Lua, dentro de RedisKitchenAccessRequestStore):
+# dois supervisores não conseguem decidir o mesmo pedido.
+#   <status>     APPROVED ou REJECTED
+#   <decidedAt>  epoch ms
+#   <decidedBy>  tb_user.id_user do supervisor
+#   <reason>     motivo ('' se não houver)
+
+# 1. Se o status não for PENDING (já decidido) ou a chave não existir (expirou), para aqui
+HGET kar:<id> status
+
+# 2. Grava a decisão
+HSET kar:<id> status <status> decidedAt <decidedAt> decidedBy <decidedBy> reason '<reason>'
+
+# 3. Tira o TTL: pedido decidido fica como histórico permanente
+PERSIST kar:<id>

@@ -1,0 +1,27 @@
+# Enfileirar um cadastro por código de barras (POST /api/products/barcode-registrations).
+# Na API isto roda de uma vez só, atômico (enqueue.lua). Aqui está passo a passo, para leitura.
+#   <eventId>  UUID do pedido
+#   <json>     ProductRegistrationJob com status QUEUED
+#   <token>    concessão do consumer atual (valor de consumer-lock)
+
+# 1. Pedido repetido: se já existe, para aqui (a API responde erro)
+EXISTS inventra:product-registration:job:<eventId>
+
+# 2. Próximo número da sequência (ordem FIFO do índice)
+INCR inventra:product-registration:sequence
+
+# 3. Payload do pedido, sem TTL enquanto estiver pendente
+SET inventra:product-registration:job:<eventId> '<json>'
+
+# 4. Índice durável dos pendentes, com score = número do passo 2
+ZADD inventra:product-registration:pending <sequence> <eventId>
+
+# 5. Entrega o ID: na lista do consumer, se houver concessão; senão, na lista global
+GET inventra:product-registration:consumer-lock
+
+#    com concessão (<token>):
+LPUSH inventra:product-registration:ready:<token> <eventId>
+EXPIRE inventra:product-registration:ready:<token> 30
+
+#    sem concessão:
+LPUSH inventra:product-registration:ready <eventId>

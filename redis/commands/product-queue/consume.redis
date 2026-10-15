@@ -1,0 +1,13 @@
+# Consumir e consultar a fila.
+# Na API: take() e find() em RedisProductRegistrationQueue.
+
+# Retirar o próximo ID (o mais antigo), esperando até 2 s.
+# O ID sai só da lista; continua em pending até a confirmação (update.redis ou quarantine.redis).
+BRPOP inventra:product-registration:ready:<token> 2
+
+# Ler o pedido (GET /api/products/barcode-registrations/<eventId>)
+GET inventra:product-registration:job:<eventId>
+
+# Inspeção: quantos pendentes e o que está na DLQ
+ZCARD inventra:product-registration:pending
+LRANGE inventra:product-registration:errors 0 9
