@@ -117,7 +117,7 @@ Banco relacional do ERP. Detalhes, convenções e decisões de design em [`ARCHI
 | **Governança** | Catálogo de dados: descrição, regra de negócio e nível de acesso de cada tabela e coluna |
 | **Backup** | Backup gerenciado (Aiven) + `pg_dump` com restore testado no CI + recuperação de linha pela auditoria |
 | **Monitoramento** | DAU registrado pelo próprio banco a cada login (trigger em `tb_user.last_login`), com `vw_dau` e `vw_dau_by_kitchen` |
-| **Entrega** | Migrations idempotentes `V001`–`V014`, com rollback e validação no CI |
+| **Entrega** | Migrations idempotentes `V001`–`V015`, com rollback e validação no CI |
 
 ### Dicionário e migrations
 
@@ -125,7 +125,7 @@ O projeto separa o **dicionário** (código de leitura, um arquivo por assunto) 
 
 ```mermaid
 flowchart LR
-    D["Dicionário<br/>ddl · functions · procedures · triggers · views"] -->|consolidado em| M["migrations<br/>V001 … V014"]
+    D["Dicionário<br/>ddl · functions · procedures · triggers · views"] -->|consolidado em| M["migrations<br/>V001 … V015"]
     M -->|psql / CI| DB[("PostgreSQL")]
     M -->|cópia byte a byte| API["API Spring<br/>Flyway"]
     DB --> BI["Power BI / Metabase<br/>dim_* · fact_*"]
@@ -147,6 +147,7 @@ flowchart LR
 | `V012__normalization_integrity.sql` | Protege as redundâncias controladas: `divergence` sempre recalculada e alerta com produto e cozinha do lote |
 | `V013__daily_active_users.sql` | Registro automático de acessos (`tb_user_daily_access`) e DAU (`vw_dau`, `vw_dau_by_kitchen`) |
 | `V014__ui_click_counter.sql` | Contador de cliques: uma linha, uma coluna por coisa clicável do web e do mobile (`tb_ui_click_counter`), e `vw_ui_click_ranking` |
+| `V015__user_profile_photo.sql` | Foto de perfil do usuário (`tb_user.photo_url`, URL do Cloudinary) |
 
 > [!WARNING]
 > A API tem uma `V010__product_registration_event.sql` própria, que adiciona `tb_product.registration_event_id` para a fila Redis. Essa coluna ainda não está neste repositório, e o número `V010` aqui é o catálogo de dados. As migrations `V001`–`V009` são idênticas nos dois repositórios.
@@ -293,7 +294,7 @@ postgre/
 ├── triggers/        # gatilhos de negócio e de auditoria
 ├── views/           # vw_*  ·  datamart/ (dim_*, fact_*)  ·  analytics/  ·  catalog/  ·  backup/  ·  monitoring/
 │                    #   (cada pasta tem subpasta rollback/)
-├── migrations/      # V001–V014 + rollback/drop_everything.sql
+├── migrations/      # V001–V015 + rollback/drop_everything.sql
 ├── backup/          # backup.sh e restore.sh (pg_dump); dumps/ fica fora do git
 ├── seeds/           # seed.ipynb + requirements.txt
 ├── tests/           # migrations (idempotência + rollback), integridade, DAU, backup/restore e dicionário × migrations
