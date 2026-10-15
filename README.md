@@ -65,7 +65,7 @@ O `build.py` só reescreve o bloco de dados do HTML; a interface é o próprio a
 |-------|-------|-----------|-------|----|
 | **PostgreSQL 16** | [`postgre/`](postgre) | API Spring | Fonte da verdade do cadastro, estoque, requisições, inventário, alertas e auditoria | [`migrations.yml`](.github/workflows/migrations.yml) |
 | **MongoDB 8** | [`mongo/`](mongo) | IA (IAI) | Banco `dbIAI`: conversas do chat e métricas de custo/latência por requisição | [`mongo.yml`](.github/workflows/mongo.yml) |
-| **Redis 7** | [`redis/`](redis) | API Spring | Refresh tokens, pedidos de acesso à cozinha e fila de cadastro por código de barras | [`redis.yml`](.github/workflows/redis.yml) |
+| **Redis 7** | [`redis/`](redis) | API Spring | Refresh tokens, pedidos de acesso, fila de cadastro e ranking de validade | [`redis.yml`](.github/workflows/redis.yml) + [`redis-tests.yml`](.github/workflows/redis-tests.yml) |
 | **Neo4j** | [`neo4j/`](neo4j) | nenhum serviço | Ainda não usado | sem CI |
 
 | Serviço | Repositório | Bancos |
@@ -238,11 +238,14 @@ mongosh "$MONGO_CONNECTION" --file migrations/rollback/drop_everything.js
 
 Estado operacional da API, sem schema. O contrato de cada chave está em [`KEYSPACE.md`](redis/docs/KEYSPACE.md).
 
+As entregas **INV2-24, INV2-25 e INV2-26** também estão versionadas em [`redis/`](redis/README.md). O diretório reúne a aplicação Java executável, as dependências de domínio necessárias, scripts Lua e testes importados do repositório da API. Consulte o [guia de migração](redis/docs/MIGRATION.md) para origem, validação e limites entre os históricos SQL.
+
 | Uso | Chaves | TTL |
 |-----|--------|-----|
 | Refresh tokens (rotação e revogação por família) | `rt:{hash}`, `rt:fam:{familyId}` | 30 dias |
 | Pedidos de acesso à cozinha | `kar:{id}`, `kar:user:{userId}`, `kar:user:{userId}:kitchens`, `kar:kitchen:{kitchenId}` | 7 dias enquanto pendente; decidido fica como histórico |
 | Fila de cadastro por código de barras (FIFO, DLQ) | `inventra:product-registration:*` (`ready`, `job:{eventId}`, `pending`, `sequence`, `consumer-lock`, `errors`) | Pendentes sem TTL; resultado e DLQ 7 dias |
+| Ranking de lotes por validade | `inventra:ranking:expiration:{kitchenId}` | 60 segundos, renovados a cada reconstrução |
 
 | | |
 |---|---|
@@ -308,12 +311,15 @@ mongo/
 redis/
 ├── commands/        # comandos de cada operação (.redis): auth/, kitchen-access/, product-queue/
 ├── config/          # redis.conf de referência (noeviction, AOF)
+├── src/             # aplicação Spring, scripts Lua e testes das INV2-24/25/26
 ├── tests/           # redis.conf aplicado num redis:7 e KEYSPACE.md × commands/
-└── docs/            # KEYSPACE.md
+├── docs/            # KEYSPACE, operação, migração e evidências
+├── pom.xml           # build Maven da aplicação migrada
+└── compose.test.yaml # Redis e PostgreSQL descartáveis para integração
 neo4j/               # README com o levantamento; ainda sem uso
 scripts/workspace/   # build.py + introspect.sql: geram os dados do database-workspace.html
 database-workspace.html  # documentação navegável de todos os bancos
-.github/workflows/   # CI: migrations (PostgreSQL), mongo e redis
+.github/workflows/   # CI: PostgreSQL, MongoDB, contrato Redis e integração Redis
 .env.example         # variáveis de conexão usadas pelos seeds, backups e testes
 ```
 
