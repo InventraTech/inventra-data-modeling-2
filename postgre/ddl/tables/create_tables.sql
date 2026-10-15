@@ -8,6 +8,7 @@ CREATE TABLE tb_user (
 	email VARCHAR(150) NOT NULL UNIQUE,
 	password_hash VARCHAR(255),
 	firebase_uid VARCHAR(128),
+	photo_url VARCHAR(255),
 	id_kitchen INTEGER,
 	id_profile INTEGER NOT NULL,
 	active BOOLEAN NOT NULL DEFAULT true,

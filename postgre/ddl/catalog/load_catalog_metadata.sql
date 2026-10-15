@@ -143,6 +143,7 @@ FROM (VALUES
 	('tb_user', 'email', 'E-mail usado no login.', 'Único (UNIQUE).', NULL, true),
 	('tb_user', 'password_hash', 'Hash da senha gerado pela API.', 'Nulo em conta criada pelo login Google. Nunca guarda senha em texto puro.', 'CONFIDENTIAL', true),
 	('tb_user', 'firebase_uid', 'Identificador do usuário no Firebase Auth (login Google).', 'Único quando preenchido (uq_user_firebase_uid).', 'CONFIDENTIAL', true),
+	('tb_user', 'photo_url', 'URL da foto de perfil do usuário.', 'Nula quando o usuário não tem foto. secure_url do Cloudinary com a versão (public_id inventra/users/{id_user}), trocada a cada envio, ou a foto do Google gravada na criação da conta.', NULL, true),
 	('tb_user', 'id_kitchen', 'Cozinha à qual o usuário pertence.', 'Nulo enquanto o usuário não for vinculado a uma cozinha.', NULL, false),
 	('tb_user', 'id_profile', 'Perfil de acesso do usuário.', 'Obrigatório.', NULL, false),
 	('tb_user', 'active', 'Indica se a conta está ativa.', 'Desativação lógica: o registro não é apagado.', NULL, false),
