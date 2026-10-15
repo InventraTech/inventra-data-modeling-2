@@ -1,0 +1,4 @@
+faker
+pymongo
+psycopg2-binary
+python-dotenv
