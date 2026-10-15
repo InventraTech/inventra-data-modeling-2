@@ -1,0 +1,22 @@
+# Refresh tokens com rotação e revogação por família.
+# Na API: RedisRefreshTokenStore. A chave é o hash do token; o token em si nunca é gravado.
+#   <hash>      hash do refresh token
+#   <familyId>  família de rotação (todos os tokens do mesmo login)
+#   <ttl>       jwt.refresh-expiration-ms em segundos (padrão 2592000 = 30 dias)
+
+# Emitir (login ou rotação)
+HSET rt:<hash> userId <userId> familyId <familyId> pwd <impressaoDaSenha>
+EXPIRE rt:<hash> <ttl>
+SADD rt:fam:<familyId> <hash>
+EXPIRE rt:fam:<familyId> <ttl>
+
+# Validar
+HGETALL rt:<hash>
+
+# Marcar como usado na rotação (só a primeira vez grava)
+HSETNX rt:<hash> usedAt <epochMs>
+
+# Revogar a família (ex.: reuso de um token já trocado, depois de 10 s de tolerância)
+SMEMBERS rt:fam:<familyId>
+DEL rt:<hash1> rt:<hash2>
+DEL rt:fam:<familyId>

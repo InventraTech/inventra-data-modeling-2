@@ -1,0 +1,16 @@
+# Concessão exclusiva de consumo da fila. Só um consumer processa por vez.
+# Na API: acquire/renew/release em RedisProductRegistrationQueue; renovar e liberar são atômicos (lease.lua).
+#   <token>  identificador aleatório do consumer
+
+# Adquirir: só grava se ninguém tiver a concessão (NX), válida por 30 s
+SET inventra:product-registration:consumer-lock <token> NX EX 30
+
+# Renovar (a cada 5 s): só se a concessão ainda for deste token
+GET inventra:product-registration:consumer-lock
+EXPIRE inventra:product-registration:consumer-lock 30
+EXPIRE inventra:product-registration:ready:<token> 30
+
+# Liberar (ao desligar o consumer): só se a concessão ainda for deste token
+GET inventra:product-registration:consumer-lock
+DEL inventra:product-registration:consumer-lock
+DEL inventra:product-registration:ready:<token>

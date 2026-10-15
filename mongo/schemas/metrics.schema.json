@@ -1,0 +1,46 @@
+{
+  "bsonType": "object",
+  "title": "dbIAI.metrics",
+  "description": "Um documento por requisição de /chat (ColetorMetricas). Não guarda o texto do prompt.",
+  "required": ["timestamp", "session_id", "user_id", "latencia_total_ms", "status", "nos", "chamadas",
+               "tokens_entrada", "tokens_saida", "custo_usd", "erros_componentes", "resolvida", "agentes_chamados"],
+  "properties": {
+    "timestamp":         { "bsonType": "date", "description": "Janela de GET /metrics (7 ou 30 dias)" },
+    "session_id":        { "bsonType": "string" },
+    "user_id":           { "bsonType": "string" },
+    "latencia_total_ms": { "bsonType": ["double", "int"], "minimum": 0 },
+    "status":            { "enum": ["ok", "bloqueado", "erro"], "description": "bloqueado = guardrail de entrada recusou; não conta como erro" },
+    "nos": {
+      "bsonType": "array",
+      "items": {
+        "bsonType": "object",
+        "required": ["no", "ms", "erro"],
+        "properties": {
+          "no":   { "bsonType": "string", "description": "Nó do grafo LangGraph" },
+          "ms":   { "bsonType": ["double", "int"], "minimum": 0 },
+          "erro": { "bsonType": "bool" }
+        }
+      }
+    },
+    "chamadas": {
+      "bsonType": "array",
+      "items": {
+        "bsonType": "object",
+        "required": ["modelo", "tokens_entrada", "tokens_saida", "custo_usd", "latencia_ms"],
+        "properties": {
+          "modelo":         { "bsonType": "string" },
+          "tokens_entrada": { "bsonType": ["int", "long"], "minimum": 0 },
+          "tokens_saida":   { "bsonType": ["int", "long"], "minimum": 0 },
+          "custo_usd":      { "bsonType": ["double", "int"], "minimum": 0 },
+          "latencia_ms":    { "bsonType": ["double", "int"], "minimum": 0 }
+        }
+      }
+    },
+    "tokens_entrada":    { "bsonType": ["int", "long"], "minimum": 0 },
+    "tokens_saida":      { "bsonType": ["int", "long"], "minimum": 0 },
+    "custo_usd":         { "bsonType": ["double", "int"], "minimum": 0 },
+    "erros_componentes": { "bsonType": "array", "items": { "bsonType": "string" }, "description": "llm:*, tool:*, chain:*" },
+    "resolvida":         { "bsonType": "bool", "description": "Especialista respondeu e o juiz aprovou" },
+    "agentes_chamados":  { "bsonType": "array", "items": { "bsonType": "string" } }
+  }
+}

@@ -1,0 +1,28 @@
+# Pedido de acesso de um usuário a uma cozinha.
+# Na API: savePending, find, findLatestByUser, findLatestByUserPerKitchen e listByKitchen
+# em RedisKitchenAccessRequestStore.
+#   <id>         ID do pedido
+#   <userId>     tb_user.id_user
+#   <kitchenId>  tb_kitchen.id_kitchen
+#   <createdAt>  epoch ms
+
+# Criar o pedido pendente (expira sozinho em 7 dias)
+HSET kar:<id> userId <userId> userName '<nome>' userEmail '<email>' kitchenId <kitchenId> kitchenName '<cozinha>' status PENDING createdAt <createdAt>
+EXPIRE kar:<id> 604800
+SET kar:user:<userId> <id>
+HSET kar:user:<userId>:kitchens <kitchenId> <id>
+ZADD kar:kitchen:<kitchenId> <createdAt> <id>
+
+# Ler um pedido
+HGETALL kar:<id>
+
+# Pedido mais recente do usuário, no geral e por cozinha
+GET kar:user:<userId>
+HGETALL kar:user:<userId>:kitchens
+
+# Pedidos de uma cozinha, mais recente primeiro (tela do supervisor)
+ZREVRANGE kar:kitchen:<kitchenId> 0 -1
+
+# Limpeza na leitura: pedido pendente que expirou deixa o ID nos índices
+ZREM kar:kitchen:<kitchenId> <id>
+HDEL kar:user:<userId>:kitchens <kitchenId>

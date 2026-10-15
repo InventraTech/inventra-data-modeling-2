@@ -1,0 +1,26 @@
+{
+  "bsonType": "object",
+  "title": "dbIAI.sessions",
+  "description": "Uma conversa do chat da IA. Ativa enquanto summary está vazio; /chat/encerrar grava o resumo e fecha a sessão.",
+  "required": ["_id", "session_id", "user_id", "started_at", "updated_at", "summary", "messages"],
+  "properties": {
+    "_id":        { "bsonType": "string", "description": "UUID v4 gerado pela IAI (doc_id devolvido em /chat/historico)" },
+    "session_id": { "bsonType": "string", "description": "Identificador da conversa enviado pelo app; pode se repetir entre sessões encerradas" },
+    "user_id":    { "bsonType": "string", "description": "Dono da conversa; isola o histórico (tool buscar_historico)" },
+    "started_at": { "bsonType": "date" },
+    "updated_at": { "bsonType": "date" },
+    "summary":    { "bsonType": "string", "description": "Resumo gerado pelo LLM ao encerrar; vazio = sessão ativa" },
+    "messages": {
+      "bsonType": "array",
+      "items": {
+        "bsonType": "object",
+        "required": ["role", "content"],
+        "properties": {
+          "role":      { "enum": ["human", "iai", "judge"], "description": "judge = reprovação do juiz, só para auditoria" },
+          "content":   { "bsonType": "string", "description": "Texto já anonimizado (e-mail, CPF, RG e telefone viram tokens)" },
+          "confianca": { "bsonType": ["double", "int"], "minimum": 0, "maximum": 1, "description": "Só em role = judge" }
+        }
+      }
+    }
+  }
+}

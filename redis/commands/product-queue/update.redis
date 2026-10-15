@@ -1,0 +1,23 @@
+# Atualizar o estado de um pedido (PROCESSING, COMPLETED ou FAILED).
+# Na API isto é atômico (update.lua): um consumer que perdeu a concessão não confirma nada.
+#   <token>    concessão do consumer
+#   <eventId>  pedido
+#   <json>     ProductRegistrationJob com o novo status
+
+# 1. Se a concessão não for deste token, para aqui
+GET inventra:product-registration:consumer-lock
+
+# 2. Se o pedido não estiver mais pendente (já confirmado), para aqui
+ZSCORE inventra:product-registration:pending <eventId>
+
+# 3a. PROCESSING: só grava o novo estado, sem TTL, e o pedido continua pendente
+SET inventra:product-registration:job:<eventId> '<json>'
+
+# 3b. COMPLETED ou FAILED: resultado fica 7 dias e o pedido sai de pending
+SET inventra:product-registration:job:<eventId> '<json>' EX 604800
+ZREM inventra:product-registration:pending <eventId>
+
+# 4. Só FAILED: vai para a DLQ, limitada a 1.000 itens, que expira 7 dias após a última falha
+LPUSH inventra:product-registration:errors '<json>'
+LTRIM inventra:product-registration:errors 0 999
+EXPIRE inventra:product-registration:errors 604800

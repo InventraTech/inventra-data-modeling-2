@@ -1,0 +1,17 @@
+name: mongo
+
+on:
+  push:
+    paths: ['mongo/**', '.github/workflows/mongo.yml']
+  pull_request:
+    paths: ['mongo/**', '.github/workflows/mongo.yml']
+
+jobs:
+  check-mongo:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # mongosh vem na imagem; o repositório é montado para os scripts rodarem dentro do container
+      - run: docker run -d --name mongo -v "$GITHUB_WORKSPACE:/repo" mongo:8
+      - run: timeout 60 bash -c 'until docker exec mongo mongosh --quiet --eval "db.adminCommand({ ping: 1 }).ok" > /dev/null 2>&1; do sleep 1; done'
+      - run: docker exec mongo bash /repo/mongo/tests/check_migrations.sh
