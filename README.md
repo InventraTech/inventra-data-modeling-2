@@ -65,7 +65,7 @@ O `build.py` só reescreve o bloco de dados do HTML; a interface é o próprio a
 |-------|-------|-----------|-------|----|
 | **PostgreSQL 16** | [`postgre/`](postgre) | API Spring | Fonte da verdade do cadastro, estoque, requisições, inventário, alertas e auditoria | [`migrations.yml`](.github/workflows/migrations.yml) |
 | **MongoDB 8** | [`mongo/`](mongo) | IA (IAI) | Banco `dbIAI`: conversas do chat e métricas de custo/latência por requisição | [`mongo.yml`](.github/workflows/mongo.yml) |
-| **Redis 7** | [`redis/`](redis) | API Spring | Refresh tokens, pedidos de acesso, fila de cadastro e ranking de validade | [`redis.yml`](.github/workflows/redis.yml) + [`redis-tests.yml`](.github/workflows/redis-tests.yml) |
+| **Redis 7** | [`redis/`](redis) | API Spring | Refresh tokens, pedidos de acesso, fila de cadastro e ranking de validade | [`redis.yml`](.github/workflows/redis.yml) |
 | **Neo4j** | [`neo4j/`](neo4j) | nenhum serviço | Ainda não usado | sem CI |
 
 | Serviço | Repositório | Bancos |
@@ -238,7 +238,7 @@ mongosh "$MONGO_CONNECTION" --file migrations/rollback/drop_everything.js
 
 Estado operacional da API, sem schema. O contrato de cada chave está em [`KEYSPACE.md`](redis/docs/KEYSPACE.md).
 
-As entregas **INV2-24, INV2-25 e INV2-26** também estão versionadas em [`redis/`](redis/README.md). O diretório reúne a aplicação Java executável, as dependências de domínio necessárias, scripts Lua e testes importados do repositório da API. Consulte o [guia de migração](redis/docs/MIGRATION.md) para origem, validação e limites entre os históricos SQL.
+As entregas **INV2-24, INV2-25 e INV2-26** estão versionadas em [`redis/`](redis/README.md) como artefatos de banco: configuração, comandos, scripts Lua, contratos e testes. A aplicação Java que usa esses contratos permanece no [repositório da API](https://github.com/InventraTech/inventra-development-spring-redis-neo4j-2), evitando duas cópias divergentes do serviço.
 
 | Uso | Chaves | TTL |
 |-----|--------|-----|
@@ -251,6 +251,7 @@ As entregas **INV2-24, INV2-25 e INV2-26** também estão versionadas em [`redis
 |---|---|
 | **Serviço** | Aiven for Valkey/Redis, standalone, TLS |
 | **Comandos** | [`redis/commands/`](redis/commands): um arquivo `.redis` por operação da API, com os comandos passo a passo e comentados. São de leitura; a API executa as operações condicionais de uma vez só, de forma atômica |
+| **Scripts** | [`redis/scripts/`](redis/scripts): operações Lua atômicas da fila e publicação integral do ranking |
 | **Configuração** | [`redis.conf`](redis/config/redis.conf) de referência: `maxmemory-policy noeviction` (pendentes e histórico não têm TTL e não podem ser despejados) e AOF |
 | **Backup** | Não é fonte da verdade. Perder o Redis derruba sessões, pedidos de acesso pendentes e jobs ainda não processados; o cadastro continua no PostgreSQL |
 | **Fora do Redis** | Os limites de tentativa de login e de busca de cozinha ficam em memória da instância da API |
@@ -311,15 +312,14 @@ mongo/
 redis/
 ├── commands/        # comandos de cada operação (.redis): auth/, kitchen-access/, product-queue/, ranking/
 ├── config/          # redis.conf de referência (noeviction, AOF)
-├── src/             # aplicação Spring, scripts Lua e testes das INV2-24/25/26
-├── tests/           # redis.conf aplicado num redis:7 e KEYSPACE.md × commands/
-├── docs/            # KEYSPACE, operação, migração e evidências
-├── pom.xml           # build Maven da aplicação migrada
-└── compose.test.yaml # Redis e PostgreSQL descartáveis para integração
+├── scripts/         # operações Lua atômicas: product-queue/ e ranking/
+├── tests/           # keyspace, redis.conf e scripts validados num redis:7
+├── docs/            # KEYSPACE, fila de produtos e ranking
+└── README.md         # mapa das entregas INV2-24/25/26
 neo4j/               # README com o levantamento; ainda sem uso
 scripts/workspace/   # build.py + introspect.sql: geram os dados do database-workspace.html
 database-workspace.html  # documentação navegável de todos os bancos
-.github/workflows/   # CI: PostgreSQL, MongoDB, contrato Redis e integração Redis
+.github/workflows/   # CI: PostgreSQL, MongoDB e contrato/scripts Redis
 .env.example         # variáveis de conexão usadas pelos seeds, backups e testes
 ```
 
@@ -370,13 +370,14 @@ database-workspace.html  # documentação navegável de todos os bancos
 
 1. Chave nova, campo novo ou TTL diferente na API entra no [`KEYSPACE.md`](redis/docs/KEYSPACE.md) e no arquivo de `redis/commands/` da operação, no mesmo PR da API.
 2. Mudança de configuração do serviço (eviction, persistência) entra em `redis/config/redis.conf` e precisa ser aplicada também no console da Aiven.
-3. Valide localmente com os mesmos scripts do CI (o segundo precisa de docker):
+3. Valide localmente com os mesmos scripts do CI (os dois últimos precisam de Docker):
 
    ```bash
    bash redis/tests/check_keyspace_sync.sh   # KEYSPACE.md e commands/ descrevem as mesmas chaves
    bash redis/tests/check_config.sh          # o redis.conf sobe num redis:7 e cada diretiva é aplicada
+   bash redis/tests/check_scripts.sh         # fila e ranking rodam de verdade num redis:7
    ```
-4. O CI roda esses dois testes em cada push/PR que toque `redis/`.
+4. O CI roda esses três testes em cada push/PR que toque `redis/`.
 
 ## Roadmap
 

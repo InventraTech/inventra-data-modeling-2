@@ -1,7 +1,7 @@
 # Ranking de validade por cozinha (INV2-26).
 # Arquivo de leitura: substitua os placeholders antes de executar manualmente.
 # A API executa a publicação inteira pelo script Lua
-# src/main/resources/redis/ranking/replace.lua.
+# redis/scripts/ranking/replace.lua.
 
 # Publicar um snapshot. KEYS[1] é a chave visível e KEYS[2] é uma chave
 # temporária exclusiva. ARGV: TTL, marcador vazio e pares membro/score.

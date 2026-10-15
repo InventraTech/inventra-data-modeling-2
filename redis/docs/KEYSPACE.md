@@ -65,7 +65,7 @@ Um usuário pede para entrar numa cozinha; o supervisor aprova ou recusa. O pedi
 
 ## Fila de cadastro por código de barras (`inventra:product-registration:*`)
 
-Fila FIFO confiável da INV2-25 (Redis List com `LPUSH`/`BRPOP`). O fluxo completo, garantias e evidências estão em `docs/redis-product-queue.md` da API; aqui fica o contrato das chaves. O prefixo vem de `REDIS_PRODUCT_QUEUE_KEY_PREFIX`: ambientes que compartilham o mesmo Redis precisam de prefixos diferentes, e os testes usam `inventra:test:...`.
+Fila FIFO confiável da INV2-25 (Redis List com `LPUSH`/`BRPOP`). O fluxo completo e as garantias estão em [`PRODUCT_QUEUE.md`](PRODUCT_QUEUE.md). O prefixo vem de `REDIS_PRODUCT_QUEUE_KEY_PREFIX`: ambientes que compartilham o mesmo Redis precisam de prefixos diferentes, e os testes usam `inventra:test:...`.
 
 | Sufixo | Conteúdo |
 |--------|----------|
@@ -92,7 +92,7 @@ Ranking da INV2-26 com um Sorted Set por cozinha. Entram lotes `ACTIVE`, com sal
 - Entrada, baixa, reposição, ajuste e consumo FEFO publicam a alteração após o commit PostgreSQL. A reconstrução assíncrona substitui o snapshot inteiro de forma atômica.
 - Cache ausente ou expirado é reconstruído a partir do PostgreSQL na próxima consulta. Uma falha do Redis não desfaz uma movimentação já confirmada no banco relacional.
 - Endpoint: `GET /ranking?kitchenId={id}&limit={1..100}`. A autenticação e a autorização por cozinha permanecem iguais às da API.
-- Contrato completo, critérios e evidências: [`redis-expiration-ranking.md`](redis-expiration-ranking.md).
+- Contrato completo e critérios: [`RANKING.md`](RANKING.md).
 
 ## Comandos por operação
 
@@ -111,7 +111,7 @@ Cada operação da API está em [`commands/`](../commands), como a sequência de
 | `product-queue/quarantine.redis` | Payload inválido direto para a DLQ |
 | `ranking/expiration.redis` | Publicar atomicamente e consultar o ranking de validade por cozinha |
 
-**Atomicidade.** Nos arquivos que começam com "se ... para aqui" (`enqueue`, `recover`, `update`, `quarantine`, renovar/liberar em `lease` e `decide`), a API não manda os comandos um a um. Ela executa a sequência inteira de uma vez, num script Lua (`src/main/resources/redis/product-queue/*.lua` e `DECIDE_SCRIPT` em `RedisKitchenAccessRequestStore`). É o que impede um consumer que perdeu a concessão de confirmar um item, ou dois supervisores de decidirem o mesmo pedido. Rodados manualmente, um por um, esses comandos **não** têm essa garantia; para corrigir dado em produção, prefira a API.
+**Atomicidade.** Nos arquivos que começam com "se ... para aqui" (`enqueue`, `recover`, `update`, `quarantine`, renovar/liberar em `lease` e `decide`), a API não manda os comandos um a um. Ela executa a sequência inteira de uma vez. Os scripts versionados estão em [`scripts/product-queue/`](../scripts/product-queue/) e [`scripts/ranking/`](../scripts/ranking/); a decisão de acesso continua no `DECIDE_SCRIPT` da API. É o que impede um consumer que perdeu a concessão de confirmar um item, dois supervisores de decidirem o mesmo pedido ou leitores de observarem um ranking parcial. Rodados manualmente, um por um, esses comandos **não** têm essa garantia; para corrigir dado em produção, prefira a API.
 
 ## O que não está no Redis
 
