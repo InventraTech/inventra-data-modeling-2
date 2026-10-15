@@ -1,0 +1,17 @@
+name: redis
+
+on:
+  push:
+    paths: ['redis/**', '.github/workflows/redis.yml']
+  pull_request:
+    paths: ['redis/**', '.github/workflows/redis.yml']
+
+jobs:
+  check-redis:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # KEYSPACE.md e redis/commands/ descrevem as mesmas chaves (não precisa de Redis)
+      - run: bash redis/tests/check_keyspace_sync.sh
+      # o redis.conf sobe num redis:7 e cada diretiva é aplicada
+      - run: bash redis/tests/check_config.sh
