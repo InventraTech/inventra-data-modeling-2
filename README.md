@@ -11,6 +11,7 @@
 <br />
 [![Migrations](https://github.com/InventraTech/inventra-database-2/actions/workflows/migrations.yml/badge.svg)](https://github.com/InventraTech/inventra-database-2/actions/workflows/migrations.yml)
 [![mongo](https://github.com/InventraTech/inventra-database-2/actions/workflows/mongo.yml/badge.svg)](https://github.com/InventraTech/inventra-database-2/actions/workflows/mongo.yml)
+[![redis](https://github.com/InventraTech/inventra-database-2/actions/workflows/redis.yml/badge.svg)](https://github.com/InventraTech/inventra-database-2/actions/workflows/redis.yml)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 </div>
@@ -64,7 +65,7 @@ O `build.py` só reescreve o bloco de dados do HTML; a interface é o próprio a
 |-------|-------|-----------|-------|----|
 | **PostgreSQL 16** | [`postgre/`](postgre) | API Spring | Fonte da verdade do cadastro, estoque, requisições, inventário, alertas e auditoria | [`migrations.yml`](.github/workflows/migrations.yml) |
 | **MongoDB 8** | [`mongo/`](mongo) | IA (IAI) | Banco `dbIAI`: conversas do chat e métricas de custo/latência por requisição | [`mongo.yml`](.github/workflows/mongo.yml) |
-| **Redis 7** | [`redis/`](redis) | API Spring | Refresh tokens, pedidos de acesso à cozinha e fila de cadastro por código de barras | sem CI (só documentação) |
+| **Redis 7** | [`redis/`](redis) | API Spring | Refresh tokens, pedidos de acesso à cozinha e fila de cadastro por código de barras | [`redis.yml`](.github/workflows/redis.yml) |
 | **Neo4j** | [`neo4j/`](neo4j) | nenhum serviço | Ainda não usado | sem CI |
 
 | Serviço | Repositório | Bancos |
@@ -307,11 +308,12 @@ mongo/
 redis/
 ├── commands/        # comandos de cada operação (.redis): auth/, kitchen-access/, product-queue/
 ├── config/          # redis.conf de referência (noeviction, AOF)
+├── tests/           # redis.conf aplicado num redis:7 e KEYSPACE.md × commands/
 └── docs/            # KEYSPACE.md
 neo4j/               # README com o levantamento; ainda sem uso
 scripts/workspace/   # build.py + introspect.sql: geram os dados do database-workspace.html
 database-workspace.html  # documentação navegável de todos os bancos
-.github/workflows/   # CI: migrations (PostgreSQL) e mongo
+.github/workflows/   # CI: migrations (PostgreSQL), mongo e redis
 .env.example         # variáveis de conexão usadas pelos seeds, backups e testes
 ```
 
@@ -362,6 +364,13 @@ database-workspace.html  # documentação navegável de todos os bancos
 
 1. Chave nova, campo novo ou TTL diferente na API entra no [`KEYSPACE.md`](redis/docs/KEYSPACE.md) e no arquivo de `redis/commands/` da operação, no mesmo PR da API.
 2. Mudança de configuração do serviço (eviction, persistência) entra em `redis/config/redis.conf` e precisa ser aplicada também no console da Aiven.
+3. Valide localmente com os mesmos scripts do CI (o segundo precisa de docker):
+
+   ```bash
+   bash redis/tests/check_keyspace_sync.sh   # KEYSPACE.md e commands/ descrevem as mesmas chaves
+   bash redis/tests/check_config.sh          # o redis.conf sobe num redis:7 e cada diretiva é aplicada
+   ```
+4. O CI roda esses dois testes em cada push/PR que toque `redis/`.
 
 ## Roadmap
 
