@@ -1,6 +1,6 @@
 # Normalização do Modelo
 
-Demonstração de que o banco do Inventra está normalizado até a **3ª Forma Normal (3FN)**. Também atende à Forma Normal de Boyce-Codd (FNBC) e não precisa de decomposição para a 4FN nem para a 5FN. Cobre o schema de `V001` a `V013`.
+Demonstração de que o banco do Inventra está normalizado até a **3ª Forma Normal (3FN)**. Também atende à Forma Normal de Boyce-Codd (FNBC) e não precisa de decomposição para a 4FN nem para a 5FN. Cobre o schema de `V001` a `V014`.
 
 ## 1. Resumo
 
@@ -67,6 +67,7 @@ Em todas as tabelas abaixo, a única DF é **chave → demais colunas**, exceto 
 | `tb_stock_movement` | `id_movement` | `id_movement → id_batch, id_user, id_requisition, type, reason, quantity, balance_after, created_at` | `balance_after`: [R3](#r3-saldo-após-a-movimentação-balance_after) |
 | `tb_alert` | `id_alert` | `id_alert → type, severity, id_batch, id_product, id_kitchen, id_user, id_target_profile, ref_key, message, is_read, created_at` e, quando há lote, `id_batch → id_product, id_kitchen` | [R4](#r4-produto-e-cozinha-no-alerta-com-lote) e [R5](#r5-dois-modelos-de-leitura-de-alerta) |
 | `tb_user_daily_access` | `(id_user, access_date)` | `(id_user, access_date) → first_access_time, last_access_time, access_count` | Guarda só a **hora** do primeiro e do último acesso: com `TIMESTAMP`, valeria `first_access_at → access_date`, um determinante que não é chave (fora da FNBC) |
+| `tb_ui_click_counter` | `id_counter` (sempre 1) | `id_counter →` cada contador | **Exceção consciente à 1FN**: as colunas contadoras são um grupo repetido (uma por coisa clicável). É de propósito: o produto precisa só do total de cliques de cada botão, com `UPDATE coluna = coluna + 1`, sem histórico. Como a tabela tem uma linha só, não há redundância nem anomalia de atualização. Custo: elemento novo = `ADD COLUMN` |
 
 ### Governança
 
