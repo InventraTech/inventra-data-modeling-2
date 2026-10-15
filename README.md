@@ -6,7 +6,7 @@
 
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?logo=postgresql&logoColor=white)
 [![Migrations](https://github.com/InventraTech/inventra-database-2/actions/workflows/migrations.yml/badge.svg)](https://github.com/InventraTech/inventra-database-2/actions/workflows/migrations.yml)
-![Migrations](https://img.shields.io/badge/migrations-V001--V013-blue)
+![Migrations](https://img.shields.io/badge/migrations-V001--V014-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 </div>
@@ -37,7 +37,7 @@ Banco de dados do projeto interdisciplinar **Inventra**. Este repositório é a 
 | **Governança** | Catálogo de dados: descrição, regra de negócio e nível de acesso de cada tabela e coluna |
 | **Backup** | Backup gerenciado (Aiven) + `pg_dump` com restore testado no CI + recuperação de linha pela auditoria |
 | **Monitoramento** | DAU registrado pelo próprio banco a cada login (trigger em `tb_user.last_login`), com `vw_dau` e `vw_dau_by_kitchen` |
-| **Entrega** | Migrations idempotentes `V001`–`V013`, com rollback e validação no CI |
+| **Entrega** | Migrations idempotentes `V001`–`V014`, com rollback e validação no CI |
 
 ## Arquitetura
 
@@ -45,7 +45,7 @@ O projeto separa o **dicionário** (código de leitura, um arquivo por assunto) 
 
 ```mermaid
 flowchart LR
-    D["Dicionário<br/>ddl · functions · procedures · triggers · views"] -->|consolidado em| M["migrations<br/>V001 … V013"]
+    D["Dicionário<br/>ddl · functions · procedures · triggers · views"] -->|consolidado em| M["migrations<br/>V001 … V014"]
     M -->|psql / CI| DB[("PostgreSQL")]
     M -->|cópia byte a byte| API["ms-inventra-api<br/>Flyway"]
     DB --> BI["Power BI / Metabase<br/>dim_* · fact_*"]
@@ -66,6 +66,7 @@ flowchart LR
 | `V011__backup_and_recovery.sql` | Histórico de backup (`tb_backup_history`), recuperação pela auditoria e `vw_backup_status` |
 | `V012__normalization_integrity.sql` | Protege as redundâncias controladas: `divergence` sempre recalculada e alerta com produto e cozinha do lote |
 | `V013__daily_active_users.sql` | Registro automático de acessos (`tb_user_daily_access`) e DAU (`vw_dau`, `vw_dau_by_kitchen`) |
+| `V014__ui_click_counter.sql` | Contador de cliques: uma linha, uma coluna por coisa clicável do web e do mobile (`tb_ui_click_counter`), e `vw_ui_click_ranking` |
 
 Detalhes, convenções e decisões de design em [`docs/ARCHITECTURE.md`](postgre/docs/ARCHITECTURE.md).
 
@@ -109,7 +110,7 @@ jupyter notebook seeds/seed.ipynb
 | **Cadastros base** | `tb_user`, `tb_profile`, `tb_kitchen`, `tb_product`, `tb_category`, `tb_measurement_unit`, `tb_supplier` |
 | **Relacionamentos** | `tb_product_supplier`, `tb_product_kitchen_parameter` |
 | **Movimentações** | `tb_stock_batch`, `tb_requisition`, `tb_requisition_item`, `tb_inventory`, `tb_inventory_count`, `tb_stock_movement` |
-| **Eventos** | `tb_alert`, `tb_alert_read`, `tb_user_daily_access` |
+| **Eventos** | `tb_alert`, `tb_alert_read`, `tb_user_daily_access`, `tb_ui_click_counter` |
 | **Auditoria** | `tb_log_base` + `tb_log_user`, `tb_log_product`, `tb_log_supplier`, `tb_log_stock_batch`, `tb_log_requisition`, `tb_log_inventory`, `tb_log_alert` |
 | **Governança** | `tb_catalog_access_level`, `tb_catalog_table`, `tb_catalog_column`, `tb_backup_history` |
 
@@ -139,7 +140,7 @@ postgre/
 ├── triggers/        # gatilhos de negócio e de auditoria
 ├── views/           # vw_*  ·  datamart/ (dim_*, fact_*)  ·  analytics/  ·  catalog/  ·  backup/  ·  monitoring/
 │                    #   (cada pasta tem subpasta rollback/)
-├── migrations/      # V001–V013 + rollback/drop_everything.sql
+├── migrations/      # V001–V014 + rollback/drop_everything.sql
 ├── backup/          # backup.sh e restore.sh (pg_dump); dumps/ fica fora do git
 ├── seeds/           # seed.ipynb + requirements.txt
 ├── tests/           # migrations (idempotência + rollback), integridade, DAU, backup/restore e dicionário × migrations
@@ -158,6 +159,7 @@ postgre/
    bash postgre/tests/check_migrations.sh
    psql -X -q -v ON_ERROR_STOP=1 -f postgre/tests/check_normalization_integrity.sql
    psql -X -q -v ON_ERROR_STOP=1 -f postgre/tests/check_daily_access.sql
+   psql -X -q -v ON_ERROR_STOP=1 -f postgre/tests/check_ui_click_counter.sql
    bash postgre/tests/check_backup_restore.sh
    bash postgre/tests/check_dictionary_sync.sh
    ```
@@ -167,9 +169,10 @@ postgre/
    | `check_migrations.sh` | Aplica as migrations, reaplica (idempotência), faz rollback completo e reaplica do zero |
    | `check_normalization_integrity.sql` | As triggers que protegem as redundâncias controladas (`divergence` e alerta × lote) |
    | `check_daily_access.sql` | O registro de acessos pela trigger e os números de `vw_dau` e `vw_dau_by_kitchen` |
+   | `check_ui_click_counter.sql` | A linha única do contador de cliques, a soma por coluna, `vw_ui_click_ranking` e o catálogo das colunas |
    | `check_backup_restore.sh` | Recuperação pela auditoria, backup, restore em banco novo e contagens iguais |
    | `check_dictionary_sync.sh` | O dicionário gera exatamente o mesmo schema e catálogo que as migrations |
-3. O CI roda esses cinco testes em cada push/PR que toque `postgre/`.
+3. O CI roda esses seis testes em cada push/PR que toque `postgre/`.
 4. A API copia `V001`+ byte a byte para o Flyway; nunca edite migration direto lá.
 
 > `RAISE EXCEPTION` das functions e procedures fica em português de propósito: a API repassa a mensagem ao cliente nas respostas 409.

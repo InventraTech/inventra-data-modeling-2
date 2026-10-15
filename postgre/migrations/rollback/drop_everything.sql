@@ -1,10 +1,10 @@
 -- =====================================================
--- FULL TEARDOWN — reverses V001 through V013
+-- FULL TEARDOWN — reverses V001 through V014
 -- =====================================================
 -- WARNING: destructive and irreversible. Drops every table
 -- (and all data in them), view, function, procedure, trigger,
 -- constraint and index created by this project, including the
--- data catalog, backup history and access history (DAU). Take
+-- data catalog, backup history and access history (DAU), UI click counter. Take
 -- a backup first (postgre/backup/backup.sh). Seed data lives in
 -- the tables, so it goes with them.
 --
@@ -20,6 +20,14 @@
 -- on the database outside this repo (e.g. ad-hoc BI views) that
 -- depends on them is removed too. Back up those definitions
 -- first if they need to be recreated afterward.
+
+-- ---------------------------------------------------
+-- UI CLICK COUNTER
+-- ---------------------------------------------------
+
+DROP VIEW IF EXISTS vw_ui_click_ranking;
+
+DROP TABLE IF EXISTS tb_ui_click_counter;
 
 -- ---------------------------------------------------
 -- MONITORING (DAU)

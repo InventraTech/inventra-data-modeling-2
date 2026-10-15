@@ -104,3 +104,43 @@ SELECT
 FROM daily d
 JOIN tb_kitchen k ON k.id_kitchen = d.id_kitchen
 LEFT JOIN kitchen_users ku ON ku.id_kitchen = d.id_kitchen;
+
+-- ---------------------------------------------------
+-- UI CLICK VIEWS
+-- ---------------------------------------------------
+
+-- Transforma as colunas do contador (uma linha só) em uma linha por elemento clicável.
+-- Coluna nova no contador aparece aqui sozinha. platform e type_code saem do nome da coluna
+-- (tipo_plataforma_tela_nome); a descrição vem do catálogo de dados. Elemento com 0 cliques
+-- aparece com 0 (botão morto). share_pct e rank_in_platform comparam dentro da mesma plataforma.
+CREATE OR REPLACE VIEW vw_ui_click_ranking AS
+WITH counters AS (
+    SELECT
+        j.key AS column_name,
+        j.value::BIGINT AS clicks
+    FROM tb_ui_click_counter c
+    CROSS JOIN LATERAL jsonb_each_text(to_jsonb(c) - 'id_counter') AS j
+),
+base AS (
+    SELECT
+        c.column_name,
+        CASE split_part(c.column_name, '_', 2)
+            WHEN 'wb' THEN 'WEB'
+            WHEN 'mb' THEN 'MOBILE'
+        END AS platform,
+        split_part(c.column_name, '_', 1) AS type_code,
+        cc.description,
+        c.clicks
+    FROM counters c
+    LEFT JOIN tb_catalog_table t ON t.table_name = 'tb_ui_click_counter'
+    LEFT JOIN tb_catalog_column cc ON cc.id_catalog_table = t.id_catalog_table AND cc.column_name = c.column_name
+)
+SELECT
+    b.column_name,
+    b.platform,
+    b.type_code,
+    b.description,
+    b.clicks,
+    ROUND(100.0 * b.clicks / NULLIF(SUM(b.clicks) OVER (PARTITION BY b.platform), 0), 1) AS share_pct,
+    RANK() OVER (PARTITION BY b.platform ORDER BY b.clicks DESC) AS rank_in_platform
+FROM base b;

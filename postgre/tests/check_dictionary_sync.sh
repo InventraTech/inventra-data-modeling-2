@@ -34,6 +34,7 @@ DICTIONARY=(
   functions/create_monitoring_functions.sql
   triggers/create_monitoring_trg.sql
   views/monitoring/create_monitoring_views.sql
+  ddl/monitoring/load_ui_click_counter.sql
   ddl/catalog/load_catalog_metadata.sql
 )
 

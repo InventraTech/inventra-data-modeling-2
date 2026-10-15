@@ -123,3 +123,74 @@ A seção 16 do `seeds/seed.ipynb` gera 90 dias de histórico coerente com `tb_u
 | `triggers/create_monitoring_trg.sql` | `trg_register_daily_access` |
 | `views/monitoring/create_monitoring_views.sql` | `vw_dau` e `vw_dau_by_kitchen` |
 | `migrations/V013__daily_active_users.sql` | Tudo acima, com guardas de idempotência e os metadados do catálogo |
+
+## Contador de cliques (V014)
+
+Além de quem acessa (DAU), o banco conta **quantas vezes cada coisa clicável do Inventra foi clicada**, no web e no mobile. Ficam de fora só campo de digitação e o touch de login. Criado em `migrations/V014__ui_click_counter.sql`.
+
+É **uma tabela com uma linha só** (`tb_ui_click_counter`, `id_counter = 1`) e **uma coluna por coisa clicável**. Cada coluna é um contador: quando alguém clica, o método do sistema soma 1 na coluna do elemento.
+
+```sql
+-- clicou em "Salvar" no perfil (mobile)
+UPDATE tb_ui_click_counter
+SET bt_mb_profile_data_save = bt_mb_profile_data_save + 1;
+```
+
+O `UPDATE` é atômico: dois cliques ao mesmo tempo não perdem contagem. A tabela não guarda quem clicou nem quando, só o total.
+
+### Nome da coluna
+
+`tipo_plataforma_tela_nome`, em inglês como o resto do banco. `wb` é web e `mb` é mobile.
+
+| Tipo | Significado | Tipo | Significado |
+|------|-------------|------|-------------|
+| `bt` | button (botão) | `radio` | radio |
+| `toggle` | toggle (conta os cliques, não guarda ligado ou desligado) | `checkbox` | checkbox |
+| `tab` | aba | `link` | link |
+| `nav` | navigation item (sidebar e barra de menu) | `fab` | floating action button (botão flutuante) |
+| `chip` | chip | `icon` | icon button (botão só com ícone) |
+| `filter` | filtro | `page` | paginação |
+| `select` | dropdown ou seletor de data | `card` | card ou item de lista clicável |
+
+Exemplos: `bt_wb_login_sign_in`, `nav_wb_global_stock`, `toggle_wb_accessibility_high_contrast`, `fab_mb_global_ocr_entry`.
+
+A tela `global` no nome indica o elemento presente em várias telas (sidebar, topbar, barra de menu, botão de OCR do mobile). **Botão repetido que faz a mesma coisa tem uma coluna só.** O mesmo texto com função diferente (por exemplo, "Cancelar" em telas diferentes) é coluna diferente, e os filtros de categoria existem separados em Fornecedores e Produtos porque filtram listas diferentes.
+
+São 300 colunas (178 web e 122 mobile), levantadas tela por tela nas abas Web Inventra Redesign e Mobile Inventra v2 do Figma. Ficaram de fora campo de digitação, touch de login, sliders (só arrastam) e textos de leitura. Cada uma tem descrição no catálogo de dados (`tb_catalog_column`), com tipo, tela e plataforma.
+
+### Elemento novo
+
+Botão novo no produto vira coluna nova, numa migration nova (a V014 não se altera):
+
+```sql
+ALTER TABLE tb_ui_click_counter ADD COLUMN IF NOT EXISTS bt_wb_stock_export BIGINT NOT NULL DEFAULT 0;
+-- e o metadado em tb_catalog_column (INSERT ... ON CONFLICT, como na V014)
+```
+
+`vw_ui_click_ranking` enxerga a coluna nova sozinha. Se um botão sair do produto, não apague a coluna (o total acumulado se perderia): deixe de incrementá-la.
+
+### `vw_ui_click_ranking`
+
+Transforma a linha única em **uma linha por elemento**: `column_name`, `platform` (`WEB` ou `MOBILE`, tirada do nome), `type_code`, `description` (do catálogo), `clicks`, `share_pct` (participação dentro da plataforma) e `rank_in_platform`. Elemento com 0 cliques aparece com 0, o que mostra botão que ninguém usa.
+
+```sql
+SELECT column_name, description, clicks, rank_in_platform
+FROM vw_ui_click_ranking
+WHERE platform = 'MOBILE'
+ORDER BY clicks DESC
+LIMIT 10;
+```
+
+### Testes
+
+`tests/check_ui_click_counter.sql` roda no CI numa transação desfeita no fim e confere: a linha única (uma segunda linha é recusada), a soma de 1 por clique só na coluna certa, a view (uma linha por coluna, plataforma preenchida, valores iguais aos da tabela) e a descrição de toda coluna no catálogo.
+
+### Arquivos da V014
+
+| Arquivo | Conteúdo |
+|---------|----------|
+| `ddl/monitoring/create_monitoring_tables.sql` | `tb_ui_click_counter` e o check da linha única |
+| `ddl/monitoring/load_ui_click_counter.sql` | Cria a linha única (sem zerar se já existir) |
+| `views/monitoring/create_monitoring_views.sql` | `vw_ui_click_ranking` |
+| `migrations/V014__ui_click_counter.sql` | Tudo acima, com guardas de idempotência e os metadados do catálogo |
+| `docs/modeling/logical/V4/ui_click_model_v1.png` e `.json` | Modelo lógico do contador: imagem e JSON no formato do DrawDB, como os outros modelos em `docs/modeling` |
