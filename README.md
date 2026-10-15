@@ -86,7 +86,7 @@ flowchart LR
     IAI -->|HTTP| API
 
     API -->|Flyway| PG[("PostgreSQL<br/>cadastro · estoque · auditoria")]
-    API --> RD[("Redis<br/>tokens · acesso · fila")]
+    API --> RD[("Redis<br/>tokens · acesso · fila · ranking")]
     IAI --> MG[("MongoDB<br/>dbIAI: sessions · metrics")]
     PG --> BI["Power BI / Metabase<br/>dim_* · fact_*"]
 
@@ -309,7 +309,7 @@ mongo/
 ├── tests/           # migrations (idempotência + rollback), contrato, índices e dicionário × migrations
 └── docs/            # MONGO_MODEL.md
 redis/
-├── commands/        # comandos de cada operação (.redis): auth/, kitchen-access/, product-queue/
+├── commands/        # comandos de cada operação (.redis): auth/, kitchen-access/, product-queue/, ranking/
 ├── config/          # redis.conf de referência (noeviction, AOF)
 ├── src/             # aplicação Spring, scripts Lua e testes das INV2-24/25/26
 ├── tests/           # redis.conf aplicado num redis:7 e KEYSPACE.md × commands/

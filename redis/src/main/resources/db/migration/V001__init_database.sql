@@ -172,14 +172,14 @@ CREATE TABLE IF NOT EXISTS tb_alert (
 
 DO $$
 BEGIN
-	IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_user_profile') THEN	
+	IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'fk_user_profile') THEN
 		ALTER TABLE tb_user
 		ADD CONSTRAINT fk_user_profile
 		FOREIGN KEY (id_profile) REFERENCES tb_profile (id_profile)
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -190,7 +190,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -201,7 +201,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -212,7 +212,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -223,7 +223,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -234,7 +234,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -245,7 +245,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -256,7 +256,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -267,7 +267,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -278,7 +278,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -289,7 +289,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -300,7 +300,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -311,7 +311,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -322,7 +322,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -333,7 +333,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -344,7 +344,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -355,7 +355,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -366,7 +366,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -377,7 +377,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -388,7 +388,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -399,7 +399,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -410,7 +410,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -421,7 +421,7 @@ BEGIN
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
@@ -431,7 +431,7 @@ BEGIN
 		FOREIGN KEY (id_batch) REFERENCES tb_stock_batch (id_batch)
 		ON UPDATE NO ACTION ON DELETE NO ACTION;
 	END IF;
-END;		
+END;
 $$;
 
 -- ---------------------------------------------------
@@ -442,172 +442,172 @@ DO $$
 BEGIN
 	IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_supplier_rating') THEN
 		ALTER TABLE tb_supplier
-		ADD CONSTRAINT ck_supplier_rating 
+		ADD CONSTRAINT ck_supplier_rating
 		CHECK (rating BETWEEN 1 AND 5);
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
 	IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_batch_status') THEN
 		ALTER TABLE tb_stock_batch
-		ADD CONSTRAINT ck_batch_status 
+		ADD CONSTRAINT ck_batch_status
 		CHECK (status IN ('ACTIVE', 'WRITTEN_OFF', 'EXPIRED', 'CANCELLED'));
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
 	IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_requisition_status') THEN
 		ALTER TABLE tb_requisition
-		ADD CONSTRAINT ck_requisition_status 
+		ADD CONSTRAINT ck_requisition_status
 		CHECK (status IN ('UNDER_REVIEW', 'APPROVED', 'REJECTED', 'CANCELLED'));
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
 	IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_requisition_type') THEN
 		ALTER TABLE tb_requisition
-		ADD CONSTRAINT ck_requisition_type 
+		ADD CONSTRAINT ck_requisition_type
 		CHECK (requisition_type IN ('PURCHASE', 'TRANSFER', 'CONSUMPTION'));
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
 	IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_inventory_status') THEN
 		ALTER TABLE tb_inventory
-		ADD CONSTRAINT ck_inventory_status 
+		ADD CONSTRAINT ck_inventory_status
 		CHECK (status IN ('OPEN', 'CLOSED', 'CANCELLED'));
 	END IF;
 END;
-$$;		
+$$;
 
 DO $$
 BEGIN
 	IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_alert_severity') THEN
 		ALTER TABLE tb_alert
-		ADD CONSTRAINT ck_alert_severity 
+		ADD CONSTRAINT ck_alert_severity
 		CHECK (severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL'));
 	END IF;
 END;
-$$;		
+$$;
 
 -- ---------------------------------------------------
 -- INDEX CREATION
 -- ---------------------------------------------------
 
-CREATE INDEX IF NOT EXISTS idx_user_profile 
+CREATE INDEX IF NOT EXISTS idx_user_profile
 ON tb_user (id_profile);
 
-CREATE INDEX IF NOT EXISTS idx_user_kitchen 
+CREATE INDEX IF NOT EXISTS idx_user_kitchen
 ON tb_user (id_kitchen);
 
-CREATE INDEX IF NOT EXISTS idx_user_email 
+CREATE INDEX IF NOT EXISTS idx_user_email
 ON tb_user (email);
 
-CREATE INDEX IF NOT EXISTS idx_user_active 
+CREATE INDEX IF NOT EXISTS idx_user_active
 ON tb_user (active);
 
-CREATE INDEX IF NOT EXISTS idx_product_category 
+CREATE INDEX IF NOT EXISTS idx_product_category
 ON tb_product (id_category);
 
-CREATE INDEX IF NOT EXISTS idx_product_unit 
+CREATE INDEX IF NOT EXISTS idx_product_unit
 ON tb_product (id_unit);
 
-CREATE INDEX IF NOT EXISTS idx_product_barcode 
+CREATE INDEX IF NOT EXISTS idx_product_barcode
 ON tb_product (barcode);
 
-CREATE INDEX IF NOT EXISTS idx_product_active 
+CREATE INDEX IF NOT EXISTS idx_product_active
 ON tb_product (active);
 
-CREATE INDEX IF NOT EXISTS idx_productsupplier_product 
+CREATE INDEX IF NOT EXISTS idx_productsupplier_product
 ON tb_product_supplier (id_product);
 
-CREATE INDEX IF NOT EXISTS idx_productsupplier_supplier 
+CREATE INDEX IF NOT EXISTS idx_productsupplier_supplier
 ON tb_product_supplier (id_supplier);
 
-CREATE INDEX IF NOT EXISTS idx_parameter_product 
+CREATE INDEX IF NOT EXISTS idx_parameter_product
 ON tb_product_kitchen_parameter (id_product);
 
-CREATE INDEX IF NOT EXISTS idx_parameter_kitchen 
+CREATE INDEX IF NOT EXISTS idx_parameter_kitchen
 ON tb_product_kitchen_parameter (id_kitchen);
 
-CREATE INDEX IF NOT EXISTS idx_batch_product 
+CREATE INDEX IF NOT EXISTS idx_batch_product
 ON tb_stock_batch (id_product);
 
-CREATE INDEX IF NOT EXISTS idx_batch_kitchen 
+CREATE INDEX IF NOT EXISTS idx_batch_kitchen
 ON tb_stock_batch (id_kitchen);
 
-CREATE INDEX IF NOT EXISTS idx_batch_supplier 
+CREATE INDEX IF NOT EXISTS idx_batch_supplier
 ON tb_stock_batch (id_supplier);
 
-CREATE INDEX IF NOT EXISTS idx_batch_status 
+CREATE INDEX IF NOT EXISTS idx_batch_status
 ON tb_stock_batch (status);
 
-CREATE INDEX IF NOT EXISTS idx_batch_expiration_date 
+CREATE INDEX IF NOT EXISTS idx_batch_expiration_date
 ON tb_stock_batch (expiration_date);
 
-CREATE INDEX IF NOT EXISTS idx_requisition_kitchen 
+CREATE INDEX IF NOT EXISTS idx_requisition_kitchen
 ON tb_requisition (id_kitchen);
 
-CREATE INDEX IF NOT EXISTS idx_requisition_requester_user 
+CREATE INDEX IF NOT EXISTS idx_requisition_requester_user
 ON tb_requisition (id_requester_user);
 
-CREATE INDEX IF NOT EXISTS idx_requisition_approver_user 
+CREATE INDEX IF NOT EXISTS idx_requisition_approver_user
 ON tb_requisition (id_approver_user);
 
-CREATE INDEX IF NOT EXISTS idx_requisition_status 
+CREATE INDEX IF NOT EXISTS idx_requisition_status
 ON tb_requisition (status);
 
-CREATE INDEX IF NOT EXISTS idx_requisition_created_at 
+CREATE INDEX IF NOT EXISTS idx_requisition_created_at
 ON tb_requisition (created_at);
 
-CREATE INDEX IF NOT EXISTS idx_requisitionitem_requisition 
+CREATE INDEX IF NOT EXISTS idx_requisitionitem_requisition
 ON tb_requisition_item (id_requisition);
 
-CREATE INDEX IF NOT EXISTS idx_requisitionitem_product 
+CREATE INDEX IF NOT EXISTS idx_requisitionitem_product
 ON tb_requisition_item (id_product);
 
-CREATE INDEX IF NOT EXISTS idx_requisitionitem_supplier 
+CREATE INDEX IF NOT EXISTS idx_requisitionitem_supplier
 ON tb_requisition_item (id_suggested_supplier);
 
-CREATE INDEX IF NOT EXISTS idx_inventory_kitchen 
+CREATE INDEX IF NOT EXISTS idx_inventory_kitchen
 ON tb_inventory (id_kitchen);
 
-CREATE INDEX IF NOT EXISTS idx_inventory_user 
+CREATE INDEX IF NOT EXISTS idx_inventory_user
 ON tb_inventory (id_responsible_user);
 
-CREATE INDEX IF NOT EXISTS idx_inventory_status 
+CREATE INDEX IF NOT EXISTS idx_inventory_status
 ON tb_inventory (status);
 
-CREATE INDEX IF NOT EXISTS idx_count_inventory 
+CREATE INDEX IF NOT EXISTS idx_count_inventory
 ON tb_inventory_count (id_inventory);
 
-CREATE INDEX IF NOT EXISTS idx_count_batch 
+CREATE INDEX IF NOT EXISTS idx_count_batch
 ON tb_inventory_count (id_batch);
 
-CREATE INDEX IF NOT EXISTS idx_alert_kitchen 
+CREATE INDEX IF NOT EXISTS idx_alert_kitchen
 ON tb_alert (id_kitchen);
 
-CREATE INDEX IF NOT EXISTS idx_alert_product 
+CREATE INDEX IF NOT EXISTS idx_alert_product
 ON tb_alert (id_product);
 
-CREATE INDEX IF NOT EXISTS idx_alert_batch 
+CREATE INDEX IF NOT EXISTS idx_alert_batch
 ON tb_alert (id_batch);
 
-CREATE INDEX IF NOT EXISTS idx_alert_is_read 
+CREATE INDEX IF NOT EXISTS idx_alert_is_read
 ON tb_alert (is_read);
 
-CREATE INDEX IF NOT EXISTS idx_alert_severity 
+CREATE INDEX IF NOT EXISTS idx_alert_severity
 ON tb_alert (severity);
 
-CREATE INDEX IF NOT EXISTS idx_alert_created_at 
+CREATE INDEX IF NOT EXISTS idx_alert_created_at
 ON tb_alert (created_at);
 
 CREATE INDEX IF NOT EXISTS idx_batch_kitchen_status_expiration

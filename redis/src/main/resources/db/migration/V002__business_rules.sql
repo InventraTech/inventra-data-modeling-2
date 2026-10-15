@@ -514,7 +514,7 @@ BEGIN
         EXECUTE FUNCTION fn_validate_stock();
     END IF;
 END;
-$$;        
+$$;
 
 DO $$
 BEGIN
@@ -526,7 +526,7 @@ BEGIN
         EXECUTE FUNCTION fn_update_batch_status();
     END IF;
 END;
-$$;        
+$$;
 
 DO $$
 BEGIN

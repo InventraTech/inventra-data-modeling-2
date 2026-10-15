@@ -67,7 +67,7 @@ BEGIN
         VALUES
         (NEW.id_user, TG_OP, CURRENT_USER, NULL, to_jsonb(NEW));
 
-        RETURN NEW;  
+        RETURN NEW;
 
     ELSIF TG_OP = 'UPDATE' THEN
 
